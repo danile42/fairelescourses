@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,8 @@ import '../providers/home_location_provider.dart';
 import '../providers/supermarket_provider.dart';
 import '../services/firestore_service.dart';
 import '../services/nominatim_service.dart';
+import '../services/overpass_service.dart';
+import 'store_editor_screen.dart';
 
 const _uuid = Uuid();
 
@@ -24,7 +27,10 @@ class ShopSearchScreen extends ConsumerStatefulWidget {
 
 class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
   TextEditingController? _autoCtrl;
-  List<ShopSearchResult> _results = [];
+  // Firestore results (shops with full layout data)
+  List<ShopSearchResult> _firestoreResults = [];
+  // OSM-only results (shops not yet in Firestore, no layout data)
+  List<OsmShop> _osmResults = [];
   bool _loading = false;
   bool _searched = false;
   bool _geocoding = false;
@@ -38,17 +44,20 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     super.dispose();
   }
 
+  void _clearResults() {
+    _firestoreResults = [];
+    _osmResults = [];
+    _searched = false;
+  }
+
   void _onChanged(String q) {
     _debounce?.cancel();
     if (_mode == _SearchMode.byLocation) {
-      // Location search is triggered on submit only
-      if (q.trim().length < 2) {
-        setState(() { _results = []; _searched = false; });
-      }
+      if (q.trim().length < 2) setState(_clearResults);
       return;
     }
     if (q.trim().length < 2) {
-      setState(() { _results = []; _searched = false; });
+      setState(_clearResults);
       return;
     }
     _debounce = Timer(const Duration(milliseconds: 400), () => _search(q.trim()));
@@ -57,56 +66,104 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
   Future<void> _search(String q) async {
     setState(() => _loading = true);
     try {
-      List<ShopSearchResult> results;
       if (_mode == _SearchMode.byLocation) {
-        final home = ref.read(homeLocationProvider);
-        double? lat, lng;
-        if (_nearMe && home != null) {
-          lat = home.lat;
-          lng = home.lng;
-        } else {
-          setState(() => _geocoding = true);
-          final coords = await NominatimService.geocode(q);
-          if (!mounted) return;
-          setState(() => _geocoding = false);
-          if (coords == null) {
-            setState(() { _loading = false; _searched = true; _results = []; });
-            final l = AppLocalizations.of(context)!;
-            ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text(l.geocodeFailed)));
-            return;
-          }
-          lat = coords.lat;
-          lng = coords.lng;
-        }
-        results = await FirestoreService.searchNearby(lat, lng, 25.0);
+        await _searchByLocation(q);
       } else {
         final shops = _mode == _SearchMode.byItem
             ? await FirestoreService.searchByItem(q)
             : await FirestoreService.searchByName(q);
-        results = shops.map((s) => ShopSearchResult(shop: s)).toList();
-      }
-      if (mounted) {
-        setState(() { _results = results; _loading = false; _searched = true; });
+        if (mounted) {
+          setState(() {
+            _firestoreResults = shops.map((s) => ShopSearchResult(shop: s)).toList();
+            _osmResults = [];
+            _loading = false;
+            _searched = true;
+          });
+        }
       }
     } catch (_) {
       if (mounted) setState(() { _loading = false; _searched = true; });
     }
   }
 
+  Future<void> _searchByLocation(String q) async {
+    final home = ref.read(homeLocationProvider);
+    double lat, lng;
+
+    if (_nearMe && home != null) {
+      lat = home.lat;
+      lng = home.lng;
+    } else {
+      setState(() => _geocoding = true);
+      final coords = await NominatimService.geocode(q);
+      if (!mounted) return;
+      setState(() => _geocoding = false);
+      if (coords == null) {
+        setState(() { _loading = false; _searched = true; });
+        final l = AppLocalizations.of(context)!;
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(l.geocodeFailed)));
+        return;
+      }
+      lat = coords.lat;
+      lng = coords.lng;
+    }
+
+    // Run Firestore (25 km) and Overpass (2 km) in parallel
+    final futures = await Future.wait([
+      FirestoreService.searchNearby(lat, lng, 25.0),
+      OverpassService.searchNearby(lat, lng, 2000),
+    ]);
+
+    if (!mounted) return;
+    final firestoreHits = futures[0] as List<ShopSearchResult>;
+    final osmHits = futures[1] as List<OsmShop>;
+
+    // Remove OSM shops already represented in Firestore results
+    final osmOnly = osmHits.where((osm) => !_coveredByFirestore(osm, firestoreHits)).toList();
+
+    setState(() {
+      _firestoreResults = firestoreHits;
+      _osmResults = osmOnly;
+      _loading = false;
+      _searched = true;
+    });
+  }
+
+  /// True if an OSM shop already has a matching entry in the Firestore results
+  /// (same name or within 200 m).
+  bool _coveredByFirestore(OsmShop osm, List<ShopSearchResult> hits) {
+    final name = osm.name.toLowerCase();
+    for (final r in hits) {
+      if (r.shop.name.toLowerCase() == name) return true;
+      final sLat = r.shop.lat;
+      final sLng = r.shop.lng;
+      if (sLat != null && sLng != null && _haversine(osm.lat, osm.lng, sLat, sLng) < 0.2) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  static double _haversine(double lat1, double lng1, double lat2, double lng2) {
+    const r = 6371.0;
+    final dLat = (lat2 - lat1) * pi / 180;
+    final dLng = (lng2 - lng1) * pi / 180;
+    final a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(lat1 * pi / 180) * cos(lat2 * pi / 180) *
+            sin(dLng / 2) * sin(dLng / 2);
+    return r * 2 * atan2(sqrt(a), sqrt(1 - a));
+  }
+
   void _switchMode(_SearchMode mode) {
     _autoCtrl?.clear();
     setState(() {
       _mode = mode;
-      _results = [];
-      _searched = false;
+      _clearResults();
     });
-    // Auto-search when switching to "By location" with Near Me enabled
     if (mode == _SearchMode.byLocation) {
       final home = ref.read(homeLocationProvider);
-      if (_nearMe && home != null) {
-        _search('');
-      }
+      if (_nearMe && home != null) _search('');
     }
   }
 
@@ -130,7 +187,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     await ref.read(supermarketsProvider.notifier).add(copy);
     if (!mounted) return;
     messenger.showSnackBar(SnackBar(content: Text(l.shopImported)));
-    setState(() {}); // refresh "known" badges
+    setState(() {});
   }
 
   @override
@@ -189,8 +246,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                     onSelected: (val) {
                       setState(() {
                         _nearMe = val;
-                        _results = [];
-                        _searched = false;
+                        _clearResults();
                       });
                       if (val) {
                         _autoCtrl?.clear();
@@ -247,25 +303,20 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                     textInputAction: TextInputAction.search,
                     onSubmitted: (q) {
                       _debounce?.cancel();
-                      if (_mode == _SearchMode.byLocation) {
-                        if (q.trim().length >= 2) _search(q.trim());
-                      } else {
-                        if (q.trim().length >= 2) _search(q.trim());
-                      }
+                      if (q.trim().length >= 2) _search(q.trim());
                     },
                   );
                 },
               ),
             ),
-          Expanded(child: _buildResults(context, l, knownNames, theme)),
+          Expanded(child: _buildResults(context, l, knownNames, stores, theme)),
         ],
       ),
     );
   }
 
   Widget _buildResults(BuildContext context, AppLocalizations l,
-      Set<String> knownNames, ThemeData theme) {
-    // "Near me" with no location set
+      Set<String> knownNames, List<Supermarket> stores, ThemeData theme) {
     if (_mode == _SearchMode.byLocation) {
       final homeLoc = ref.read(homeLocationProvider);
       if (_nearMe && homeLoc == null && !_searched) {
@@ -281,56 +332,147 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     }
 
     if (!_searched) {
-      if (_mode == _SearchMode.byLocation && _nearMe) {
-        return const SizedBox.shrink();
-      }
+      if (_mode == _SearchMode.byLocation && _nearMe) return const SizedBox.shrink();
       return Center(
-        child: Text(l.searchShopsMinChars,
-            style: const TextStyle(color: Colors.grey)),
+        child: Text(l.searchShopsMinChars, style: const TextStyle(color: Colors.grey)),
       );
     }
-    if (_loading && _results.isEmpty) return const SizedBox.shrink();
-    if (_results.isEmpty) {
-      return Center(
-          child: Text(l.noShopsFound,
-              style: const TextStyle(color: Colors.grey)));
+    if (_loading && _firestoreResults.isEmpty && _osmResults.isEmpty) {
+      return const SizedBox.shrink();
     }
 
+    final hasFirestore = _firestoreResults.isNotEmpty;
+    final hasOsm = _osmResults.isNotEmpty;
+
+    if (!hasFirestore && !hasOsm) {
+      return Center(
+          child: Text(l.noShopsFound, style: const TextStyle(color: Colors.grey)));
+    }
+
+    // Build a flat list: Firestore results, then divider, then OSM results
+    final firestoreCount = _firestoreResults.length;
+    final osmCount = _osmResults.length;
+    // Items: firestoreCount + (divider if both) + osmCount
+    final showDivider = hasFirestore && hasOsm;
+    final totalItems = firestoreCount + (showDivider ? 1 : 0) + osmCount;
+
     return ListView.builder(
-      itemCount: _results.length,
+      itemCount: totalItems + (hasOsm ? 1 : 0), // +1 for attribution footer
       itemBuilder: (context, i) {
-        final result = _results[i];
-        final shop = result.shop;
-        final known = knownNames.contains(shop.name.toLowerCase());
-        final distText = result.distanceKm != null
-            ? l.distanceKm(result.distanceKm!.toStringAsFixed(1))
-            : null;
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          child: ListTile(
-            leading: const Icon(Icons.store_outlined),
-            title: Text(shop.name),
-            subtitle: Text([
-              '${shop.rows.length}×${shop.cols.length}  •  ${shop.cells.length} cells',
-              ?distText,
-              ?shop.address,
-            ].nonNulls.join('  •  ')),
-            trailing: known
-                ? Chip(
-                    label: Text(l.shopAlreadyKnown,
-                        style: TextStyle(
-                            color: theme.colorScheme.onSecondaryContainer,
-                            fontSize: 12)),
-                    backgroundColor: theme.colorScheme.secondaryContainer,
-                    padding: EdgeInsets.zero,
-                  )
-                : FilledButton(
-                    onPressed: () => _import(context, shop),
-                    child: Text(l.importShop),
-                  ),
-          ),
-        );
+        // Attribution footer at the very end
+        if (i == totalItems) {
+          return Padding(
+            padding: const EdgeInsets.all(8),
+            child: Text(
+              l.osmAttribution,
+              style: theme.textTheme.labelSmall?.copyWith(color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
+          );
+        }
+
+        // Divider between sections
+        if (showDivider && i == firestoreCount) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+            child: Row(children: [
+              const Expanded(child: Divider()),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(l.osmShopsTitle,
+                    style: theme.textTheme.labelSmall?.copyWith(color: Colors.grey)),
+              ),
+              const Expanded(child: Divider()),
+            ]),
+          );
+        }
+
+        // Firestore result
+        if (i < firestoreCount) {
+          return _buildFirestoreCard(context, l, _firestoreResults[i], knownNames, theme);
+        }
+
+        // OSM result
+        final osmIndex = i - firestoreCount - (showDivider ? 1 : 0);
+        return _buildOsmCard(context, l, _osmResults[osmIndex], stores, knownNames, theme);
       },
+    );
+  }
+
+  Widget _buildFirestoreCard(BuildContext context, AppLocalizations l,
+      ShopSearchResult result, Set<String> knownNames, ThemeData theme) {
+    final shop = result.shop;
+    final known = knownNames.contains(shop.name.toLowerCase());
+    final distText = result.distanceKm != null
+        ? l.distanceKm(result.distanceKm!.toStringAsFixed(1))
+        : null;
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: ListTile(
+        leading: const Icon(Icons.store_outlined),
+        title: Text(shop.name),
+        subtitle: Text([
+          '${shop.rows.length}×${shop.cols.length}  •  ${shop.cells.length} cells',
+          ?distText,
+          ?shop.address,
+        ].nonNulls.join('  •  ')),
+        trailing: known
+            ? Chip(
+                label: Text(l.shopAlreadyKnown,
+                    style: TextStyle(
+                        color: theme.colorScheme.onSecondaryContainer,
+                        fontSize: 12)),
+                backgroundColor: theme.colorScheme.secondaryContainer,
+                padding: EdgeInsets.zero,
+              )
+            : FilledButton(
+                onPressed: () => _import(context, shop),
+                child: Text(l.importShop),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildOsmCard(BuildContext context, AppLocalizations l, OsmShop osm,
+      List<Supermarket> stores, Set<String> knownNames, ThemeData theme) {
+    // Check if already in the user's local database
+    final alreadyLocal = knownNames.contains(osm.name.toLowerCase()) ||
+        stores.any((s) =>
+            s.lat != null &&
+            s.lng != null &&
+            _haversine(osm.lat, osm.lng, s.lat!, s.lng!) < 0.2);
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: ListTile(
+        leading: Icon(Icons.store_outlined, color: theme.colorScheme.secondary),
+        title: Text(osm.name),
+        subtitle: Text([?osm.address].nonNulls.join('  •  ')),
+        trailing: alreadyLocal
+            ? Chip(
+                label: Text(l.alreadyDefined,
+                    style: TextStyle(
+                        color: theme.colorScheme.onSecondaryContainer,
+                        fontSize: 12)),
+                backgroundColor: theme.colorScheme.secondaryContainer,
+                padding: EdgeInsets.zero,
+              )
+            : FilledButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => StoreEditorScreen(
+                      prefill: (
+                        name: osm.name,
+                        address: osm.address,
+                        lat: osm.lat,
+                        lng: osm.lng,
+                      ),
+                    ),
+                  ),
+                ),
+                child: Text(l.createShop),
+              ),
+      ),
     );
   }
 }
