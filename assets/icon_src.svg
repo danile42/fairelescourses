@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Background circle -->
+  <circle cx="512" cy="512" r="512" fill="#E8F5E9"/>
+
+  <!-- Stall frame / back wall -->
+  <rect x="160" y="340" width="704" height="420" rx="12" fill="#8D6E63"/>
+  <rect x="180" y="360" width="664" height="380" rx="8" fill="#A1887F"/>
+
+  <!-- Striped awning - alternating color stripes -->
+  <clipPath id="awning-clip">
+    <polygon points="120,200 904,200 960,360 64,360"/>
+  </clipPath>
+  <polygon points="120,200 904,200 960,360 64,360" fill="#E53935"/>
+  <rect x="64" y="200" width="75" height="160" fill="#E53935" clip-path="url(#awning-clip)"/>
+  <rect x="139" y="200" width="75" height="160" fill="#FFF9C4" clip-path="url(#awning-clip)"/>
+  <rect x="214" y="200" width="75" height="160" fill="#E53935" clip-path="url(#awning-clip)"/>
+  <rect x="289" y="200" width="75" height="160" fill="#FFF9C4" clip-path="url(#awning-clip)"/>
+  <rect x="364" y="200" width="75" height="160" fill="#E53935" clip-path="url(#awning-clip)"/>
+  <rect x="439" y="200" width="75" height="160" fill="#FFF9C4" clip-path="url(#awning-clip)"/>
+  <rect x="514" y="200" width="75" height="160" fill="#E53935" clip-path="url(#awning-clip)"/>
+  <rect x="589" y="200" width="75" height="160" fill="#FFF9C4" clip-path="url(#awning-clip)"/>
+  <rect x="664" y="200" width="75" height="160" fill="#E53935" clip-path="url(#awning-clip)"/>
+  <rect x="739" y="200" width="75" height="160" fill="#FFF9C4" clip-path="url(#awning-clip)"/>
+  <rect x="814" y="200" width="75" height="160" fill="#E53935" clip-path="url(#awning-clip)"/>
+  <rect x="889" y="200" width="75" height="160" fill="#FFF9C4" clip-path="url(#awning-clip)"/>
+  <!-- Awning outline -->
+  <polygon points="120,200 904,200 960,360 64,360" fill="none" stroke="#B71C1C" stroke-width="8"/>
+  <!-- Awning scalloped edge -->
+  <path d="M64,360 Q96,395 128,360 Q160,395 192,360 Q224,395 256,360 Q288,395 320,360 Q352,395 384,360 Q416,395 448,360 Q480,395 512,360 Q544,395 576,360 Q608,395 640,360 Q672,395 704,360 Q736,395 768,360 Q800,395 832,360 Q864,395 896,360 Q928,395 960,360"
+        fill="none" stroke="#B71C1C" stroke-width="8"/>
+  <!-- Scallop fill -->
+  <path d="M64,360 Q96,395 128,360 Q160,395 192,360 Q224,395 256,360 Q288,395 320,360 Q352,395 384,360 Q416,395 448,360 Q480,395 512,360 Q544,395 576,360 Q608,395 640,360 Q672,395 704,360 Q736,395 768,360 Q800,395 832,360 Q864,395 896,360 Q928,395 960,360 L960,380 Q928,415 896,380 Q864,415 832,380 Q800,415 768,380 Q736,415 704,380 Q672,415 640,380 Q608,415 576,380 Q544,415 512,380 Q480,415 448,380 Q416,415 384,380 Q352,415 320,380 Q288,415 256,380 Q224,415 192,380 Q160,415 128,380 Q96,415 64,380 Z"
+        fill="#E53935"/>
+
+  <!-- Counter / display table -->
+  <rect x="140" y="560" width="744" height="30" rx="6" fill="#5D4037"/>
+  <rect x="160" y="480" width="704" height="88" rx="8" fill="#795548"/>
+
+  <!-- Produce display on counter -->
+  <!-- Green lettuce/cabbage left -->
+  <ellipse cx="240" cy="510" rx="55" ry="45" fill="#2E7D32"/>
+  <ellipse cx="240" cy="495" rx="45" ry="35" fill="#388E3C"/>
+  <ellipse cx="225" cy="505" rx="28" ry="22" fill="#43A047"/>
+  <ellipse cx="255" cy="500" rx="28" ry="22" fill="#43A047"/>
+
+  <!-- Orange/tomatoes center-left -->
+  <circle cx="360" cy="505" r="32" fill="#E64A19"/>
+  <circle cx="408" cy="510" r="28" fill="#F4511E"/>
+  <circle cx="340" cy="520" r="24" fill="#BF360C"/>
+  <path d="M360,473 Q365,460 370,473" stroke="#2E7D32" stroke-width="6" fill="none"/>
+
+  <!-- Yellow bananas center -->
+  <path d="M470,540 Q490,490 530,480 Q560,475 570,495 Q555,510 520,515 Q490,525 475,545 Z" fill="#F9A825"/>
+  <path d="M480,535 Q500,490 535,482 Q558,478 565,493" stroke="#F57F17" stroke-width="5" fill="none"/>
+
+  <!-- Purple grapes right-center -->
+  <circle cx="640" cy="525" r="20" fill="#6A1B9A"/>
+  <circle cx="665" cy="515" r="20" fill="#7B1FA2"/>
+  <circle cx="655" cy="540" r="20" fill="#8E24AA"/>
+  <circle cx="630" cy="540" r="18" fill="#9C27B0"/>
+  <circle cx="648" cy="505" r="18" fill="#6A1B9A"/>
+  <!-- Grape stem -->
+  <path d="M650,485 Q660,470 670,475" stroke="#4A148C" stroke-width="6" fill="none"/>
+
+  <!-- Red apples right -->
+  <circle cx="760" cy="508" r="32" fill="#C62828"/>
+  <circle cx="800" cy="515" r="28" fill="#D32F2F"/>
+  <path d="M760,476 Q765,462 758,458 Q770,455 768,476" fill="#2E7D32"/>
+
+  <!-- Support poles -->
+  <rect x="180" y="360" width="24" height="440" rx="6" fill="#6D4C41"/>
+  <rect x="820" y="360" width="24" height="440" rx="6" fill="#6D4C41"/>
+
+  <!-- Sign banner -->
+  <rect x="260" y="390" width="504" height="75" rx="10" fill="#FFF8E1" stroke="#F9A825" stroke-width="5"/>
+  <text x="512" y="445" font-family="sans-serif" font-size="48" font-weight="bold" text-anchor="middle" fill="#E65100">Le marché</text>
+</svg>

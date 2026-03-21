@@ -1,0 +1,134 @@
+{
+  "@@locale": "de",
+  "appTitle": "Fairelescourses",
+  "homeTitle": "Einkaufslisten",
+  "newList": "Neue Liste",
+  "importText": "Importieren",
+  "noLists": "Noch keine Einkaufslisten.\nTippe auf +, um eine zu erstellen.",
+  "noShops": "Noch keine Märkte definiert.",
+  "shops": "Märkte",
+  "newShop": "Neuer Markt",
+  "editShop": "Markt bearbeiten",
+  "shopName": "Name des Markts",
+  "rows": "Reihen (z. B. A B C D E)",
+  "cols": "Spalten (z. B. 1 2 3 4 5)",
+  "entrance": "Eingangsfeld (z. B. A1)",
+  "exit": "Ausgangsfeld (z. B. E5)",
+  "cellGoods": "Waren (kommagetrennt)",
+  "cellGoodsAll": "Alle Waren in {cell}",
+  "@cellGoodsAll": {
+    "placeholders": {
+      "cell": { "type": "String" }
+    }
+  },
+  "save": "Speichern",
+  "cancel": "Abbrechen",
+  "delete": "Löschen",
+  "deleteConfirm": "\"{name}\" löschen?",
+  "@deleteConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "yes": "Ja",
+  "no": "Nein",
+  "listName": "Listenname",
+  "addItem": "Artikel hinzufügen",
+  "itemHint": "z. B. Milch",
+  "generatePlan": "Plan erstellen",
+  "navigationTitle": "Navigation",
+  "shop": "Markt",
+  "progress": "{done}/{total} Artikel",
+  "@progress": {
+    "placeholders": {
+      "done": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "unmatched": "In keinem Markt gefunden",
+  "done": "Fertig",
+  "finish": "Abschließen",
+  "shareShop": "Markt teilen",
+  "shareList": "Liste teilen",
+  "importTitle": "Importieren",
+  "importHint": "Markt-Definition oder Einkaufsliste hier einfügen…",
+  "importAction": "Importieren",
+  "importError": "Text konnte nicht gelesen werden. Bitte Format prüfen.",
+  "importSuccess": "Erfolgreich importiert.",
+  "appendToExisting": "An bestehende Liste anhängen",
+  "importAsNew": "Als neue Liste importieren",
+  "selectList": "Liste auswählen",
+  "stopItems": "Holen: {items}",
+  "@stopItems": {
+    "placeholders": {
+      "items": { "type": "String" }
+    }
+  },
+  "preferredShops": "Bevorzugte Märkte (optional)",
+  "noItemsInList": "Noch keine Artikel. Tippe auf +.",
+  "planReady": "Plan bereit",
+  "editCell": "Feld {cell} bearbeiten",
+  "@editCell": {
+    "placeholders": {
+      "cell": { "type": "String" }
+    }
+  },
+  "gridRows": "Reihen",
+  "gridCols": "Spalten",
+  "editGrid": "Raster bearbeiten",
+  "setEntrance": "Als Eingang setzen",
+  "setExit": "Als Ausgang setzen",
+  "exportFormat": "Textformat",
+  "allItemsChecked": "Alle Artikel eingesammelt!",
+  "nextShop": "Nächster Markt",
+  "listEditor": "Liste bearbeiten",
+  "shopEditor": "Markt bearbeiten",
+  "moreGoods": "+{n} weitere",
+  "ok": "OK",
+  "searchShops": "Märkte suchen",
+  "searchShopsHint": "Marktname eingeben…",
+  "searchItemHint": "Artikelname eingeben…",
+  "searchShopsMinChars": "Mindestens 2 Zeichen eingeben.",
+  "noShopsFound": "Keine Märkte gefunden.",
+  "shopAlreadyKnown": "Bereits bekannt",
+  "shopImported": "Markt importiert.",
+  "importShop": "Importieren",
+  "searchByName": "Nach Name",
+  "searchByItem": "Nach Artikel",
+  "syncTitle": "Synchronisierung",
+  "yourHouseholdId": "Deine Haushalt-ID",
+  "createHousehold": "Neuen Haushalt erstellen",
+  "joinHousehold": "Haushalt beitreten",
+  "joinHouseholdHint": "6-stelligen Code eingeben",
+  "joinHouseholdInvalid": "Code muss genau 6 Zeichen haben (A–Z, 0–9).",
+  "leaveHousehold": "Haushalt verlassen",
+  "leaveHouseholdConfirm": "Synchronisierung beenden und Haushalt verlassen?",
+  "shareHouseholdId": "ID teilen",
+  "copiedToClipboard": "Kopiert!",
+  "unsavedChanges": "Du hast ungespeicherte Änderungen. Verwerfen?",
+  "discardChanges": "Verwerfen",
+  "keepEditing": "Weiter bearbeiten",
+  "searchByLocation": "Nach Ort",
+  "homeLocation": "Heimatort",
+  "setHomeLocation": "Setzen",
+  "homeLocationHint": "Stadt oder Adresse…",
+  "homeLocationSaved": "Heimatort gespeichert.",
+  "homeLocationCleared": "Heimatort gelöscht.",
+  "geocodeFailed": "Ort nicht gefunden. Bitte anderen Begriff eingeben.",
+  "nearMe": "In der Nähe (25 km)",
+  "distanceKm": "{distance} km",
+  "@distanceKm": {
+    "placeholders": {
+      "distance": { "type": "String" }
+    }
+  },
+  "shopAddress": "Adresse (optional)",
+  "locationSearchHint": "Ort eingeben…",
+  "noLocationSet": "Kein Heimatort gesetzt. Gehe zu Synchronisierung.",
+  "geocoding": "Suche Ort…",
+  "@moreGoods": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  }
+}

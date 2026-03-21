@@ -1,0 +1,134 @@
+{
+  "@@locale": "en",
+  "appTitle": "Fairelescourses",
+  "homeTitle": "Shopping Lists",
+  "newList": "New List",
+  "importText": "Import",
+  "noLists": "No shopping lists yet.\nTap + to create one.",
+  "noShops": "No shops defined yet.",
+  "shops": "Shops",
+  "newShop": "New Shop",
+  "editShop": "Edit Shop",
+  "shopName": "Shop name",
+  "rows": "Rows (e.g. A B C D E)",
+  "cols": "Columns (e.g. 1 2 3 4 5)",
+  "entrance": "Entrance cell (e.g. A1)",
+  "exit": "Exit cell (e.g. E5)",
+  "cellGoods": "Goods (comma-separated)",
+  "cellGoodsAll": "All goods in {cell}",
+  "@cellGoodsAll": {
+    "placeholders": {
+      "cell": { "type": "String" }
+    }
+  },
+  "save": "Save",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "deleteConfirm": "Delete \"{name}\"?",
+  "@deleteConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "yes": "Yes",
+  "no": "No",
+  "listName": "List name",
+  "addItem": "Add item",
+  "itemHint": "e.g. Milk",
+  "generatePlan": "Generate Plan",
+  "navigationTitle": "Navigation",
+  "shop": "Shop",
+  "progress": "{done}/{total} items",
+  "@progress": {
+    "placeholders": {
+      "done": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "unmatched": "Not found in any shop",
+  "done": "Done",
+  "finish": "Finish",
+  "shareShop": "Share shop",
+  "shareList": "Share list",
+  "importTitle": "Import",
+  "importHint": "Paste a shop definition or shopping list here…",
+  "importAction": "Import",
+  "importError": "Could not parse the text. Please check the format.",
+  "importSuccess": "Imported successfully.",
+  "appendToExisting": "Append to existing list",
+  "importAsNew": "Import as new list",
+  "selectList": "Select list",
+  "stopItems": "Pick: {items}",
+  "@stopItems": {
+    "placeholders": {
+      "items": { "type": "String" }
+    }
+  },
+  "preferredShops": "Preferred shops (optional)",
+  "noItemsInList": "No items yet. Tap + to add.",
+  "planReady": "Plan ready",
+  "editCell": "Edit cell {cell}",
+  "@editCell": {
+    "placeholders": {
+      "cell": { "type": "String" }
+    }
+  },
+  "gridRows": "Rows",
+  "gridCols": "Columns",
+  "editGrid": "Edit Grid",
+  "setEntrance": "Set as entrance",
+  "setExit": "Set as exit",
+  "exportFormat": "Text Format",
+  "allItemsChecked": "All items collected!",
+  "nextShop": "Next shop",
+  "listEditor": "Edit List",
+  "shopEditor": "Edit Shop",
+  "moreGoods": "+{n} more",
+  "ok": "OK",
+  "searchShops": "Search shops",
+  "searchShopsHint": "Type a shop name…",
+  "searchItemHint": "Type an item name…",
+  "searchShopsMinChars": "Type at least 2 characters to search.",
+  "noShopsFound": "No shops found.",
+  "shopAlreadyKnown": "In your list",
+  "shopImported": "Shop imported.",
+  "importShop": "Import",
+  "searchByName": "By name",
+  "searchByItem": "By item",
+  "syncTitle": "Sync",
+  "yourHouseholdId": "Your household ID",
+  "createHousehold": "Create new household",
+  "joinHousehold": "Join household",
+  "joinHouseholdHint": "Enter 6-character code",
+  "joinHouseholdInvalid": "Code must be exactly 6 characters (A–Z, 0–9).",
+  "leaveHousehold": "Leave household",
+  "leaveHouseholdConfirm": "Stop syncing and leave this household?",
+  "shareHouseholdId": "Share ID",
+  "copiedToClipboard": "Copied!",
+  "unsavedChanges": "You have unsaved changes. Discard them?",
+  "discardChanges": "Discard",
+  "keepEditing": "Keep editing",
+  "searchByLocation": "By location",
+  "homeLocation": "Home location",
+  "setHomeLocation": "Set",
+  "homeLocationHint": "City or address…",
+  "homeLocationSaved": "Home location saved.",
+  "homeLocationCleared": "Home location cleared.",
+  "geocodeFailed": "Location not found. Try a different address.",
+  "nearMe": "Near me (25 km)",
+  "distanceKm": "{distance} km",
+  "@distanceKm": {
+    "placeholders": {
+      "distance": { "type": "String" }
+    }
+  },
+  "shopAddress": "Address (optional)",
+  "locationSearchHint": "Enter a location to search…",
+  "noLocationSet": "No home location set. Go to Sync to set one.",
+  "geocoding": "Finding location…",
+  "@moreGoods": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  }
+}

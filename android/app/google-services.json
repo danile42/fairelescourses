@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1089873679581",
+    "project_id": "fairelescourses-app",
+    "storage_bucket": "fairelescourses-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1089873679581:android:9f9becc58003bbdd133734",
+        "android_client_info": {
+          "package_name": "com.fairelescourses.fairelescourses"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCwipHghjjx5jfru6nf6PAMf255YpAwCw0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
