@@ -126,6 +126,14 @@
   "locationSearchHint": "Ort eingeben…",
   "noLocationSet": "Kein Heimatort gesetzt. Gehe zu Synchronisierung.",
   "geocoding": "Suche Ort…",
+  "findNearby": "In der Nähe suchen",
+  "osmShopsTitle": "Nahegelegene Märkte (OpenStreetMap)",
+  "createShop": "Erstellen",
+  "alreadyDefined": "Bereits vorhanden",
+  "noOsmShopsFound": "Keine Supermärkte in der Nähe gefunden.",
+  "osmSearching": "Suche nahegelegene Supermärkte…",
+  "setLocationFirst": "Lege zuerst einen Heimatort in Synchronisierung fest.",
+  "osmAttribution": "Marktdaten © OpenStreetMap-Mitwirkende (ODbL)",
   "@moreGoods": {
     "placeholders": {
       "n": { "type": "int" }

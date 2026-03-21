@@ -308,4 +308,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get geocoding => 'Finding location…';
+
+  @override
+  String get findNearby => 'Find nearby';
+
+  @override
+  String get osmShopsTitle => 'Nearby shops (OpenStreetMap)';
+
+  @override
+  String get createShop => 'Create';
+
+  @override
+  String get alreadyDefined => 'Already defined';
+
+  @override
+  String get noOsmShopsFound => 'No supermarkets found nearby.';
+
+  @override
+  String get osmSearching => 'Searching nearby supermarkets…';
+
+  @override
+  String get setLocationFirst => 'Set a home location in Sync first.';
+
+  @override
+  String get osmAttribution => 'Shop data © OpenStreetMap contributors (ODbL)';
 }

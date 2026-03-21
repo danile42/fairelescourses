@@ -667,6 +667,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Finding location…'**
   String get geocoding;
+
+  /// No description provided for @findNearby.
+  ///
+  /// In en, this message translates to:
+  /// **'Find nearby'**
+  String get findNearby;
+
+  /// No description provided for @osmShopsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby shops (OpenStreetMap)'**
+  String get osmShopsTitle;
+
+  /// No description provided for @createShop.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get createShop;
+
+  /// No description provided for @alreadyDefined.
+  ///
+  /// In en, this message translates to:
+  /// **'Already defined'**
+  String get alreadyDefined;
+
+  /// No description provided for @noOsmShopsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No supermarkets found nearby.'**
+  String get noOsmShopsFound;
+
+  /// No description provided for @osmSearching.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching nearby supermarkets…'**
+  String get osmSearching;
+
+  /// No description provided for @setLocationFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a home location in Sync first.'**
+  String get setLocationFirst;
+
+  /// No description provided for @osmAttribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop data © OpenStreetMap contributors (ODbL)'**
+  String get osmAttribution;
 }
 
 class _AppLocalizationsDelegate

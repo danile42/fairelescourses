@@ -312,4 +312,29 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get geocoding => 'Suche Ort…';
+
+  @override
+  String get findNearby => 'In der Nähe suchen';
+
+  @override
+  String get osmShopsTitle => 'Nahegelegene Märkte (OpenStreetMap)';
+
+  @override
+  String get createShop => 'Erstellen';
+
+  @override
+  String get alreadyDefined => 'Bereits vorhanden';
+
+  @override
+  String get noOsmShopsFound => 'Keine Supermärkte in der Nähe gefunden.';
+
+  @override
+  String get osmSearching => 'Suche nahegelegene Supermärkte…';
+
+  @override
+  String get setLocationFirst =>
+      'Lege zuerst einen Heimatort in Synchronisierung fest.';
+
+  @override
+  String get osmAttribution => 'Marktdaten © OpenStreetMap-Mitwirkende (ODbL)';
 }

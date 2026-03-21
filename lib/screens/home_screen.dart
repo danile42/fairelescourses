@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fairelescourses/l10n/app_localizations.dart';
 
+import '../providers/home_location_provider.dart';
 import '../providers/shopping_list_provider.dart';
 import '../providers/supermarket_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,6 +12,7 @@ import '../models/shopping_list.dart';
 import '../services/text_parser.dart';
 import '../services/share_service.dart';
 import 'list_editor_screen.dart';
+import 'osm_shops_screen.dart';
 import 'store_editor_screen.dart';
 import 'import_screen.dart';
 import 'navigation_screen.dart';
@@ -104,11 +106,35 @@ class _HomeFabState extends ConsumerState<_HomeFab> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final homeLoc = ref.watch(homeLocationProvider);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         if (_expanded) ...[
+          _MiniButton(
+            label: l.findNearby,
+            icon: Icons.location_searching,
+            onTap: () {
+              setState(() => _expanded = false);
+              if (homeLoc == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l.setLocationFirst)));
+                return;
+              }
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => OsmShopsScreen(
+                    lat: homeLoc.lat,
+                    lng: homeLoc.lng,
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 8),
           _MiniButton(
             label: l.newShop,
             icon: Icons.store,

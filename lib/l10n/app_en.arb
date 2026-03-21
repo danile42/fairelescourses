@@ -126,6 +126,14 @@
   "locationSearchHint": "Enter a location to search…",
   "noLocationSet": "No home location set. Go to Sync to set one.",
   "geocoding": "Finding location…",
+  "findNearby": "Find nearby",
+  "osmShopsTitle": "Nearby shops (OpenStreetMap)",
+  "createShop": "Create",
+  "alreadyDefined": "Already defined",
+  "noOsmShopsFound": "No supermarkets found nearby.",
+  "osmSearching": "Searching nearby supermarkets…",
+  "setLocationFirst": "Set a home location in Sync first.",
+  "osmAttribution": "Shop data © OpenStreetMap contributors (ODbL)",
   "@moreGoods": {
     "placeholders": {
       "n": { "type": "int" }
