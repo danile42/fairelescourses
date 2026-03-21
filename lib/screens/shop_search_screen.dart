@@ -191,6 +191,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       address: source.address,
       lat: source.lat,
       lng: source.lng,
+      parentId: source.id,
     );
     await ref.read(supermarketsProvider.notifier).add(copy);
     if (!mounted) return;

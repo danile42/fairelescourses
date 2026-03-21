@@ -35,6 +35,10 @@ class Supermarket extends HiveObject {
   @HiveField(9)
   double? lng;
 
+  /// Firestore ID of the shop this was copied from, if any.
+  @HiveField(10)
+  String? parentId;
+
   /// Firebase Auth UID of the creator. Not persisted to Hive — populated
   /// from Firestore metadata so the UI can gate edit/delete controls.
   String? ownerUid;
@@ -50,6 +54,7 @@ class Supermarket extends HiveObject {
     this.address,
     this.lat,
     this.lng,
+    this.parentId,
     this.ownerUid,
   });
 
@@ -99,6 +104,7 @@ class Supermarket extends HiveObject {
         if (address != null) 'address': address,
         if (lat != null) 'lat': lat,
         if (lng != null) 'lng': lng,
+        if (parentId != null) 'parentId': parentId,
       };
 
   factory Supermarket.fromMap(Map<String, dynamic> m) => Supermarket(
@@ -114,6 +120,7 @@ class Supermarket extends HiveObject {
         address: m['address'] as String?,
         lat: (m['lat'] as num?)?.toDouble(),
         lng: (m['lng'] as num?)?.toDouble(),
+        parentId: m['parentId'] as String?,
       );
 
   Supermarket copyWith({
@@ -126,6 +133,7 @@ class Supermarket extends HiveObject {
     Object? address = _sentinel,
     Object? lat = _sentinel,
     Object? lng = _sentinel,
+    Object? parentId = _sentinel,
   }) =>
       Supermarket(
         id: id,
@@ -138,6 +146,7 @@ class Supermarket extends HiveObject {
         address: address == _sentinel ? this.address : address as String?,
         lat: lat == _sentinel ? this.lat : lat as double?,
         lng: lng == _sentinel ? this.lng : lng as double?,
+        parentId: parentId == _sentinel ? this.parentId : parentId as String?,
       );
 }
 

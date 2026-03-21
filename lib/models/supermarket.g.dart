@@ -28,13 +28,14 @@ class SupermarketAdapter extends TypeAdapter<Supermarket> {
       address: fields[7] as String?,
       lat: fields[8] as double?,
       lng: fields[9] as double?,
+      parentId: fields[10] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Supermarket obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -54,7 +55,9 @@ class SupermarketAdapter extends TypeAdapter<Supermarket> {
       ..writeByte(8)
       ..write(obj.lat)
       ..writeByte(9)
-      ..write(obj.lng);
+      ..write(obj.lng)
+      ..writeByte(10)
+      ..write(obj.parentId);
   }
 
   @override
