@@ -12,6 +12,7 @@ import '../models/shopping_list.dart';
 import '../services/text_parser.dart';
 import '../services/share_service.dart';
 import 'list_editor_screen.dart';
+import 'easter_egg_screen.dart';
 import 'osm_shops_screen.dart';
 import 'store_editor_screen.dart';
 import 'import_screen.dart';
@@ -23,11 +24,33 @@ import 'package:uuid/uuid.dart';
 
 const _uuid = Uuid();
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  int _titleTaps = 0;
+
+  void _onTitleTap() {
+    _titleTaps++;
+    if (_titleTaps >= 7) {
+      _titleTaps = 0;
+      Navigator.of(context).push(
+        PageRouteBuilder(
+          pageBuilder: (_, a, b) => const EasterEggScreen(),
+          transitionsBuilder: (_, animation, b, child) =>
+              FadeTransition(opacity: animation, child: child),
+          transitionDuration: const Duration(milliseconds: 500),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final lists = ref.watch(shoppingListsProvider);
     final stores = ref.watch(supermarketsProvider);
@@ -38,7 +61,10 @@ class HomeScreen extends ConsumerWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(l.appTitle),
+          title: GestureDetector(
+            onTap: _onTitleTap,
+            child: Text(l.appTitle),
+          ),
           backgroundColor: Theme.of(context).colorScheme.primary,
           foregroundColor: Colors.white,
           actions: [
