@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 const _positiveMessages = [
+  // Warm & uplifting
   'Your friends love you.',
   'You are stronger than you think.',
   'Something wonderful is about to happen.',
@@ -21,6 +24,17 @@ const _positiveMessages = [
   'You have faced hard things before, and you rose each time.',
   'Someone out there wishes they had your courage.',
   'Today is not the whole story — the best chapters are ahead.',
+  // Grounded & realistic
+  'Not every day needs to be great. Today just needs to be okay.',
+  'You don\'t have to fix everything today.',
+  'Progress isn\'t always visible — but it\'s still happening.',
+  'It\'s okay to ask for help. That\'s what people are for.',
+  'You are allowed to change your mind.',
+  'Feeling overwhelmed just means you care deeply.',
+  'Rest is not giving up — it\'s how you keep going.',
+  'Some days the win is just getting through it. That counts.',
+  'You don\'t have to be cheerful all the time. You just have to keep showing up.',
+  'The messy middle is still part of the story.',
 ];
 
 class EasterEggScreen extends StatefulWidget {
@@ -31,23 +45,35 @@ class EasterEggScreen extends StatefulWidget {
 }
 
 class _EasterEggScreenState extends State<EasterEggScreen> {
-  // null  → show the initial button
-  // false → show message + question
-  // true  → answered yes, closing
-  bool? _answeredYes;
-  int _messageIndex = 0;
+  bool _started = false;
+  late List<String> _shuffled;
+  int _index = 0;
 
-  void _onButtonPressed() {
-    setState(() => _answeredYes = false);
+  @override
+  void initState() {
+    super.initState();
+    _shuffled = List.of(_positiveMessages)..shuffle(Random());
   }
 
-  void _onYes() {
-    Navigator.of(context).pop();
-  }
+  String get _currentMessage => _shuffled[_index];
+
+  void _onButtonPressed() => setState(() => _started = true);
+
+  void _onYes() => Navigator.of(context).pop();
 
   void _onNo() {
     setState(() {
-      _messageIndex = (_messageIndex + 1) % _positiveMessages.length;
+      _index++;
+      if (_index >= _shuffled.length) {
+        // Reshuffle for the next round, avoiding the same message twice in a row
+        final last = _shuffled.last;
+        _shuffled = List.of(_positiveMessages)..shuffle(Random());
+        if (_shuffled.first == last && _shuffled.length > 1) {
+          final swap = _shuffled.removeAt(1);
+          _shuffled.insert(0, swap);
+        }
+        _index = 0;
+      }
     });
   }
 
@@ -73,9 +99,7 @@ class _EasterEggScreenState extends State<EasterEggScreen> {
                   child: child,
                 ),
               ),
-              child: _answeredYes == null
-                  ? _buildEntry(theme)
-                  : _buildQuestion(theme),
+              child: _started ? _buildQuestion(theme) : _buildEntry(theme),
             ),
           ),
         ),
@@ -88,7 +112,7 @@ class _EasterEggScreenState extends State<EasterEggScreen> {
       key: const ValueKey('entry'),
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('✨', style: const TextStyle(fontSize: 64)),
+        const Text('✨', style: TextStyle(fontSize: 64)),
         const SizedBox(height: 32),
         FilledButton(
           onPressed: _onButtonPressed,
@@ -104,13 +128,13 @@ class _EasterEggScreenState extends State<EasterEggScreen> {
 
   Widget _buildQuestion(ThemeData theme) {
     return Column(
-      key: ValueKey('question-$_messageIndex'),
+      key: ValueKey(_currentMessage),
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('💛', style: const TextStyle(fontSize: 48)),
+        const Text('💛', style: TextStyle(fontSize: 48)),
         const SizedBox(height: 24),
         Text(
-          _positiveMessages[_messageIndex],
+          _currentMessage,
           textAlign: TextAlign.center,
           style: theme.textTheme.headlineSmall?.copyWith(
             color: theme.colorScheme.onPrimaryContainer,
