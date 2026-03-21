@@ -34,6 +34,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
   bool _loading = false;
   bool _searched = false;
   bool _geocoding = false;
+  String? _networkError; // non-null when a network-level error occurred
   _SearchMode _mode = _SearchMode.byName;
   bool _nearMe = true;
   Timer? _debounce;
@@ -48,6 +49,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     _firestoreResults = [];
     _osmResults = [];
     _searched = false;
+    _networkError = null;
   }
 
   void _onChanged(String q) {
@@ -81,8 +83,14 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
           });
         }
       }
-    } catch (_) {
-      if (mounted) setState(() { _loading = false; _searched = true; });
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _searched = true;
+          _networkError = e.toString();
+        });
+      }
     }
   }
 
@@ -331,14 +339,33 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       }
     }
 
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_networkError != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.cloud_off, size: 48, color: Colors.grey),
+              const SizedBox(height: 12),
+              Text(l.geocodeFailed,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.grey)),
+            ],
+          ),
+        ),
+      );
+    }
+
     if (!_searched) {
       if (_mode == _SearchMode.byLocation && _nearMe) return const SizedBox.shrink();
       return Center(
         child: Text(l.searchShopsMinChars, style: const TextStyle(color: Colors.grey)),
       );
-    }
-    if (_loading && _firestoreResults.isEmpty && _osmResults.isEmpty) {
-      return const SizedBox.shrink();
     }
 
     final hasFirestore = _firestoreResults.isNotEmpty;
