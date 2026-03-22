@@ -1,41 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-
-const _positiveMessages = [
-  // Warm & uplifting
-  'Your friends love you.',
-  'You are stronger than you think.',
-  'Something wonderful is about to happen.',
-  'The world is better with you in it.',
-  'You have already survived 100 % of your bad days.',
-  'You matter more than you know.',
-  'Somewhere, someone is thinking of you with a smile.',
-  'You are doing better than you feel right now.',
-  'Every expert was once a beginner — keep going.',
-  'Your kindness makes a difference, even when you can\'t see it.',
-  'Hard times are temporary; your strength is permanent.',
-  'You deserve rest, not just productivity.',
-  'Small steps still move you forward.',
-  'The fact that you care so much shows how good you are.',
-  'You are allowed to take up space.',
-  'There is only one you, and that is your superpower.',
-  'Tea, coffee, or a nap — you deserve whichever you need.',
-  'You have faced hard things before, and you rose each time.',
-  'Someone out there wishes they had your courage.',
-  'Today is not the whole story — the best chapters are ahead.',
-  // Grounded & realistic
-  'Not every day needs to be great. Today just needs to be okay.',
-  'You don\'t have to fix everything today.',
-  'Progress isn\'t always visible — but it\'s still happening.',
-  'It\'s okay to ask for help. That\'s what people are for.',
-  'You are allowed to change your mind.',
-  'Feeling overwhelmed just means you care deeply.',
-  'Rest is not giving up — it\'s how you keep going.',
-  'Some days the win is just getting through it. That counts.',
-  'You don\'t have to be cheerful all the time. You just have to keep showing up.',
-  'The messy middle is still part of the story.',
-];
+import 'package:fairelescourses/l10n/app_localizations.dart';
+import 'package:fairelescourses/l10n/easter_messages.dart';
 
 class EasterEggScreen extends StatefulWidget {
   const EasterEggScreen({super.key});
@@ -49,15 +16,17 @@ class _EasterEggScreenState extends State<EasterEggScreen> {
   late List<String> _shuffled;
   int _index = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    _shuffled = List.of(_positiveMessages)..shuffle(Random());
+  void _initMessages() {
+    final msgs = easterMessages(context);
+    _shuffled = List.of(msgs)..shuffle(Random());
   }
 
   String get _currentMessage => _shuffled[_index];
 
-  void _onButtonPressed() => setState(() => _started = true);
+  void _onButtonPressed() => setState(() {
+        _initMessages();
+        _started = true;
+      });
 
   void _onYes() => Navigator.of(context).pop();
 
@@ -67,7 +36,8 @@ class _EasterEggScreenState extends State<EasterEggScreen> {
       if (_index >= _shuffled.length) {
         // Reshuffle for the next round, avoiding the same message twice in a row
         final last = _shuffled.last;
-        _shuffled = List.of(_positiveMessages)..shuffle(Random());
+        final msgs = easterMessages(context);
+        _shuffled = List.of(msgs)..shuffle(Random());
         if (_shuffled.first == last && _shuffled.length > 1) {
           final swap = _shuffled.removeAt(1);
           _shuffled.insert(0, swap);
@@ -108,6 +78,7 @@ class _EasterEggScreenState extends State<EasterEggScreen> {
   }
 
   Widget _buildEntry(ThemeData theme) {
+    final l = AppLocalizations.of(context)!;
     return Column(
       key: const ValueKey('entry'),
       mainAxisSize: MainAxisSize.min,
@@ -120,13 +91,14 @@ class _EasterEggScreenState extends State<EasterEggScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
             textStyle: theme.textTheme.titleLarge,
           ),
-          child: const Text('Everything will be fine!'),
+          child: Text(l.easterButton),
         ),
       ],
     );
   }
 
   Widget _buildQuestion(ThemeData theme) {
+    final l = AppLocalizations.of(context)!;
     return Column(
       key: ValueKey(_currentMessage),
       mainAxisSize: MainAxisSize.min,
@@ -143,7 +115,7 @@ class _EasterEggScreenState extends State<EasterEggScreen> {
         ),
         const SizedBox(height: 40),
         Text(
-          'Do you feel better now?',
+          l.easterQuestion,
           style: theme.textTheme.titleMedium?.copyWith(
             color: theme.colorScheme.onPrimaryContainer,
           ),
@@ -159,7 +131,7 @@ class _EasterEggScreenState extends State<EasterEggScreen> {
                 side: BorderSide(color: theme.colorScheme.onPrimaryContainer),
                 padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
               ),
-              child: const Text('No'),
+              child: Text(l.no),
             ),
             const SizedBox(width: 16),
             FilledButton(
@@ -168,7 +140,7 @@ class _EasterEggScreenState extends State<EasterEggScreen> {
                 backgroundColor: theme.colorScheme.primary,
                 padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
               ),
-              child: const Text('Yes  🎉'),
+              child: Text(l.easterYes),
             ),
           ],
         ),

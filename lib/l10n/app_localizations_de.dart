@@ -337,4 +337,33 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get osmAttribution => 'Marktdaten © OpenStreetMap-Mitwirkende (ODbL)';
+
+  @override
+  String get osmLoadFailed =>
+      'OpenStreetMap-Ergebnisse konnten nicht geladen werden.';
+
+  @override
+  String get retry => 'Erneut versuchen';
+
+  @override
+  String get mapView => 'Karte';
+
+  @override
+  String get listView => 'Liste';
+
+  @override
+  String get brandFilter => 'Marke';
+
+  @override
+  String get noShopsMatchFilter =>
+      'Keine Märkte entsprechen dem ausgewählten Filter.';
+
+  @override
+  String get easterButton => 'Alles wird gut!';
+
+  @override
+  String get easterQuestion => 'Fühlst du dich besser?';
+
+  @override
+  String get easterYes => 'Ja 🎉';
 }

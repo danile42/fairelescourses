@@ -134,6 +134,15 @@
   "osmSearching": "Searching nearby supermarkets…",
   "setLocationFirst": "Set a home location in Sync first.",
   "osmAttribution": "Shop data © OpenStreetMap contributors (ODbL)",
+  "osmLoadFailed": "OpenStreetMap results could not be loaded.",
+  "retry": "Retry",
+  "mapView": "Map",
+  "listView": "List",
+  "brandFilter": "Brand",
+  "noShopsMatchFilter": "No shops match the selected brands.",
+  "easterButton": "Everything will be fine!",
+  "easterQuestion": "Do you feel better now?",
+  "easterYes": "Yes 🎉",
   "@moreGoods": {
     "placeholders": {
       "n": { "type": "int" }

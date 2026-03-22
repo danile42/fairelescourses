@@ -134,6 +134,15 @@
   "osmSearching": "Suche nahegelegene Supermärkte…",
   "setLocationFirst": "Lege zuerst einen Heimatort in Synchronisierung fest.",
   "osmAttribution": "Marktdaten © OpenStreetMap-Mitwirkende (ODbL)",
+  "mapView": "Karte",
+  "listView": "Liste",
+  "brandFilter": "Marke",
+  "noShopsMatchFilter": "Keine Märkte entsprechen dem ausgewählten Filter.",
+  "osmLoadFailed": "OpenStreetMap-Ergebnisse konnten nicht geladen werden.",
+  "retry": "Erneut versuchen",
+  "easterButton": "Alles wird gut!",
+  "easterQuestion": "Fühlst du dich besser?",
+  "easterYes": "Ja 🎉",
   "@moreGoods": {
     "placeholders": {
       "n": { "type": "int" }

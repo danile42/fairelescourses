@@ -11,18 +11,18 @@ final shoppingListBoxProvider = Provider<Box<ShoppingList>>((ref) {
 });
 
 final shoppingListsProvider =
-    StateNotifierProvider<ShoppingListNotifier, List<ShoppingList>>((ref) {
-  final box = ref.watch(shoppingListBoxProvider);
-  return ShoppingListNotifier(box, ref);
-});
+    NotifierProvider<ShoppingListNotifier, List<ShoppingList>>(ShoppingListNotifier.new);
 
-class ShoppingListNotifier extends StateNotifier<List<ShoppingList>> {
-  final Box<ShoppingList> _box;
-  final Ref _ref;
+class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
+  late Box<ShoppingList> _box;
 
-  ShoppingListNotifier(this._box, this._ref) : super(_box.values.toList());
+  @override
+  List<ShoppingList> build() {
+    _box = ref.watch(shoppingListBoxProvider);
+    return _box.values.toList();
+  }
 
-  String? get _hid => _ref.read(householdProvider);
+  String? get _hid => ref.read(householdProvider);
 
   void _sync() => state = _box.values.toList();
 

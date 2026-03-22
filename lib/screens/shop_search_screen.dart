@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fairelescourses/l10n/app_localizations.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/supermarket.dart';
@@ -27,16 +29,20 @@ class ShopSearchScreen extends ConsumerStatefulWidget {
 
 class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
   TextEditingController? _autoCtrl;
-  // Firestore results (shops with full layout data)
   List<ShopSearchResult> _firestoreResults = [];
-  // OSM-only results (shops not yet in Firestore, no layout data)
   List<OsmShop> _osmResults = [];
   bool _loading = false;
   bool _searched = false;
   bool _geocoding = false;
-  String? _networkError; // non-null when a network-level error occurred
+  bool _osmLoading = false;
+  String? _networkError;
+  String? _osmError;
+  double? _lastLat;
+  double? _lastLng;
   _SearchMode _mode = _SearchMode.byName;
   bool _nearMe = true;
+  Set<String> _selectedBrands = {};
+  bool _showMap = false;
   Timer? _debounce;
 
   @override
@@ -50,6 +56,18 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     _osmResults = [];
     _searched = false;
     _networkError = null;
+    _osmError = null;
+    _osmLoading = false;
+    _lastLat = null;
+    _lastLng = null;
+    _selectedBrands = {};
+    _showMap = false;
+  }
+
+  bool get _hasMapData {
+    if (!_searched) return false;
+    return _firestoreResults.any((r) => r.shop.lat != null && r.shop.lng != null) ||
+        _osmResults.isNotEmpty;
   }
 
   void _onChanged(String q) {
@@ -117,29 +135,78 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       lng = coords.lng;
     }
 
-    // Run Firestore (25 km) and Overpass (2 km) in parallel
-    final futures = await Future.wait([
-      FirestoreService.searchNearby(lat, lng, 25.0),
-      OverpassService.searchNearby(lat, lng, 2000),
-    ]);
+    _lastLat = lat;
+    _lastLng = lng;
+
+    setState(() => _osmLoading = true);
+
+    List<ShopSearchResult> firestoreHits;
+    try {
+      firestoreHits = await FirestoreService.searchNearby(lat, lng, 25.0);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _searched = true;
+        _networkError = e.toString();
+        _osmLoading = false;
+      });
+      return;
+    }
 
     if (!mounted) return;
-    final firestoreHits = futures[0] as List<ShopSearchResult>;
-    final osmHits = futures[1] as List<OsmShop>;
-
-    // Remove OSM shops already represented in Firestore results
-    final osmOnly = osmHits.where((osm) => !_coveredByFirestore(osm, firestoreHits)).toList();
-
     setState(() {
       _firestoreResults = firestoreHits;
-      _osmResults = osmOnly;
       _loading = false;
       _searched = true;
     });
+
+    try {
+      final osmHits = await OverpassService.searchNearby(lat, lng, 2000);
+      if (!mounted) return;
+      final osmOnly = osmHits
+          .where((osm) => !_coveredByFirestore(osm, firestoreHits))
+          .toList();
+      setState(() {
+        _osmResults = osmOnly;
+        _osmLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _osmLoading = false;
+        _osmError = e.toString();
+      });
+    }
   }
 
-  /// True if an OSM shop already has a matching entry in the Firestore results
-  /// (same name or within 200 m).
+  Future<void> _retryOsm() async {
+    final lat = _lastLat;
+    final lng = _lastLng;
+    if (lat == null || lng == null) return;
+    setState(() {
+      _osmError = null;
+      _osmLoading = true;
+    });
+    try {
+      final osmHits = await OverpassService.searchNearby(lat, lng, 2000);
+      if (!mounted) return;
+      final osmOnly = osmHits
+          .where((osm) => !_coveredByFirestore(osm, _firestoreResults))
+          .toList();
+      setState(() {
+        _osmResults = osmOnly;
+        _osmLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _osmLoading = false;
+        _osmError = e.toString();
+      });
+    }
+  }
+
   bool _coveredByFirestore(OsmShop osm, List<ShopSearchResult> hits) {
     final name = osm.name.toLowerCase();
     for (final r in hits) {
@@ -161,6 +228,23 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
         cos(lat1 * pi / 180) * cos(lat2 * pi / 180) *
             sin(dLng / 2) * sin(dLng / 2);
     return r * 2 * atan2(sqrt(a), sqrt(1 - a));
+  }
+
+  static String _extractBrand(String name, String? osmBrand) {
+    if (osmBrand != null && osmBrand.isNotEmpty) return osmBrand;
+    final first = name.trim().split(RegExp(r'\s+')).first;
+    return first.isEmpty ? name : first;
+  }
+
+  Set<String> get _availableBrands {
+    final brands = <String>{};
+    for (final r in _firestoreResults) {
+      brands.add(_extractBrand(r.shop.name, null));
+    }
+    for (final osm in _osmResults) {
+      brands.add(_extractBrand(osm.name, osm.brand));
+    }
+    return brands;
   }
 
   void _switchMode(_SearchMode mode) {
@@ -214,11 +298,33 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       ..sort();
     final theme = Theme.of(context);
 
+    // Apply brand filter (empty selection = show all)
+    final filteredFirestore = _selectedBrands.isEmpty
+        ? _firestoreResults
+        : _firestoreResults
+            .where((r) => _selectedBrands.contains(_extractBrand(r.shop.name, null)))
+            .toList();
+    final filteredOsm = _selectedBrands.isEmpty
+        ? _osmResults
+        : _osmResults
+            .where((osm) => _selectedBrands.contains(_extractBrand(osm.name, osm.brand)))
+            .toList();
+
+    final availableBrands = _availableBrands;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(l.searchShops),
         backgroundColor: theme.colorScheme.primary,
         foregroundColor: Colors.white,
+        actions: [
+          if (_hasMapData)
+            IconButton(
+              icon: Icon(_showMap ? Icons.list : Icons.map_outlined),
+              tooltip: _showMap ? l.listView : l.mapView,
+              onPressed: () => setState(() => _showMap = !_showMap),
+            ),
+        ],
       ),
       body: Column(
         children: [
@@ -318,14 +424,33 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                 },
               ),
             ),
-          Expanded(child: _buildResults(context, l, knownNames, stores, theme)),
+          if (_searched && availableBrands.length >= 2)
+            _buildBrandFilter(l, theme, availableBrands),
+          if (_showMap && _hasMapData)
+            Expanded(
+              child: _buildMapView(
+                  context, l, knownNames, stores, theme, filteredFirestore, filteredOsm),
+            )
+          else
+            Expanded(
+              child: _buildResults(
+                  context, l, knownNames, stores, theme, filteredFirestore, filteredOsm),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildResults(BuildContext context, AppLocalizations l,
-      Set<String> knownNames, List<Supermarket> stores, ThemeData theme) {
+  // ── List view ────────────────────────────────────────────────────────────────
+
+  Widget _buildResults(
+      BuildContext context,
+      AppLocalizations l,
+      Set<String> knownNames,
+      List<Supermarket> stores,
+      ThemeData theme,
+      List<ShopSearchResult> filteredFirestore,
+      List<OsmShop> filteredOsm) {
     if (_mode == _SearchMode.byLocation) {
       final homeLoc = ref.read(homeLocationProvider);
       if (_nearMe && homeLoc == null && !_searched) {
@@ -369,26 +494,31 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       );
     }
 
-    final hasFirestore = _firestoreResults.isNotEmpty;
-    final hasOsm = _osmResults.isNotEmpty;
+    final hasFirestore = filteredFirestore.isNotEmpty;
+    final hasOsm = filteredOsm.isNotEmpty;
+    final showOsmSection = hasOsm || _osmLoading || _osmError != null;
 
-    if (!hasFirestore && !hasOsm) {
+    if (!hasFirestore && !showOsmSection) {
       return Center(
-          child: Text(l.noShopsFound, style: const TextStyle(color: Colors.grey)));
+        child: Text(
+          _selectedBrands.isNotEmpty ? l.noShopsMatchFilter : l.noShopsFound,
+          style: const TextStyle(color: Colors.grey),
+        ),
+      );
     }
 
-    // Build a flat list: Firestore results, then divider, then OSM results
-    final firestoreCount = _firestoreResults.length;
-    final osmCount = _osmResults.length;
-    // Items: firestoreCount + (divider if both) + osmCount
-    final showDivider = hasFirestore && hasOsm;
-    final totalItems = firestoreCount + (showDivider ? 1 : 0) + osmCount;
+    final firestoreCount = filteredFirestore.length;
+    final showDivider = hasFirestore && showOsmSection;
+    final osmCount = filteredOsm.length;
+    final osmSectionStart = firestoreCount + (showDivider ? 1 : 0);
+    final osmItemCount = _osmLoading || _osmError != null ? 1 : osmCount;
+    final showAttribution = showOsmSection;
+    final totalItems = osmSectionStart + osmItemCount;
 
     return ListView.builder(
-      itemCount: totalItems + (hasOsm ? 1 : 0), // +1 for attribution footer
+      itemCount: totalItems + (showAttribution ? 1 : 0),
       itemBuilder: (context, i) {
-        // Attribution footer at the very end
-        if (i == totalItems) {
+        if (showAttribution && i == totalItems) {
           return Padding(
             padding: const EdgeInsets.all(8),
             child: Text(
@@ -399,7 +529,6 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
           );
         }
 
-        // Divider between sections
         if (showDivider && i == firestoreCount) {
           return Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
@@ -415,14 +544,42 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
           );
         }
 
-        // Firestore result
         if (i < firestoreCount) {
-          return _buildFirestoreCard(context, l, _firestoreResults[i], knownNames, theme);
+          return _buildFirestoreCard(
+              context, l, filteredFirestore[i], knownNames, theme);
         }
 
-        // OSM result
-        final osmIndex = i - firestoreCount - (showDivider ? 1 : 0);
-        return _buildOsmCard(context, l, _osmResults[osmIndex], stores, knownNames, theme);
+        if (_osmLoading) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (_osmError != null) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            child: Row(
+              children: [
+                const Icon(Icons.cloud_off, size: 18, color: Colors.grey),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(l.osmLoadFailed,
+                      style: const TextStyle(color: Colors.grey)),
+                ),
+                TextButton.icon(
+                  onPressed: _retryOsm,
+                  icon: const Icon(Icons.refresh, size: 18),
+                  label: Text(l.retry),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final osmIndex = i - osmSectionStart;
+        return _buildOsmCard(
+            context, l, filteredOsm[osmIndex], stores, knownNames, theme);
       },
     );
   }
@@ -463,7 +620,6 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
 
   Widget _buildOsmCard(BuildContext context, AppLocalizations l, OsmShop osm,
       List<Supermarket> stores, Set<String> knownNames, ThemeData theme) {
-    // Check if already in the user's local database
     final alreadyLocal = knownNames.contains(osm.name.toLowerCase()) ||
         stores.any((s) =>
             s.lat != null &&
@@ -500,6 +656,242 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                 ),
                 child: Text(l.createShop),
               ),
+      ),
+    );
+  }
+
+  // ── Map view ─────────────────────────────────────────────────────────────────
+
+  Widget _buildMapView(
+      BuildContext context,
+      AppLocalizations l,
+      Set<String> knownNames,
+      List<Supermarket> stores,
+      ThemeData theme,
+      List<ShopSearchResult> filteredFirestore,
+      List<OsmShop> filteredOsm) {
+    final markers = <Marker>[];
+
+    for (final r in filteredFirestore) {
+      final lat = r.shop.lat;
+      final lng = r.shop.lng;
+      if (lat == null || lng == null) continue;
+      final known = knownNames.contains(r.shop.name.toLowerCase());
+      markers.add(Marker(
+        point: LatLng(lat, lng),
+        width: 36,
+        height: 36,
+        child: GestureDetector(
+          onTap: () => _showFirestoreSheet(context, l, r, known, theme),
+          child: Icon(
+            Icons.location_pin,
+            size: 36,
+            color: known ? Colors.grey : theme.colorScheme.primary,
+          ),
+        ),
+      ));
+    }
+
+    for (final osm in filteredOsm) {
+      final alreadyLocal = knownNames.contains(osm.name.toLowerCase()) ||
+          stores.any((s) =>
+              s.lat != null &&
+              s.lng != null &&
+              _haversine(osm.lat, osm.lng, s.lat!, s.lng!) < 0.2);
+      markers.add(Marker(
+        point: LatLng(osm.lat, osm.lng),
+        width: 36,
+        height: 36,
+        child: GestureDetector(
+          onTap: () => _showOsmSheet(context, l, osm, alreadyLocal, stores, knownNames, theme),
+          child: Icon(
+            Icons.location_pin,
+            size: 36,
+            color: alreadyLocal ? Colors.grey : theme.colorScheme.secondary,
+          ),
+        ),
+      ));
+    }
+
+    // Center on last searched location; fall back to centroid of markers
+    final LatLng center;
+    if (_lastLat != null && _lastLng != null) {
+      center = LatLng(_lastLat!, _lastLng!);
+    } else if (markers.isNotEmpty) {
+      final avgLat = markers.map((m) => m.point.latitude).reduce((a, b) => a + b) / markers.length;
+      final avgLng = markers.map((m) => m.point.longitude).reduce((a, b) => a + b) / markers.length;
+      center = LatLng(avgLat, avgLng);
+    } else {
+      center = const LatLng(51.5, 10.0); // centre of Germany as fallback
+    }
+
+    return FlutterMap(
+      options: MapOptions(
+        initialCenter: center,
+        initialZoom: _lastLat != null ? 12.0 : 10.0,
+      ),
+      children: [
+        TileLayer(
+          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+          userAgentPackageName: 'com.fairelescourses.fairelescourses',
+        ),
+        MarkerLayer(markers: markers),
+        RichAttributionWidget(attributions: [
+          TextSourceAttribution('OpenStreetMap contributors'),
+        ]),
+      ],
+    );
+  }
+
+  void _showFirestoreSheet(BuildContext pageContext, AppLocalizations l,
+      ShopSearchResult result, bool known, ThemeData theme) {
+    final shop = result.shop;
+    showModalBottomSheet(
+      context: pageContext,
+      builder: (sheetCtx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(shop.name, style: theme.textTheme.titleLarge),
+              if (shop.address != null) ...[
+                const SizedBox(height: 4),
+                Text(shop.address!, style: theme.textTheme.bodyMedium),
+              ],
+              if (result.distanceKm != null) ...[
+                const SizedBox(height: 4),
+                Text(l.distanceKm(result.distanceKm!.toStringAsFixed(1)),
+                    style: theme.textTheme.bodySmall),
+              ],
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: known
+                    ? OutlinedButton(
+                        onPressed: null,
+                        child: Text(l.shopAlreadyKnown),
+                      )
+                    : FilledButton(
+                        onPressed: () {
+                          Navigator.pop(sheetCtx);
+                          _import(pageContext, shop);
+                        },
+                        child: Text(l.importShop),
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showOsmSheet(
+      BuildContext pageContext,
+      AppLocalizations l,
+      OsmShop osm,
+      bool alreadyLocal,
+      List<Supermarket> stores,
+      Set<String> knownNames,
+      ThemeData theme) {
+    showModalBottomSheet(
+      context: pageContext,
+      builder: (sheetCtx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(osm.name, style: theme.textTheme.titleLarge),
+              if (osm.address != null) ...[
+                const SizedBox(height: 4),
+                Text(osm.address!, style: theme.textTheme.bodyMedium),
+              ],
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: alreadyLocal
+                    ? OutlinedButton(
+                        onPressed: null,
+                        child: Text(l.alreadyDefined),
+                      )
+                    : FilledButton(
+                        onPressed: () {
+                          Navigator.pop(sheetCtx);
+                          Navigator.push(
+                            pageContext,
+                            MaterialPageRoute(
+                              builder: (_) => StoreEditorScreen(
+                                prefill: (
+                                  name: osm.name,
+                                  address: osm.address,
+                                  lat: osm.lat,
+                                  lng: osm.lng,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                        child: Text(l.createShop),
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Brand filter ─────────────────────────────────────────────────────────────
+
+  Widget _buildBrandFilter(AppLocalizations l, ThemeData theme, Set<String> brands) {
+    final sorted = brands.toList()..sort();
+    final active = _selectedBrands.isNotEmpty;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: PopupMenuButton<String>(
+          tooltip: l.brandFilter,
+          // Close only on explicit dismiss, not on item tap, by returning
+          // a dummy future from onSelected and never popping.
+          onSelected: (brand) {
+            setState(() {
+              if (_selectedBrands.contains(brand)) {
+                _selectedBrands.remove(brand);
+              } else {
+                _selectedBrands.add(brand);
+              }
+            });
+          },
+          itemBuilder: (ctx) => sorted
+              .map((brand) => CheckedPopupMenuItem<String>(
+                    value: brand,
+                    checked: _selectedBrands.contains(brand),
+                    child: Text(brand),
+                  ))
+              .toList(),
+          child: InputChip(
+            avatar: Icon(
+              Icons.storefront_outlined,
+              size: 18,
+              color: active
+                  ? theme.colorScheme.onSecondaryContainer
+                  : theme.colorScheme.onSurfaceVariant,
+            ),
+            label: Text(
+              active
+                  ? '${l.brandFilter}: ${_selectedBrands.join(', ')}'
+                  : l.brandFilter,
+            ),
+            selected: active,
+            onDeleted: active ? () => setState(() => _selectedBrands = {}) : null,
+            onPressed: null, // tap handled by PopupMenuButton
+          ),
+        ),
       ),
     );
   }

@@ -332,4 +332,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get osmAttribution => 'Shop data © OpenStreetMap contributors (ODbL)';
+
+  @override
+  String get osmLoadFailed => 'OpenStreetMap results could not be loaded.';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get mapView => 'Map';
+
+  @override
+  String get listView => 'List';
+
+  @override
+  String get brandFilter => 'Brand';
+
+  @override
+  String get noShopsMatchFilter => 'No shops match the selected brands.';
+
+  @override
+  String get easterButton => 'Everything will be fine!';
+
+  @override
+  String get easterQuestion => 'Do you feel better now?';
+
+  @override
+  String get easterYes => 'Yes 🎉';
 }

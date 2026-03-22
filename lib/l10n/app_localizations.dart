@@ -715,6 +715,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shop data © OpenStreetMap contributors (ODbL)'**
   String get osmAttribution;
+
+  /// No description provided for @osmLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'OpenStreetMap results could not be loaded.'**
+  String get osmLoadFailed;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @mapView.
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get mapView;
+
+  /// No description provided for @listView.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get listView;
+
+  /// No description provided for @brandFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand'**
+  String get brandFilter;
+
+  /// No description provided for @noShopsMatchFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'No shops match the selected brands.'**
+  String get noShopsMatchFilter;
+
+  /// No description provided for @easterButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything will be fine!'**
+  String get easterButton;
+
+  /// No description provided for @easterQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you feel better now?'**
+  String get easterQuestion;
+
+  /// No description provided for @easterYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes 🎉'**
+  String get easterYes;
 }
 
 class _AppLocalizationsDelegate

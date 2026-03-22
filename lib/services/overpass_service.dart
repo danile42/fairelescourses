@@ -27,7 +27,7 @@ class OverpassService {
   static Future<List<OsmShop>> searchNearby(
       double lat, double lng, int radiusMeters) async {
     final query = '''
-[out:json][timeout:15];
+[out:json][timeout:10];
 (
   node["shop"="supermarket"](around:$radiusMeters,$lat,$lng);
   way["shop"="supermarket"](around:$radiusMeters,$lat,$lng);
@@ -38,7 +38,7 @@ out center tags;
       Uri.parse(_endpoint),
       body: {'data': query},
       headers: {'User-Agent': 'Fairelescourses/1.0'},
-    ).timeout(const Duration(seconds: 20));
+    ).timeout(const Duration(seconds: 14));
 
     if (response.statusCode != 200) return [];
 
