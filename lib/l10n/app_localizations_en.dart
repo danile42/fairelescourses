@@ -18,9 +18,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newList => 'New List';
 
   @override
-  String get importText => 'Import';
-
-  @override
   String get noLists => 'No shopping lists yet.\nTap + to create one.';
 
   @override
@@ -111,37 +108,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get finish => 'Finish';
 
   @override
-  String get shareShop => 'Share shop';
-
-  @override
-  String get shareList => 'Share list';
-
-  @override
-  String get importTitle => 'Import';
-
-  @override
-  String get importHint => 'Paste a shop definition or shopping list here…';
-
-  @override
-  String get importAction => 'Import';
-
-  @override
-  String get importError =>
-      'Could not parse the text. Please check the format.';
-
-  @override
-  String get importSuccess => 'Imported successfully.';
-
-  @override
-  String get appendToExisting => 'Append to existing list';
-
-  @override
-  String get importAsNew => 'Import as new list';
-
-  @override
-  String get selectList => 'Select list';
-
-  @override
   String stopItems(String items) {
     return 'Pick: $items';
   }
@@ -174,9 +140,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setExit => 'Set as exit';
-
-  @override
-  String get exportFormat => 'Text Format';
 
   @override
   String get allItemsChecked => 'All items collected!';

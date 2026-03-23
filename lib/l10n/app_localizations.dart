@@ -116,12 +116,6 @@ abstract class AppLocalizations {
   /// **'New List'**
   String get newList;
 
-  /// No description provided for @importText.
-  ///
-  /// In en, this message translates to:
-  /// **'Import'**
-  String get importText;
-
   /// No description provided for @noLists.
   ///
   /// In en, this message translates to:
@@ -290,66 +284,6 @@ abstract class AppLocalizations {
   /// **'Finish'**
   String get finish;
 
-  /// No description provided for @shareShop.
-  ///
-  /// In en, this message translates to:
-  /// **'Share shop'**
-  String get shareShop;
-
-  /// No description provided for @shareList.
-  ///
-  /// In en, this message translates to:
-  /// **'Share list'**
-  String get shareList;
-
-  /// No description provided for @importTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Import'**
-  String get importTitle;
-
-  /// No description provided for @importHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Paste a shop definition or shopping list here…'**
-  String get importHint;
-
-  /// No description provided for @importAction.
-  ///
-  /// In en, this message translates to:
-  /// **'Import'**
-  String get importAction;
-
-  /// No description provided for @importError.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not parse the text. Please check the format.'**
-  String get importError;
-
-  /// No description provided for @importSuccess.
-  ///
-  /// In en, this message translates to:
-  /// **'Imported successfully.'**
-  String get importSuccess;
-
-  /// No description provided for @appendToExisting.
-  ///
-  /// In en, this message translates to:
-  /// **'Append to existing list'**
-  String get appendToExisting;
-
-  /// No description provided for @importAsNew.
-  ///
-  /// In en, this message translates to:
-  /// **'Import as new list'**
-  String get importAsNew;
-
-  /// No description provided for @selectList.
-  ///
-  /// In en, this message translates to:
-  /// **'Select list'**
-  String get selectList;
-
   /// No description provided for @stopItems.
   ///
   /// In en, this message translates to:
@@ -409,12 +343,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Set as exit'**
   String get setExit;
-
-  /// No description provided for @exportFormat.
-  ///
-  /// In en, this message translates to:
-  /// **'Text Format'**
-  String get exportFormat;
 
   /// No description provided for @allItemsChecked.
   ///

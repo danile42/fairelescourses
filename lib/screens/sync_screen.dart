@@ -7,8 +7,8 @@ import '../providers/home_location_provider.dart';
 import '../providers/household_provider.dart';
 import '../providers/supermarket_provider.dart';
 import '../providers/shopping_list_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../services/nominatim_service.dart';
-import '../services/share_service.dart';
 
 class SyncScreen extends ConsumerStatefulWidget {
   const SyncScreen({super.key});
@@ -158,7 +158,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                     IconButton(
                       icon: const Icon(Icons.share_outlined),
                       tooltip: l.shareHouseholdId,
-                      onPressed: () => shareText(hid),
+                      onPressed: () => Share.share(hid),
                     ),
                   ],
                 ),

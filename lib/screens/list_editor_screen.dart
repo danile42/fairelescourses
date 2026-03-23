@@ -6,8 +6,6 @@ import '../models/shopping_list.dart';
 import '../models/supermarket.dart';
 import '../providers/shopping_list_provider.dart';
 import '../providers/supermarket_provider.dart';
-import '../services/text_parser.dart';
-import '../services/share_service.dart';
 import '../services/navigation_planner.dart';
 import 'navigation_screen.dart';
 
@@ -144,18 +142,6 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.share_outlined),
-            onPressed: () {
-              final storeNames = _preferredStoreIds
-                  .map((id) => stores.firstWhere((s) => s.id == id, orElse: () => stores.first).name)
-                  .toList();
-              shareText(TextParser.exportShoppingList(
-                widget.list.copyWith(items: _items),
-                storeNames: storeNames,
-              ));
-            },
-          ),
           TextButton(
             onPressed: _save,
             child: Text(l.save, style: const TextStyle(color: Colors.white)),

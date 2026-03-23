@@ -18,9 +18,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get newList => 'Neue Liste';
 
   @override
-  String get importText => 'Importieren';
-
-  @override
   String get noLists =>
       'Noch keine Einkaufslisten.\nTippe auf +, um eine zu erstellen.';
 
@@ -112,37 +109,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get finish => 'Abschließen';
 
   @override
-  String get shareShop => 'Markt teilen';
-
-  @override
-  String get shareList => 'Liste teilen';
-
-  @override
-  String get importTitle => 'Importieren';
-
-  @override
-  String get importHint => 'Markt-Definition oder Einkaufsliste hier einfügen…';
-
-  @override
-  String get importAction => 'Importieren';
-
-  @override
-  String get importError =>
-      'Text konnte nicht gelesen werden. Bitte Format prüfen.';
-
-  @override
-  String get importSuccess => 'Erfolgreich importiert.';
-
-  @override
-  String get appendToExisting => 'An bestehende Liste anhängen';
-
-  @override
-  String get importAsNew => 'Als neue Liste importieren';
-
-  @override
-  String get selectList => 'Liste auswählen';
-
-  @override
   String stopItems(String items) {
     return 'Holen: $items';
   }
@@ -175,9 +141,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get setExit => 'Als Ausgang setzen';
-
-  @override
-  String get exportFormat => 'Textformat';
 
   @override
   String get allItemsChecked => 'Alle Artikel eingesammelt!';

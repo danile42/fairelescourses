@@ -9,13 +9,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../providers/household_provider.dart';
 import '../providers/firestore_sync_provider.dart';
 import '../models/shopping_list.dart';
-import '../services/text_parser.dart';
-import '../services/share_service.dart';
 import 'list_editor_screen.dart';
 import 'easter_egg_screen.dart';
 import 'osm_shops_screen.dart';
 import 'store_editor_screen.dart';
-import 'import_screen.dart';
 import 'navigation_screen.dart';
 import 'sync_screen.dart';
 import 'shop_search_screen.dart';
@@ -85,14 +82,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const SyncScreen()),
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.file_download_outlined),
-              tooltip: l.importText,
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ImportScreen()),
               ),
             ),
           ],
@@ -271,10 +260,6 @@ class _ListsTab extends ConsumerWidget {
                   },
                 ),
                 IconButton(
-                  icon: const Icon(Icons.share_outlined),
-                  onPressed: () => _share(context, ref, list),
-                ),
-                IconButton(
                   icon: const Icon(Icons.delete_outline),
                   onPressed: () => _confirmDelete(context, ref, list.id, list.name, l),
                 ),
@@ -288,15 +273,6 @@ class _ListsTab extends ConsumerWidget {
         );
       },
     );
-  }
-
-  void _share(BuildContext context, WidgetRef ref, ShoppingList list) {
-    final stores = ref.read(supermarketsProvider);
-    final storeNames = list.preferredStoreIds
-        .map((id) => stores.firstWhere((s) => s.id == id, orElse: () => stores.first).name)
-        .toList();
-    final text = TextParser.exportShoppingList(list, storeNames: storeNames);
-    _shareText(context, text);
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref, String id, String name, AppLocalizations l) async {
@@ -343,10 +319,6 @@ class _StoresTab extends ConsumerWidget {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                IconButton(
-                  icon: const Icon(Icons.share_outlined),
-                  onPressed: () => _shareText(context, TextParser.exportSupermarket(store)),
-                ),
                 if (isOwned) ...[
                   IconButton(
                     icon: const Icon(Icons.delete_outline),
@@ -382,6 +354,3 @@ class _StoresTab extends ConsumerWidget {
   }
 }
 
-void _shareText(BuildContext context, String text) {
-  shareText(text);
-}

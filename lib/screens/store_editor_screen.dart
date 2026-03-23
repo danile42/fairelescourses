@@ -6,8 +6,6 @@ import 'package:uuid/uuid.dart';
 import '../models/supermarket.dart';
 import '../providers/supermarket_provider.dart';
 import '../services/nominatim_service.dart';
-import '../services/share_service.dart';
-import '../services/text_parser.dart';
 import '../widgets/store_grid.dart';
 
 enum _ExitAction { save, discard }
@@ -245,22 +243,6 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: [
-          if (widget.existing != null)
-            IconButton(
-              icon: const Icon(Icons.share_outlined),
-              onPressed: () {
-                final store = Supermarket(
-                  id: widget.existing!.id,
-                  name: _nameCtrl.text.trim(),
-                  rows: rows,
-                  cols: cols,
-                  entrance: _entranceCtrl.text.trim().toUpperCase(),
-                  exit: _exitCtrl.text.trim().toUpperCase(),
-                  cells: _cells,
-                );
-                shareText(TextParser.exportSupermarket(store));
-              },
-            ),
           if (_geocoding)
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
