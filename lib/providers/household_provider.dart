@@ -5,13 +5,12 @@ import 'package:hive_flutter/hive_flutter.dart';
 const _settingsBox = 'settings';
 const _householdKey = 'householdId';
 
-final householdProvider = StateNotifierProvider<HouseholdNotifier, String?>((ref) {
-  return HouseholdNotifier();
-});
+final householdProvider =
+    NotifierProvider<HouseholdNotifier, String?>(HouseholdNotifier.new);
 
-class HouseholdNotifier extends StateNotifier<String?> {
-  HouseholdNotifier()
-      : super(Hive.box<String>(_settingsBox).get(_householdKey));
+class HouseholdNotifier extends Notifier<String?> {
+  @override
+  String? build() => Hive.box<String>(_settingsBox).get(_householdKey);
 
   Box<String> get _box => Hive.box<String>(_settingsBox);
 

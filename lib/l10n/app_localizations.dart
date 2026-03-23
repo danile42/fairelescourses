@@ -116,12 +116,6 @@ abstract class AppLocalizations {
   /// **'New List'**
   String get newList;
 
-  /// No description provided for @importText.
-  ///
-  /// In en, this message translates to:
-  /// **'Import'**
-  String get importText;
-
   /// No description provided for @noLists.
   ///
   /// In en, this message translates to:
@@ -290,66 +284,6 @@ abstract class AppLocalizations {
   /// **'Finish'**
   String get finish;
 
-  /// No description provided for @shareShop.
-  ///
-  /// In en, this message translates to:
-  /// **'Share shop'**
-  String get shareShop;
-
-  /// No description provided for @shareList.
-  ///
-  /// In en, this message translates to:
-  /// **'Share list'**
-  String get shareList;
-
-  /// No description provided for @importTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Import'**
-  String get importTitle;
-
-  /// No description provided for @importHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Paste a shop definition or shopping list here…'**
-  String get importHint;
-
-  /// No description provided for @importAction.
-  ///
-  /// In en, this message translates to:
-  /// **'Import'**
-  String get importAction;
-
-  /// No description provided for @importError.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not parse the text. Please check the format.'**
-  String get importError;
-
-  /// No description provided for @importSuccess.
-  ///
-  /// In en, this message translates to:
-  /// **'Imported successfully.'**
-  String get importSuccess;
-
-  /// No description provided for @appendToExisting.
-  ///
-  /// In en, this message translates to:
-  /// **'Append to existing list'**
-  String get appendToExisting;
-
-  /// No description provided for @importAsNew.
-  ///
-  /// In en, this message translates to:
-  /// **'Import as new list'**
-  String get importAsNew;
-
-  /// No description provided for @selectList.
-  ///
-  /// In en, this message translates to:
-  /// **'Select list'**
-  String get selectList;
-
   /// No description provided for @stopItems.
   ///
   /// In en, this message translates to:
@@ -409,12 +343,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Set as exit'**
   String get setExit;
-
-  /// No description provided for @exportFormat.
-  ///
-  /// In en, this message translates to:
-  /// **'Text Format'**
-  String get exportFormat;
 
   /// No description provided for @allItemsChecked.
   ///
@@ -667,6 +595,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Finding location…'**
   String get geocoding;
+
+  /// No description provided for @findNearby.
+  ///
+  /// In en, this message translates to:
+  /// **'Find nearby'**
+  String get findNearby;
+
+  /// No description provided for @osmShopsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby shops (OpenStreetMap)'**
+  String get osmShopsTitle;
+
+  /// No description provided for @createShop.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get createShop;
+
+  /// No description provided for @alreadyDefined.
+  ///
+  /// In en, this message translates to:
+  /// **'Already defined'**
+  String get alreadyDefined;
+
+  /// No description provided for @noOsmShopsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No supermarkets found nearby.'**
+  String get noOsmShopsFound;
+
+  /// No description provided for @osmSearching.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching nearby supermarkets…'**
+  String get osmSearching;
+
+  /// No description provided for @setLocationFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a home location in Sync first.'**
+  String get setLocationFirst;
+
+  /// No description provided for @osmAttribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop data © OpenStreetMap contributors (ODbL)'**
+  String get osmAttribution;
+
+  /// No description provided for @osmLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'OpenStreetMap results could not be loaded.'**
+  String get osmLoadFailed;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @mapView.
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get mapView;
+
+  /// No description provided for @listView.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get listView;
+
+  /// No description provided for @brandFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand'**
+  String get brandFilter;
+
+  /// No description provided for @noShopsMatchFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'No shops match the selected brands.'**
+  String get noShopsMatchFilter;
+
+  /// No description provided for @easterButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything will be fine!'**
+  String get easterButton;
+
+  /// No description provided for @easterQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you feel better now?'**
+  String get easterQuestion;
+
+  /// No description provided for @easterYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes 🎉'**
+  String get easterYes;
 }
 
 class _AppLocalizationsDelegate

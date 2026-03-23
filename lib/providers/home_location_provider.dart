@@ -13,10 +13,9 @@ class HomeLocation {
   });
 }
 
-class HomeLocationNotifier extends StateNotifier<HomeLocation?> {
-  HomeLocationNotifier() : super(_load());
-
-  static HomeLocation? _load() {
+class HomeLocationNotifier extends Notifier<HomeLocation?> {
+  @override
+  HomeLocation? build() {
     final box = Hive.box<String>('settings');
     final addr = box.get('homeAddress');
     final lat = double.tryParse(box.get('homeLat') ?? '');
@@ -43,6 +42,4 @@ class HomeLocationNotifier extends StateNotifier<HomeLocation?> {
 }
 
 final homeLocationProvider =
-    StateNotifierProvider<HomeLocationNotifier, HomeLocation?>(
-  (ref) => HomeLocationNotifier(),
-);
+    NotifierProvider<HomeLocationNotifier, HomeLocation?>(HomeLocationNotifier.new);

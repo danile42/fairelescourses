@@ -6,8 +6,6 @@ import 'package:uuid/uuid.dart';
 import '../models/supermarket.dart';
 import '../providers/supermarket_provider.dart';
 import '../services/nominatim_service.dart';
-import '../services/share_service.dart';
-import '../services/text_parser.dart';
 import '../widgets/store_grid.dart';
 
 enum _ExitAction { save, discard }
@@ -21,9 +19,16 @@ List<String> _makeRows(int n) =>
 List<String> _makeCols(int n) =>
     List.generate(n, (i) => '${i + 1}'); // 1, 2, 3 …
 
+typedef ShopPrefill = ({String name, String? address, double? lat, double? lng});
+
 class StoreEditorScreen extends ConsumerStatefulWidget {
   final Supermarket? existing;
-  const StoreEditorScreen({super.key, this.existing});
+
+  /// Pre-fills name/address/coords for a new shop (e.g. from OSM).
+  /// Ignored when [existing] is provided.
+  final ShopPrefill? prefill;
+
+  const StoreEditorScreen({super.key, this.existing, this.prefill});
 
   @override
   ConsumerState<StoreEditorScreen> createState() => _StoreEditorScreenState();
@@ -44,12 +49,13 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
   void initState() {
     super.initState();
     final s = widget.existing;
-    _nameCtrl    = TextEditingController(text: s?.name ?? '');
+    final p = widget.prefill;
+    _nameCtrl    = TextEditingController(text: s?.name ?? p?.name ?? '');
     _rowCount    = s != null ? s.rows.length.clamp(1, _maxDim) : 5;
     _colCount    = s != null ? s.cols.length.clamp(1, _maxDim) : 5;
     _entranceCtrl = TextEditingController(text: s?.entrance ?? 'A1');
     _exitCtrl     = TextEditingController(text: s?.exit ?? 'E5');
-    _addressCtrl  = TextEditingController(text: s?.address ?? '');
+    _addressCtrl  = TextEditingController(text: s?.address ?? p?.address ?? '');
     _cells = s != null
         ? Map<String, List<String>>.from(
             s.cells.map((k, v) => MapEntry(k, List<String>.from(v))))
@@ -115,12 +121,15 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       return;
     }
 
-    double? lat = widget.existing?.lat;
-    double? lng = widget.existing?.lng;
+    double? lat = widget.existing?.lat ?? widget.prefill?.lat;
+    double? lng = widget.existing?.lng ?? widget.prefill?.lng;
     final addressText = _addressCtrl.text.trim();
 
-    // Geocode if address changed or is new
-    if (addressText.isNotEmpty && addressText != widget.existing?.address) {
+    // Geocode if address changed or is new (skip if coords already come from prefill)
+    final prefillAddress = widget.prefill?.address;
+    final alreadyGeocoded = lat != null && lng != null &&
+        (addressText == widget.existing?.address || addressText == prefillAddress);
+    if (addressText.isNotEmpty && !alreadyGeocoded) {
       setState(() => _geocoding = true);
       final coords = await NominatimService.geocode(addressText);
       if (!mounted) return;
@@ -234,22 +243,6 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: [
-          if (widget.existing != null)
-            IconButton(
-              icon: const Icon(Icons.share_outlined),
-              onPressed: () {
-                final store = Supermarket(
-                  id: widget.existing!.id,
-                  name: _nameCtrl.text.trim(),
-                  rows: rows,
-                  cols: cols,
-                  entrance: _entranceCtrl.text.trim().toUpperCase(),
-                  exit: _exitCtrl.text.trim().toUpperCase(),
-                  cells: _cells,
-                );
-                shareText(TextParser.exportSupermarket(store));
-              },
-            ),
           if (_geocoding)
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),

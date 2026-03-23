@@ -12,18 +12,18 @@ final supermarketBoxProvider = Provider<Box<Supermarket>>((ref) {
 });
 
 final supermarketsProvider =
-    StateNotifierProvider<SupermarketNotifier, List<Supermarket>>((ref) {
-  final box = ref.watch(supermarketBoxProvider);
-  return SupermarketNotifier(box, ref);
-});
+    NotifierProvider<SupermarketNotifier, List<Supermarket>>(SupermarketNotifier.new);
 
-class SupermarketNotifier extends StateNotifier<List<Supermarket>> {
-  final Box<Supermarket> _box;
-  final Ref _ref;
+class SupermarketNotifier extends Notifier<List<Supermarket>> {
+  late Box<Supermarket> _box;
 
-  SupermarketNotifier(this._box, this._ref) : super(_box.values.toList());
+  @override
+  List<Supermarket> build() {
+    _box = ref.watch(supermarketBoxProvider);
+    return _box.values.toList();
+  }
 
-  String? get _hid => _ref.read(householdProvider);
+  String? get _hid => ref.read(householdProvider);
 
   Future<void> add(Supermarket s) async {
     s.ownerUid = FirebaseAuth.instance.currentUser?.uid;
@@ -60,7 +60,7 @@ class SupermarketNotifier extends StateNotifier<List<Supermarket>> {
     for (final key in _box.keys.toList()) {
       if (!remoteIds.contains(key)) await _box.delete(key);
     }
-    state = remote; // set directly to keep ownerUid from Firestore metadata
+    state = remote;
   }
 
   /// Upload all local shops to Firestore (called when joining a household).

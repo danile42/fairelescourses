@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fairelescourses/l10n/app_localizations.dart';
 
+import '../providers/home_location_provider.dart';
 import '../providers/shopping_list_provider.dart';
 import '../providers/supermarket_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../providers/household_provider.dart';
 import '../providers/firestore_sync_provider.dart';
 import '../models/shopping_list.dart';
-import '../services/text_parser.dart';
-import '../services/share_service.dart';
 import 'list_editor_screen.dart';
+import 'easter_egg_screen.dart';
+import 'osm_shops_screen.dart';
 import 'store_editor_screen.dart';
-import 'import_screen.dart';
 import 'navigation_screen.dart';
 import 'sync_screen.dart';
 import 'shop_search_screen.dart';
@@ -21,11 +21,33 @@ import 'package:uuid/uuid.dart';
 
 const _uuid = Uuid();
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  int _titleTaps = 0;
+
+  void _onTitleTap() {
+    _titleTaps++;
+    if (_titleTaps >= 7) {
+      _titleTaps = 0;
+      Navigator.of(context).push(
+        PageRouteBuilder(
+          pageBuilder: (_, a, b) => const EasterEggScreen(),
+          transitionsBuilder: (_, animation, b, child) =>
+              FadeTransition(opacity: animation, child: child),
+          transitionDuration: const Duration(milliseconds: 500),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final lists = ref.watch(shoppingListsProvider);
     final stores = ref.watch(supermarketsProvider);
@@ -36,7 +58,10 @@ class HomeScreen extends ConsumerWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(l.appTitle),
+          title: GestureDetector(
+            onTap: _onTitleTap,
+            child: Text(l.appTitle),
+          ),
           backgroundColor: Theme.of(context).colorScheme.primary,
           foregroundColor: Colors.white,
           actions: [
@@ -57,14 +82,6 @@ class HomeScreen extends ConsumerWidget {
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const SyncScreen()),
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.file_download_outlined),
-              tooltip: l.importText,
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ImportScreen()),
               ),
             ),
           ],
@@ -104,11 +121,35 @@ class _HomeFabState extends ConsumerState<_HomeFab> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final homeLoc = ref.watch(homeLocationProvider);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         if (_expanded) ...[
+          _MiniButton(
+            label: l.findNearby,
+            icon: Icons.location_searching,
+            onTap: () {
+              setState(() => _expanded = false);
+              if (homeLoc == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l.setLocationFirst)));
+                return;
+              }
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => OsmShopsScreen(
+                    lat: homeLoc.lat,
+                    lng: homeLoc.lng,
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 8),
           _MiniButton(
             label: l.newShop,
             icon: Icons.store,
@@ -219,10 +260,6 @@ class _ListsTab extends ConsumerWidget {
                   },
                 ),
                 IconButton(
-                  icon: const Icon(Icons.share_outlined),
-                  onPressed: () => _share(context, ref, list),
-                ),
-                IconButton(
                   icon: const Icon(Icons.delete_outline),
                   onPressed: () => _confirmDelete(context, ref, list.id, list.name, l),
                 ),
@@ -236,15 +273,6 @@ class _ListsTab extends ConsumerWidget {
         );
       },
     );
-  }
-
-  void _share(BuildContext context, WidgetRef ref, ShoppingList list) {
-    final stores = ref.read(supermarketsProvider);
-    final storeNames = list.preferredStoreIds
-        .map((id) => stores.firstWhere((s) => s.id == id, orElse: () => stores.first).name)
-        .toList();
-    final text = TextParser.exportShoppingList(list, storeNames: storeNames);
-    _shareText(context, text);
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref, String id, String name, AppLocalizations l) async {
@@ -291,10 +319,6 @@ class _StoresTab extends ConsumerWidget {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                IconButton(
-                  icon: const Icon(Icons.share_outlined),
-                  onPressed: () => _shareText(context, TextParser.exportSupermarket(store)),
-                ),
                 if (isOwned) ...[
                   IconButton(
                     icon: const Icon(Icons.delete_outline),
@@ -330,6 +354,3 @@ class _StoresTab extends ConsumerWidget {
   }
 }
 
-void _shareText(BuildContext context, String text) {
-  shareText(text);
-}

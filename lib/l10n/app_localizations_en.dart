@@ -18,9 +18,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newList => 'New List';
 
   @override
-  String get importText => 'Import';
-
-  @override
   String get noLists => 'No shopping lists yet.\nTap + to create one.';
 
   @override
@@ -111,37 +108,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get finish => 'Finish';
 
   @override
-  String get shareShop => 'Share shop';
-
-  @override
-  String get shareList => 'Share list';
-
-  @override
-  String get importTitle => 'Import';
-
-  @override
-  String get importHint => 'Paste a shop definition or shopping list here…';
-
-  @override
-  String get importAction => 'Import';
-
-  @override
-  String get importError =>
-      'Could not parse the text. Please check the format.';
-
-  @override
-  String get importSuccess => 'Imported successfully.';
-
-  @override
-  String get appendToExisting => 'Append to existing list';
-
-  @override
-  String get importAsNew => 'Import as new list';
-
-  @override
-  String get selectList => 'Select list';
-
-  @override
   String stopItems(String items) {
     return 'Pick: $items';
   }
@@ -174,9 +140,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setExit => 'Set as exit';
-
-  @override
-  String get exportFormat => 'Text Format';
 
   @override
   String get allItemsChecked => 'All items collected!';
@@ -308,4 +271,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get geocoding => 'Finding location…';
+
+  @override
+  String get findNearby => 'Find nearby';
+
+  @override
+  String get osmShopsTitle => 'Nearby shops (OpenStreetMap)';
+
+  @override
+  String get createShop => 'Create';
+
+  @override
+  String get alreadyDefined => 'Already defined';
+
+  @override
+  String get noOsmShopsFound => 'No supermarkets found nearby.';
+
+  @override
+  String get osmSearching => 'Searching nearby supermarkets…';
+
+  @override
+  String get setLocationFirst => 'Set a home location in Sync first.';
+
+  @override
+  String get osmAttribution => 'Shop data © OpenStreetMap contributors (ODbL)';
+
+  @override
+  String get osmLoadFailed => 'OpenStreetMap results could not be loaded.';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get mapView => 'Map';
+
+  @override
+  String get listView => 'List';
+
+  @override
+  String get brandFilter => 'Brand';
+
+  @override
+  String get noShopsMatchFilter => 'No shops match the selected brands.';
+
+  @override
+  String get easterButton => 'Everything will be fine!';
+
+  @override
+  String get easterQuestion => 'Do you feel better now?';
+
+  @override
+  String get easterYes => 'Yes 🎉';
 }

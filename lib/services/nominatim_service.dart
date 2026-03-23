@@ -13,21 +13,18 @@ class NominatimService {
       'format': 'json',
       'limit': '1',
     });
-    try {
-      final response = await http.get(uri, headers: {
-        'User-Agent': 'Fairelescourses/1.0',
-        'Accept-Language': 'en',
-      }).timeout(const Duration(seconds: 8));
-      if (response.statusCode != 200) return null;
-      final data = jsonDecode(response.body) as List<dynamic>;
-      if (data.isEmpty) return null;
-      final item = data.first as Map<String, dynamic>;
-      final lat = double.tryParse(item['lat'] as String? ?? '');
-      final lng = double.tryParse(item['lon'] as String? ?? '');
-      if (lat == null || lng == null) return null;
-      return (lat: lat, lng: lng);
-    } catch (_) {
-      return null;
-    }
+    final response = await http.get(uri, headers: {
+      'User-Agent': 'Fairelescourses/1.0 (shopping navigation app)',
+      'Accept-Language': 'en,de;q=0.9',
+      'Accept': 'application/json',
+    }).timeout(const Duration(seconds: 15));
+    if (response.statusCode != 200) return null;
+    final data = jsonDecode(response.body) as List<dynamic>;
+    if (data.isEmpty) return null;
+    final item = data.first as Map<String, dynamic>;
+    final lat = double.tryParse(item['lat'] as String? ?? '');
+    final lng = double.tryParse(item['lon'] as String? ?? '');
+    if (lat == null || lng == null) return null;
+    return (lat: lat, lng: lng);
   }
 }
