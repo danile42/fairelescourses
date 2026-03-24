@@ -322,6 +322,44 @@ class AppLocalizationsDe extends AppLocalizations {
       'Keine Märkte entsprechen dem ausgewählten Filter.';
 
   @override
+  String splitCell(String cell) {
+    return 'Feld $cell teilen';
+  }
+
+  @override
+  String get splitAxisLabel => 'Wie teilen?';
+
+  @override
+  String get splitAxisRow => 'Reihe hinzufügen';
+
+  @override
+  String get splitAxisCol => 'Spalte hinzufügen';
+
+  @override
+  String get splitLeft => 'Links';
+
+  @override
+  String get splitRight => 'Rechts';
+
+  @override
+  String get splitTop => 'Oben';
+
+  @override
+  String get splitBottom => 'Unten';
+
+  @override
+  String get promoteSplit => 'Teilung übernehmen';
+
+  @override
+  String get promoteSplitDesc => 'Fügt eine echte Gitteraufteilung ein';
+
+  @override
+  String get revertSplit => 'Teilung rückgängig';
+
+  @override
+  String get revertSplitDesc => 'Hälften wieder zusammenführen';
+
+  @override
   String get easterButton => 'Alles wird gut!';
 
   @override

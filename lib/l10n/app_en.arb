@@ -128,6 +128,23 @@
   "listView": "List",
   "brandFilter": "Brand",
   "noShopsMatchFilter": "No shops match the selected brands.",
+  "splitCell": "Split cell {cell}",
+  "@splitCell": {
+    "placeholders": {
+      "cell": { "type": "String" }
+    }
+  },
+  "splitAxisLabel": "How to split?",
+  "splitAxisRow": "Add row",
+  "splitAxisCol": "Add column",
+  "splitLeft": "Left",
+  "splitRight": "Right",
+  "splitTop": "Top",
+  "splitBottom": "Bottom",
+  "promoteSplit": "Promote split",
+  "promoteSplitDesc": "Makes this a real grid division",
+  "revertSplit": "Revert split",
+  "revertSplitDesc": "Merge halves back into one cell",
   "easterButton": "Everything will be fine!",
   "easterQuestion": "Do you feel better now?",
   "easterYes": "Yes 🎉",

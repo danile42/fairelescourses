@@ -29,13 +29,17 @@ class SupermarketAdapter extends TypeAdapter<Supermarket> {
       lat: fields[8] as double?,
       lng: fields[9] as double?,
       parentId: fields[10] as String?,
+      subcells: fields[11] != null
+          ? (fields[11] as Map).map((dynamic k, dynamic v) =>
+              MapEntry(k as String, (v as List).cast<String>()))
+          : null,
     );
   }
 
   @override
   void write(BinaryWriter writer, Supermarket obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -57,7 +61,9 @@ class SupermarketAdapter extends TypeAdapter<Supermarket> {
       ..writeByte(9)
       ..write(obj.lng)
       ..writeByte(10)
-      ..write(obj.parentId);
+      ..write(obj.parentId)
+      ..writeByte(11)
+      ..write(obj.subcells);
   }
 
   @override

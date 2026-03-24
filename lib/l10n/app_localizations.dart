@@ -680,6 +680,78 @@ abstract class AppLocalizations {
   /// **'No shops match the selected brands.'**
   String get noShopsMatchFilter;
 
+  /// No description provided for @splitCell.
+  ///
+  /// In en, this message translates to:
+  /// **'Split cell {cell}'**
+  String splitCell(String cell);
+
+  /// No description provided for @splitAxisLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'How to split?'**
+  String get splitAxisLabel;
+
+  /// No description provided for @splitAxisRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Add row'**
+  String get splitAxisRow;
+
+  /// No description provided for @splitAxisCol.
+  ///
+  /// In en, this message translates to:
+  /// **'Add column'**
+  String get splitAxisCol;
+
+  /// No description provided for @splitLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Left'**
+  String get splitLeft;
+
+  /// No description provided for @splitRight.
+  ///
+  /// In en, this message translates to:
+  /// **'Right'**
+  String get splitRight;
+
+  /// No description provided for @splitTop.
+  ///
+  /// In en, this message translates to:
+  /// **'Top'**
+  String get splitTop;
+
+  /// No description provided for @splitBottom.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom'**
+  String get splitBottom;
+
+  /// No description provided for @promoteSplit.
+  ///
+  /// In en, this message translates to:
+  /// **'Promote split'**
+  String get promoteSplit;
+
+  /// No description provided for @promoteSplitDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Makes this a real grid division'**
+  String get promoteSplitDesc;
+
+  /// No description provided for @revertSplit.
+  ///
+  /// In en, this message translates to:
+  /// **'Revert split'**
+  String get revertSplit;
+
+  /// No description provided for @revertSplitDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge halves back into one cell'**
+  String get revertSplitDesc;
+
   /// No description provided for @easterButton.
   ///
   /// In en, this message translates to:
