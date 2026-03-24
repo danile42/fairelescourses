@@ -39,6 +39,13 @@ class Supermarket extends HiveObject {
   @HiveField(10)
   String? parentId;
 
+  /// Draft cell splits. Keys use the format "$cellId:$axis:$index" where
+  /// axis is "row" (top/bottom halves → promotes to a new row) or
+  /// "col" (left/right halves → promotes to a new column), and index is 0 or 1.
+  /// Example: {"B2:col:0": ["Dairy"], "B2:col:1": ["Cheese"]}
+  @HiveField(11)
+  Map<String, List<String>> subcells;
+
   /// Firebase Auth UID of the creator. Not persisted to Hive — populated
   /// from Firestore metadata so the UI can gate edit/delete controls.
   String? ownerUid;
@@ -56,7 +63,12 @@ class Supermarket extends HiveObject {
     this.lng,
     this.parentId,
     this.ownerUid,
-  });
+    Map<String, List<String>>? subcells,
+  }) : subcells = subcells ?? {};
+
+  // ---------------------------------------------------------------------------
+  // Grid helpers
+  // ---------------------------------------------------------------------------
 
   /// All valid cell ids for this supermarket.
   List<String> get allCells =>
@@ -81,6 +93,7 @@ class Supermarket extends HiveObject {
   }
 
   /// Find which cell contains a given item tag (case-insensitive, partial match).
+  /// Also searches draft subcells; always returns a base cell id for routing.
   String? findCell(String item) {
     final q = item.toLowerCase().trim();
     for (final entry in cells.entries) {
@@ -90,8 +103,39 @@ class Supermarket extends HiveObject {
         }
       }
     }
+    for (final entry in subcells.entries) {
+      for (final tag in entry.value) {
+        if (tag.toLowerCase().contains(q) || q.contains(tag.toLowerCase())) {
+          return entry.key.split(':').first; // base cell id
+        }
+      }
+    }
     return null;
   }
+
+  // ---------------------------------------------------------------------------
+  // Split helpers
+  // ---------------------------------------------------------------------------
+
+  /// Whether [cellId] has a draft split.
+  bool isSplit(String cellId) =>
+      subcells.keys.any((k) => k.startsWith('$cellId:'));
+
+  /// Returns "row" or "col" for a split cell, or null if not split.
+  String? splitAxis(String cellId) {
+    final key =
+        subcells.keys.where((k) => k.startsWith('$cellId:')).firstOrNull;
+    if (key == null) return null;
+    return key.split(':')[1];
+  }
+
+  /// Returns the two subcell keys for [cellId] sorted as [":0", ":1"].
+  List<String> subcellKeysOf(String cellId) =>
+      subcells.keys.where((k) => k.startsWith('$cellId:')).toList()..sort();
+
+  // ---------------------------------------------------------------------------
+  // Serialisation
+  // ---------------------------------------------------------------------------
 
   Map<String, dynamic> toMap() => {
         'id': id,
@@ -105,6 +149,9 @@ class Supermarket extends HiveObject {
         if (lat != null) 'lat': lat,
         if (lng != null) 'lng': lng,
         if (parentId != null) 'parentId': parentId,
+        if (subcells.isNotEmpty)
+          'subcells':
+              subcells.map((k, v) => MapEntry(k, List<String>.from(v))),
       };
 
   factory Supermarket.fromMap(Map<String, dynamic> m) => Supermarket(
@@ -121,6 +168,11 @@ class Supermarket extends HiveObject {
         lat: (m['lat'] as num?)?.toDouble(),
         lng: (m['lng'] as num?)?.toDouble(),
         parentId: m['parentId'] as String?,
+        subcells: m['subcells'] != null
+            ? (m['subcells'] as Map<String, dynamic>).map(
+                (k, v) => MapEntry(k, List<String>.from(v as List)),
+              )
+            : null,
       );
 
   Supermarket copyWith({
@@ -130,6 +182,7 @@ class Supermarket extends HiveObject {
     String? entrance,
     String? exit,
     Map<String, List<String>>? cells,
+    Map<String, List<String>>? subcells,
     Object? address = _sentinel,
     Object? lat = _sentinel,
     Object? lng = _sentinel,
@@ -143,6 +196,7 @@ class Supermarket extends HiveObject {
         entrance: entrance ?? this.entrance,
         exit: exit ?? this.exit,
         cells: cells ?? this.cells,
+        subcells: subcells ?? this.subcells,
         address: address == _sentinel ? this.address : address as String?,
         lat: lat == _sentinel ? this.lat : lat as double?,
         lng: lng == _sentinel ? this.lng : lng as double?,

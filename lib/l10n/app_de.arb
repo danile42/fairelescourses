@@ -128,6 +128,23 @@
   "noShopsMatchFilter": "Keine Märkte entsprechen dem ausgewählten Filter.",
   "osmLoadFailed": "OpenStreetMap-Ergebnisse konnten nicht geladen werden.",
   "retry": "Erneut versuchen",
+  "splitCell": "Feld {cell} teilen",
+  "@splitCell": {
+    "placeholders": {
+      "cell": { "type": "String" }
+    }
+  },
+  "splitAxisLabel": "Wie teilen?",
+  "splitAxisRow": "Reihe hinzufügen",
+  "splitAxisCol": "Spalte hinzufügen",
+  "splitLeft": "Links",
+  "splitRight": "Rechts",
+  "splitTop": "Oben",
+  "splitBottom": "Unten",
+  "promoteSplit": "Teilung übernehmen",
+  "promoteSplitDesc": "Fügt eine echte Gitteraufteilung ein",
+  "revertSplit": "Teilung rückgängig",
+  "revertSplitDesc": "Hälften wieder zusammenführen",
   "easterButton": "Alles wird gut!",
   "easterQuestion": "Fühlst du dich besser?",
   "easterYes": "Ja 🎉",

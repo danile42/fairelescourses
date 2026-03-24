@@ -315,6 +315,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noShopsMatchFilter => 'No shops match the selected brands.';
 
   @override
+  String splitCell(String cell) {
+    return 'Split cell $cell';
+  }
+
+  @override
+  String get splitAxisLabel => 'How to split?';
+
+  @override
+  String get splitAxisRow => 'Add row';
+
+  @override
+  String get splitAxisCol => 'Add column';
+
+  @override
+  String get splitLeft => 'Left';
+
+  @override
+  String get splitRight => 'Right';
+
+  @override
+  String get splitTop => 'Top';
+
+  @override
+  String get splitBottom => 'Bottom';
+
+  @override
+  String get promoteSplit => 'Promote split';
+
+  @override
+  String get promoteSplitDesc => 'Makes this a real grid division';
+
+  @override
+  String get revertSplit => 'Revert split';
+
+  @override
+  String get revertSplitDesc => 'Merge halves back into one cell';
+
+  @override
   String get easterButton => 'Everything will be fine!';
 
   @override
