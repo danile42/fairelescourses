@@ -237,7 +237,12 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
               .split(',')
               .map((e) => e.trim().toLowerCase())
               .toSet();
-          final filtered = partial.isEmpty
+          // Show pinned suggestions when there is no partial word being
+          // typed: either the field is empty/ends with ", ", or the text
+          // after the last comma is itself already a completed item.
+          final showPinned =
+              partial.isEmpty || entered.contains(partial.toLowerCase());
+          final filtered = showPinned
               ? pinned
                   .where((s) => !entered.contains(s.toLowerCase()))
                   .take(8)

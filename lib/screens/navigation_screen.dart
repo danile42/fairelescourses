@@ -130,31 +130,117 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     final plan = widget.plan;
 
     if (plan.storePlans.isEmpty) {
+      final stillUnmatched = plan.globalUnmatched
+          .where((i) => !_resolvedUnmatched.contains(i))
+          .toList();
       return Scaffold(
         appBar: AppBar(title: Text(l.navigationTitle)),
-        body: Center(
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.search_off, size: 64, color: Colors.grey),
-              const SizedBox(height: 16),
-              Text(l.unmatched, style: const TextStyle(color: Colors.grey)),
-              const SizedBox(height: 8),
-              ...plan.globalUnmatched.where((i) => !_resolvedUnmatched.contains(i)).map((item) => Row(
-                    mainAxisSize: MainAxisSize.min,
+              // ── Resolved: now in shops ───────────────────────────────
+              if (_resolvedUnmatched.isNotEmpty) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('• $item'),
-                      const SizedBox(width: 8),
-                      TextButton.icon(
-                        onPressed: () => _showShopPicker(item),
-                        icon: const Icon(Icons.store_outlined, size: 14),
-                        label: Text(l.assignToShop,
-                            style: const TextStyle(fontSize: 12)),
-                        style: TextButton.styleFrom(
-                            visualDensity: VisualDensity.compact),
+                      Row(children: [
+                        Icon(Icons.store_outlined,
+                            color: Colors.blue.shade700, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(l.nowInShops,
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue.shade700)),
+                        ),
+                      ]),
+                      const SizedBox(height: 6),
+                      ..._resolvedUnmatched.map((item) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 1),
+                            child: Text('• $item',
+                                style: const TextStyle(fontSize: 13)),
+                          )),
+                      const SizedBox(height: 10),
+                      ElevatedButton.icon(
+                        onPressed: _navigateForResolved,
+                        icon: const Icon(Icons.navigation, size: 16),
+                        label: Text(l.generatePlan),
                       ),
                     ],
-                  )),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+              // ── Still not found in any shop ──────────────────────────
+              if (stillUnmatched.isNotEmpty) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(children: [
+                        const Icon(Icons.search_off,
+                            color: Colors.grey, size: 18),
+                        const SizedBox(width: 8),
+                        Text(l.unmatched,
+                            style: const TextStyle(
+                                fontSize: 13, fontWeight: FontWeight.bold)),
+                      ]),
+                      const SizedBox(height: 8),
+                      ...stillUnmatched.map((item) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                    child: Text('• $item',
+                                        style:
+                                            const TextStyle(fontSize: 13))),
+                                TextButton.icon(
+                                  onPressed: () => _showShopPicker(item),
+                                  icon: const Icon(Icons.store_outlined,
+                                      size: 14),
+                                  label: Text(l.assignToShop,
+                                      style:
+                                          const TextStyle(fontSize: 12)),
+                                  style: TextButton.styleFrom(
+                                      visualDensity: VisualDensity.compact),
+                                ),
+                              ],
+                            ),
+                          )),
+                    ],
+                  ),
+                ),
+              ] else if (_resolvedUnmatched.isEmpty) ...[
+                // Nothing assigned yet — original empty state
+                Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.search_off,
+                          size: 64, color: Colors.grey),
+                      const SizedBox(height: 16),
+                      Text(l.unmatched,
+                          style: const TextStyle(color: Colors.grey)),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
         ),
