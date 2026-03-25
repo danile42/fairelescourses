@@ -73,10 +73,25 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
               NavigationScreen(plan: newPlan, listId: tempList.id)),
     );
     if (!mounted) return;
+
+    final newNavigated = {..._navigatedUnmatched, ..._resolvedUnmatched};
     setState(() {
-      _navigatedUnmatched = {..._navigatedUnmatched, ..._resolvedUnmatched};
+      _navigatedUnmatched = newNavigated;
       _resolvedUnmatched = {};
     });
+
+    // If nothing remains to handle, skip the redundant "Finish" screen.
+    final allUnmatched = {
+      ...widget.plan.globalUnmatched,
+      ...widget.plan.storePlans.expand((s) => s.unmatched),
+    };
+    final allHandled = allUnmatched.every((i) => newNavigated.contains(i));
+    final planDone = widget.plan.storePlans.isEmpty ||
+        (_storeIndex >= widget.plan.storePlans.length - 1 &&
+            _checkedCount >= _totalCount);
+    if (allHandled && planDone && mounted) {
+      Navigator.pop(context);
+    }
   }
 
   Future<void> _showShopPicker(String item) async {
