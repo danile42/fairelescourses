@@ -145,6 +145,14 @@
   "promoteSplitDesc": "Fügt eine echte Gitteraufteilung ein",
   "revertSplit": "Teilung rückgängig",
   "revertSplitDesc": "Hälften wieder zusammenführen",
+  "nowInShops": "Jetzt in Märkten verfügbar – zum Abholen navigieren:",
+  "assignToShop": "Markt zuordnen",
+  "whichShopForItem": "In welchem Markt gibt es \"{item}\"?",
+  "@whichShopForItem": {
+    "placeholders": {
+      "item": { "type": "String" }
+    }
+  },
   "easterButton": "Alles wird gut!",
   "easterQuestion": "Fühlst du dich besser?",
   "easterYes": "Ja 🎉",

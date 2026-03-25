@@ -145,6 +145,14 @@
   "promoteSplitDesc": "Makes this a real grid division",
   "revertSplit": "Revert split",
   "revertSplitDesc": "Merge halves back into one cell",
+  "nowInShops": "Now found in shops — navigate to collect:",
+  "assignToShop": "Assign to shop",
+  "whichShopForItem": "Which shop has \"{item}\"?",
+  "@whichShopForItem": {
+    "placeholders": {
+      "item": { "type": "String" }
+    }
+  },
   "easterButton": "Everything will be fine!",
   "easterQuestion": "Do you feel better now?",
   "easterYes": "Yes 🎉",

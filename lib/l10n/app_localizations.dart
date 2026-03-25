@@ -752,6 +752,24 @@ abstract class AppLocalizations {
   /// **'Merge halves back into one cell'**
   String get revertSplitDesc;
 
+  /// No description provided for @nowInShops.
+  ///
+  /// In en, this message translates to:
+  /// **'Now found in shops — navigate to collect:'**
+  String get nowInShops;
+
+  /// No description provided for @assignToShop.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign to shop'**
+  String get assignToShop;
+
+  /// No description provided for @whichShopForItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Which shop has \"{item}\"?'**
+  String whichShopForItem(String item);
+
   /// No description provided for @easterButton.
   ///
   /// In en, this message translates to:

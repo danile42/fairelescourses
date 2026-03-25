@@ -360,6 +360,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get revertSplitDesc => 'Hälften wieder zusammenführen';
 
   @override
+  String get nowInShops =>
+      'Jetzt in Märkten verfügbar – zum Abholen navigieren:';
+
+  @override
+  String get assignToShop => 'Markt zuordnen';
+
+  @override
+  String whichShopForItem(String item) {
+    return 'In welchem Markt gibt es \"$item\"?';
+  }
+
+  @override
   String get easterButton => 'Alles wird gut!';
 
   @override

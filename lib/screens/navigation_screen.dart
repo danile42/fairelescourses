@@ -5,30 +5,36 @@ import 'package:uuid/uuid.dart';
 
 import '../models/navigation_plan.dart';
 import '../models/shopping_list.dart';
+import '../models/supermarket.dart';
 import '../providers/shopping_list_provider.dart';
+import '../providers/supermarket_provider.dart';
+import '../services/navigation_planner.dart';
 import '../widgets/mini_map.dart';
 import 'list_editor_screen.dart';
+import 'store_editor_screen.dart';
 
 const _uuid = Uuid();
 
-class NavigationScreen extends StatefulWidget {
+class NavigationScreen extends ConsumerStatefulWidget {
   final NavigationPlan plan;
   final String listId;
 
   const NavigationScreen({super.key, required this.plan, required this.listId});
 
   @override
-  State<NavigationScreen> createState() => _NavigationScreenState();
+  ConsumerState<NavigationScreen> createState() => _NavigationScreenState();
 }
 
-class _NavigationScreenState extends State<NavigationScreen> {
+class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   late List<Set<String>> _checkedPerStore; // checked item names per store plan
   int _storeIndex = 0;
+  late Set<String> _resolvedUnmatched; // unmatched items now found in a shop
 
   @override
   void initState() {
     super.initState();
     _checkedPerStore = List.generate(widget.plan.storePlans.length, (_) => {});
+    _resolvedUnmatched = {};
   }
 
   StorePlan get _currentPlan => widget.plan.storePlans[_storeIndex];
@@ -48,6 +54,68 @@ class _NavigationScreenState extends State<NavigationScreen> {
   }
 
   bool _isChecked(String item) => _checkedPerStore[_storeIndex].contains(item);
+
+  Future<void> _navigateForResolved() async {
+    final shops = ref.read(supermarketsProvider);
+    final tempList = ShoppingList(
+      id: _uuid.v4(),
+      name: '',
+      preferredStoreIds: [],
+      items: _resolvedUnmatched.map((n) => ShoppingItem(name: n)).toList(),
+    );
+    final newPlan = NavigationPlanner.plan(tempList, shops);
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (_) =>
+              NavigationScreen(plan: newPlan, listId: tempList.id)),
+    );
+    if (!mounted) return;
+    setState(() => _resolvedUnmatched = {});
+  }
+
+  Future<void> _showShopPicker(String item) async {
+    final l = AppLocalizations.of(context)!;
+    final shops = ref.read(supermarketsProvider);
+    if (shops.isEmpty || !mounted) return;
+    final shop = await showDialog<Supermarket>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: Text(l.whichShopForItem(item)),
+        children: shops
+            .map((s) => SimpleDialogOption(
+                  onPressed: () => Navigator.pop(ctx, s),
+                  child: Text(s.name),
+                ))
+            .toList(),
+      ),
+    );
+    if (shop == null || !mounted) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (_) => StoreEditorScreen(existing: shop, focusItems: [item])),
+    );
+    if (!mounted) return;
+    // Re-check which unmatched items are now covered by any shop's cells.
+    final allShopGoods = ref
+        .read(supermarketsProvider)
+        .expand((s) => [
+              ...s.cells.values.expand((v) => v),
+              ...s.subcells.values.expand((v) => v),
+            ])
+        .map((g) => g.toLowerCase())
+        .toSet();
+    final allUnmatched = {
+      ...widget.plan.globalUnmatched,
+      ...widget.plan.storePlans.expand((s) => s.unmatched),
+    };
+    setState(() {
+      _resolvedUnmatched = allUnmatched
+          .where((u) => allShopGoods.contains(u.toLowerCase()))
+          .toSet();
+    });
+  }
 
   String? get _currentCell {
     for (final stop in _currentPlan.stops) {
@@ -72,7 +140,21 @@ class _NavigationScreenState extends State<NavigationScreen> {
               const SizedBox(height: 16),
               Text(l.unmatched, style: const TextStyle(color: Colors.grey)),
               const SizedBox(height: 8),
-              ...plan.globalUnmatched.map((i) => Text('• $i')),
+              ...plan.globalUnmatched.where((i) => !_resolvedUnmatched.contains(i)).map((item) => Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('• $item'),
+                      const SizedBox(width: 8),
+                      TextButton.icon(
+                        onPressed: () => _showShopPicker(item),
+                        icon: const Icon(Icons.store_outlined, size: 14),
+                        label: Text(l.assignToShop,
+                            style: const TextStyle(fontSize: 12)),
+                        style: TextButton.styleFrom(
+                            visualDensity: VisualDensity.compact),
+                      ),
+                    ],
+                  )),
             ],
           ),
         ),
@@ -132,6 +214,9 @@ class _NavigationScreenState extends State<NavigationScreen> {
                     plan: plan,
                     storeIndex: _storeIndex,
                     onNextShop: () => setState(() => _storeIndex++),
+                    onAssignToShop: _showShopPicker,
+                    resolvedUnmatched: _resolvedUnmatched,
+                    onNavigateResolved: _navigateForResolved,
                   )
                 : ListView.builder(
                     itemCount: storePlan.stops.length,
@@ -233,17 +318,28 @@ class _DoneView extends ConsumerWidget {
   final NavigationPlan plan;
   final int storeIndex;
   final VoidCallback onNextShop;
+  final Future<void> Function(String item) onAssignToShop;
+  final Set<String> resolvedUnmatched;
+  final Future<void> Function() onNavigateResolved;
 
-  const _DoneView({required this.plan, required this.storeIndex, required this.onNextShop});
+  const _DoneView({
+    required this.plan,
+    required this.storeIndex,
+    required this.onNextShop,
+    required this.onAssignToShop,
+    required this.resolvedUnmatched,
+    required this.onNavigateResolved,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
     final isLastShop = storeIndex >= plan.storePlans.length - 1;
-    final unmatched = {
+    final stillUnmatched = {
       ...plan.globalUnmatched,
       ...plan.storePlans.expand((s) => s.unmatched),
-    }.toList();
+    }.where((i) => !resolvedUnmatched.contains(i)).toList();
+    final hasExtra = resolvedUnmatched.isNotEmpty || stillUnmatched.isNotEmpty;
 
     return Center(
       child: Padding(
@@ -251,9 +347,18 @@ class _DoneView extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.check_circle_outline, size: 64, color: Colors.green),
+            Icon(
+              Icons.check_circle_outline,
+              size: 64,
+              color: hasExtra && isLastShop ? Colors.orange : Colors.green,
+            ),
             const SizedBox(height: 12),
-            Text(l.allItemsChecked, style: const TextStyle(fontSize: 18)),
+            Text(
+              l.allItemsChecked,
+              style: TextStyle(
+                  fontSize: 18,
+                  color: hasExtra && isLastShop ? Colors.orange.shade800 : null),
+            ),
             if (!isLastShop) ...[
               const SizedBox(height: 16),
               ElevatedButton(
@@ -261,53 +366,145 @@ class _DoneView extends ConsumerWidget {
                 child: Text(l.nextShop),
               ),
             ] else ...[
-              if (unmatched.isNotEmpty) ...[
+              // ── Items now assigned to a shop (newly resolved) ──────────
+              if (resolvedUnmatched.isNotEmpty) ...[
                 const SizedBox(height: 20),
                 Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(children: [
+                        Icon(Icons.store_outlined,
+                            color: Colors.blue.shade700, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(l.nowInShops,
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue.shade700)),
+                        ),
+                      ]),
+                      const SizedBox(height: 6),
+                      ...resolvedUnmatched.map((item) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 1),
+                            child: Text('• $item',
+                                style: const TextStyle(fontSize: 13)),
+                          )),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: onNavigateResolved,
+                            icon: const Icon(Icons.navigation, size: 16),
+                            label: Text(l.generatePlan),
+                          ),
+                          const SizedBox(width: 8),
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              final newList = ShoppingList(
+                                id: _uuid.v4(),
+                                name: '',
+                                preferredStoreIds: [],
+                                items: resolvedUnmatched
+                                    .map((n) => ShoppingItem(name: n))
+                                    .toList(),
+                              );
+                              ref
+                                  .read(shoppingListsProvider.notifier)
+                                  .add(newList);
+                              Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => ListEditorScreen(
+                                          list: newList, isNew: false)));
+                            },
+                            icon: const Icon(Icons.list_alt, size: 16),
+                            label: Text(l.newList),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              // ── Items still not in any shop ────────────────────────────
+              if (stillUnmatched.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: Colors.orange.shade50,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Row(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.warning_amber_outlined, color: Colors.orange, size: 18),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text('${l.unmatched}: ${unmatched.join(', ')}',
-                          style: const TextStyle(fontSize: 13))),
+                      Row(children: [
+                        const Icon(Icons.warning_amber_outlined,
+                            color: Colors.orange, size: 18),
+                        const SizedBox(width: 8),
+                        Text(l.unmatched,
+                            style: const TextStyle(
+                                fontSize: 13, fontWeight: FontWeight.bold)),
+                      ]),
+                      const SizedBox(height: 8),
+                      ...stillUnmatched.map((item) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                    child: Text('• $item',
+                                        style: const TextStyle(fontSize: 13))),
+                                TextButton.icon(
+                                  onPressed: () => onAssignToShop(item),
+                                  icon: const Icon(Icons.store_outlined,
+                                      size: 14),
+                                  label: Text(l.assignToShop,
+                                      style: const TextStyle(fontSize: 12)),
+                                  style: TextButton.styleFrom(
+                                      visualDensity: VisualDensity.compact),
+                                ),
+                              ],
+                            ),
+                          )),
+                      const SizedBox(height: 8),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          final newList = ShoppingList(
+                            id: _uuid.v4(),
+                            name: '',
+                            preferredStoreIds: [],
+                            items: stillUnmatched
+                                .map((n) => ShoppingItem(name: n))
+                                .toList(),
+                          );
+                          ref.read(shoppingListsProvider.notifier).add(newList);
+                          Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => ListEditorScreen(
+                                      list: newList, isNew: false)));
+                        },
+                        icon: const Icon(Icons.list_alt, size: 16),
+                        label: Text(l.newList),
+                      ),
                     ],
                   ),
                 ),
               ],
               const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.check),
-                    label: Text(l.finish),
-                  ),
-                  if (unmatched.isNotEmpty) ...[
-                    const SizedBox(width: 12),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        final newList = ShoppingList(
-                          id: _uuid.v4(),
-                          name: '',
-                          preferredStoreIds: [],
-                          items: unmatched.map((n) => ShoppingItem(name: n)).toList(),
-                        );
-                        ref.read(shoppingListsProvider.notifier).add(newList);
-                        Navigator.pushReplacement(context,
-                          MaterialPageRoute(builder: (_) => ListEditorScreen(list: newList, isNew: false)));
-                      },
-                      icon: const Icon(Icons.list_alt),
-                      label: Text(l.newList),
-                    ),
-                  ],
-                ],
+              OutlinedButton.icon(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.check),
+                label: Text(l.finish),
               ),
             ],
           ],

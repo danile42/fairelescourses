@@ -11,6 +11,8 @@ import '../widgets/store_grid.dart';
 
 enum _ExitAction { save, discard }
 
+enum _TapMode { normal, setEntrance, setExit }
+
 const _uuid = Uuid();
 const _maxDim = 26;
 
@@ -29,7 +31,12 @@ class StoreEditorScreen extends ConsumerStatefulWidget {
   /// Ignored when [existing] is provided.
   final ShopPrefill? prefill;
 
-  const StoreEditorScreen({super.key, this.existing, this.prefill});
+  /// Items to show as pinned suggestions in the cell goods editor,
+  /// regardless of what the user is currently typing.
+  final List<String> focusItems;
+
+  const StoreEditorScreen(
+      {super.key, this.existing, this.prefill, this.focusItems = const []});
 
   @override
   ConsumerState<StoreEditorScreen> createState() => _StoreEditorScreenState();
@@ -46,6 +53,7 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
   late Map<String, List<String>> _subcells;
   bool _dirty = false;
   bool _geocoding = false;
+  _TapMode _tapMode = _TapMode.normal;
 
   @override
   void initState() {
@@ -194,14 +202,16 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
   }
 
   List<String> _allListItemNames() {
+    final focus = widget.focusItems.map((s) => s.trim()).where((s) => s.isNotEmpty).toSet();
     final lists = ref.read(shoppingListsProvider);
-    return lists
+    final rest = lists
         .expand((list) => list.items)
         .map((item) => item.name.trim())
-        .where((name) => name.isNotEmpty)
+        .where((name) => name.isNotEmpty && !focus.contains(name))
         .toSet()
         .toList()
       ..sort();
+    return [...focus, ...rest];
   }
 
   Future<String?> _showGoodsEditDialog({
@@ -210,6 +220,10 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
     required List<String> suggestions,
   }) {
     final l = AppLocalizations.of(context)!;
+    final pinned = widget.focusItems
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
     final ctrl = TextEditingController(text: initialText);
     return showDialog<String>(
       context: context,
@@ -224,7 +238,10 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
               .map((e) => e.trim().toLowerCase())
               .toSet();
           final filtered = partial.isEmpty
-              ? <String>[]
+              ? pinned
+                  .where((s) => !entered.contains(s.toLowerCase()))
+                  .take(8)
+                  .toList()
               : suggestions
                   .where((s) =>
                       s.toLowerCase().contains(partial.toLowerCase()) &&
@@ -285,6 +302,26 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
         },
       ),
     );
+  }
+
+  void _onCellTap(String cellId) {
+    if (_tapMode == _TapMode.setEntrance) {
+      setState(() {
+        _entranceCtrl.text = cellId;
+        _dirty = true;
+        _tapMode = _TapMode.normal;
+      });
+      return;
+    }
+    if (_tapMode == _TapMode.setExit) {
+      setState(() {
+        _exitCtrl.text = cellId;
+        _dirty = true;
+        _tapMode = _TapMode.normal;
+      });
+      return;
+    }
+    _editCell(cellId);
   }
 
   void _editCell(String cellId) async {
@@ -662,23 +699,78 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
             Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _entranceCtrl,
-                    decoration: InputDecoration(labelText: l.entrance, border: const OutlineInputBorder()),
-                    textCapitalization: TextCapitalization.characters,
+                  child: _EntranceExitCard(
+                    icon: Icons.login,
+                    label: l.setEntrance,
+                    cellId: _entranceCtrl.text.trim().toUpperCase(),
+                    color: Colors.green,
+                    active: _tapMode == _TapMode.setEntrance,
+                    onTap: () => setState(() => _tapMode =
+                        _tapMode == _TapMode.setEntrance
+                            ? _TapMode.normal
+                            : _TapMode.setEntrance),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: TextField(
-                    controller: _exitCtrl,
-                    decoration: InputDecoration(labelText: l.exit, border: const OutlineInputBorder()),
-                    textCapitalization: TextCapitalization.characters,
+                  child: _EntranceExitCard(
+                    icon: Icons.logout,
+                    label: l.setExit,
+                    cellId: _exitCtrl.text.trim().toUpperCase(),
+                    color: Colors.red,
+                    active: _tapMode == _TapMode.setExit,
+                    onTap: () => setState(() => _tapMode =
+                        _tapMode == _TapMode.setExit
+                            ? _TapMode.normal
+                            : _TapMode.setExit),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
+            if (_tapMode != _TapMode.normal)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: _tapMode == _TapMode.setEntrance
+                      ? Colors.green.shade50
+                      : Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.touch_app_outlined,
+                        size: 16,
+                        color: _tapMode == _TapMode.setEntrance
+                            ? Colors.green.shade700
+                            : Colors.red.shade700),
+                    const SizedBox(width: 8),
+                    Text(
+                      _tapMode == _TapMode.setEntrance
+                          ? l.setEntrance
+                          : l.setExit,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: _tapMode == _TapMode.setEntrance
+                            ? Colors.green.shade700
+                            : Colors.red.shade700,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '↓',
+                      style: TextStyle(
+                        color: _tapMode == _TapMode.setEntrance
+                            ? Colors.green.shade700
+                            : Colors.red.shade700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             StoreGrid(
               rows: rows,
               cols: cols,
@@ -686,9 +778,11 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
               subcells: _subcells,
               entrance: _entranceCtrl.text.trim().toUpperCase(),
               exit: _exitCtrl.text.trim().toUpperCase(),
-              onCellTap: _editCell,
-              onCellDoubleTap: _startSplit,
-              onSubcellTap: _editSubcell,
+              onCellTap: _onCellTap,
+              onCellDoubleTap:
+                  _tapMode == _TapMode.normal ? _startSplit : null,
+              onSubcellTap:
+                  _tapMode == _TapMode.normal ? _editSubcell : null,
               onSplitCellLongPress: _splitCellOptions,
             ),
           ],
@@ -1219,6 +1313,72 @@ class _DimensionCounter extends StatelessWidget {
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _EntranceExitCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String cellId;
+  final Color color;
+  final bool active;
+  final VoidCallback onTap;
+
+  const _EntranceExitCard({
+    required this.icon,
+    required this.label,
+    required this.cellId,
+    required this.color,
+    required this.active,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: active ? color : theme.colorScheme.outlineVariant,
+            width: active ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(8),
+          color: active ? color.withAlpha(25) : null,
+        ),
+        child: Row(
+          children: [
+            Icon(icon,
+                size: 20,
+                color: active ? color : theme.colorScheme.onSurfaceVariant),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(label,
+                      style: theme.textTheme.labelSmall
+                          ?.copyWith(color: active ? color : null)),
+                  Text(cellId,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: active
+                              ? color
+                              : theme.colorScheme.onSurface)),
+                ],
+              ),
+            ),
+            if (active)
+              Icon(Icons.touch_app_outlined, size: 16, color: color),
+          ],
+        ),
       ),
     );
   }

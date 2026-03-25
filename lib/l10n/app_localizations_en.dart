@@ -353,6 +353,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get revertSplitDesc => 'Merge halves back into one cell';
 
   @override
+  String get nowInShops => 'Now found in shops — navigate to collect:';
+
+  @override
+  String get assignToShop => 'Assign to shop';
+
+  @override
+  String whichShopForItem(String item) {
+    return 'Which shop has \"$item\"?';
+  }
+
+  @override
   String get easterButton => 'Everything will be fine!';
 
   @override
