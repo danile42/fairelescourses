@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart' as enc;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import '../models/supermarket.dart';
 import '../models/shopping_list.dart';
@@ -17,7 +18,14 @@ class ShopSearchResult {
 }
 
 class FirestoreService {
-  static final _db = FirebaseFirestore.instance;
+  final FirebaseFirestore _db;
+  final FirebaseAuth _auth;
+
+  FirestoreService(FirebaseApp app)
+      : _db = FirebaseFirestore.instanceFor(app: app),
+        _auth = FirebaseAuth.instanceFor(app: app);
+
+  String? get currentUid => _auth.currentUser?.uid;
 
   // ── Crypto helpers ─────────────────────────────────────────────────────────
 
@@ -48,17 +56,13 @@ class FirestoreService {
   }
 
   // ── Shops (top-level collection, unencrypted, multi-user) ─────────────────
-  //
-  // Each document stores the full shop definition plus:
-  //   ownerUid      — Firebase Auth UID of the creator (enforced by security rules)
-  //   householdHash — SHA-256(householdId), used to filter household members' shops
 
-  static CollectionReference<Map<String, dynamic>> get _shopsCol =>
+  CollectionReference<Map<String, dynamic>> get _shopsCol =>
       _db.collection('shops');
 
-  static Future<void> upsertShop(String hid, Supermarket s) {
+  Future<void> upsertShop(String hid, Supermarket s) {
     final data = s.toMap()
-      ..['ownerUid'] = FirebaseAuth.instance.currentUser!.uid
+      ..['ownerUid'] = _auth.currentUser!.uid
       ..['householdHash'] = _pathId(hid)
       ..['nameLower'] = s.name.toLowerCase()
       ..['goodsList'] = _goodsList(s);
@@ -68,7 +72,6 @@ class FirestoreService {
     return _shopsCol.doc(s.id).set(data);
   }
 
-  /// Flat deduplicated list of all goods in a shop, lowercased.
   static List<String> _goodsList(Supermarket s) => s.cells.values
       .expand((goods) => goods)
       .map((g) => g.toLowerCase().trim())
@@ -76,8 +79,7 @@ class FirestoreService {
       .toSet()
       .toList();
 
-  /// Prefix-search across all users' shop definitions by name.
-  static Future<List<Supermarket>> searchByName(String query) async {
+  Future<List<Supermarket>> searchByName(String query) async {
     if (query.isEmpty) return [];
     final q = query.toLowerCase();
     final snap = await _shopsCol
@@ -85,23 +87,20 @@ class FirestoreService {
         .where('nameLower', isLessThanOrEqualTo: '$q\uf8ff')
         .limit(30)
         .get();
-    return snap.docs.map((d) => _shopFromDoc(d)).toList();
+    return snap.docs.map(_shopFromDoc).toList();
   }
 
-  /// Find all shops that contain a given item (exact lowercase match in goodsList).
-  static Future<List<Supermarket>> searchByItem(String item) async {
+  Future<List<Supermarket>> searchByItem(String item) async {
     if (item.isEmpty) return [];
     final snap = await _shopsCol
         .where('goodsList', arrayContains: item.toLowerCase().trim())
         .limit(30)
         .get();
-    return snap.docs.map((d) => _shopFromDoc(d)).toList();
+    return snap.docs.map(_shopFromDoc).toList();
   }
 
-  /// Find shops within [radiusKm] of [lat]/[lng], sorted by distance.
-  static Future<List<ShopSearchResult>> searchNearby(
+  Future<List<ShopSearchResult>> searchNearby(
       double lat, double lng, double radiusKm) async {
-    // Bounding box: 1° latitude ≈ 111 km
     final latDelta = radiusKm / 111.0;
     final snap = await _shopsCol
         .where('lat', isGreaterThanOrEqualTo: lat - latDelta)
@@ -134,51 +133,49 @@ class FirestoreService {
 
   static double _rad(double deg) => deg * pi / 180;
 
-  static Supermarket _shopFromDoc(QueryDocumentSnapshot<Map<String, dynamic>> d) {
+  static Supermarket _shopFromDoc(
+      QueryDocumentSnapshot<Map<String, dynamic>> d) {
     final shop = Supermarket.fromMap(d.data());
     shop.ownerUid = d.data()['ownerUid'] as String?;
     return shop;
   }
 
-  static Future<void> deleteShop(String hid, String id) =>
-      _shopsCol.doc(id).delete();
+  Future<void> deleteShop(String hid, String id) => _shopsCol.doc(id).delete();
 
-  /// Streams all shops that belong to this household (any member's definitions).
-  static Stream<List<Supermarket>> shopsStream(String hid) =>
-      _shopsCol
-          .where('householdHash', isEqualTo: _pathId(hid))
-          .snapshots()
-          .map((snap) {
-            final currentUid = FirebaseAuth.instance.currentUser?.uid;
-            return snap.docs.map((d) {
-              final data = d.data();
-              final shop = Supermarket.fromMap(data);
-              shop.ownerUid = data['ownerUid'] as String?;
-              // Backfill search fields on first encounter if missing (owned shops only)
-              if (shop.ownerUid == currentUid &&
-                  (data['nameLower'] == null || data['goodsList'] == null)) {
-                _shopsCol.doc(d.id).update({
-                  'nameLower': shop.name.toLowerCase(),
-                  'goodsList': _goodsList(shop),
-                }).ignore();
-              }
-              return shop;
-            }).toList();
-          });
+  Stream<List<Supermarket>> shopsStream(String hid) =>
+      _shopsCol.where('householdHash', isEqualTo: _pathId(hid)).snapshots().map(
+        (snap) {
+          final uid = _auth.currentUser?.uid;
+          return snap.docs.map((d) {
+            final data = d.data();
+            final shop = Supermarket.fromMap(data);
+            shop.ownerUid = data['ownerUid'] as String?;
+            if (shop.ownerUid == uid &&
+                (data['nameLower'] == null || data['goodsList'] == null)) {
+              _shopsCol.doc(d.id).update({
+                'nameLower': shop.name.toLowerCase(),
+                'goodsList': _goodsList(shop),
+              }).ignore();
+            }
+            return shop;
+          }).toList();
+        },
+      );
 
   // ── Lists (under hashed household path, encrypted) ────────────────────────
 
-  static CollectionReference<Map<String, dynamic>> _lists(String hid) =>
+  CollectionReference<Map<String, dynamic>> _lists(String hid) =>
       _db.collection('h').doc(_pathId(hid)).collection('l');
 
-  static Future<void> upsertList(String hid, ShoppingList l) =>
+  Future<void> upsertList(String hid, ShoppingList l) =>
       _lists(hid).doc(l.id).set({'d': _encrypt(hid, l.toMap())});
 
-  static Future<void> deleteList(String hid, String id) =>
+  Future<void> deleteList(String hid, String id) =>
       _lists(hid).doc(id).delete();
 
-  static Stream<List<ShoppingList>> listsStream(String hid) =>
+  Stream<List<ShoppingList>> listsStream(String hid) =>
       _lists(hid).snapshots().map((snap) => snap.docs
-          .map((d) => ShoppingList.fromMap(_decrypt(hid, d.data()['d'] as String)))
+          .map((d) =>
+              ShoppingList.fromMap(_decrypt(hid, d.data()['d'] as String)))
           .toList());
 }

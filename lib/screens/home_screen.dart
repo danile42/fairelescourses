@@ -5,9 +5,8 @@ import 'package:fairelescourses/l10n/app_localizations.dart';
 import '../providers/home_location_provider.dart';
 import '../providers/shopping_list_provider.dart';
 import '../providers/supermarket_provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../providers/household_provider.dart';
 import '../providers/firestore_sync_provider.dart';
+import '../providers/household_provider.dart';
 import '../models/shopping_list.dart';
 import 'list_editor_screen.dart';
 import 'osm_shops_screen.dart';
@@ -279,7 +278,7 @@ class _StoresTab extends ConsumerWidget {
     if (stores.isEmpty) {
       return Center(child: Text(l.noShops, textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey)));
     }
-    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+    final currentUid = ref.watch(currentUidProvider);
     return ListView.builder(
       padding: const EdgeInsets.all(8),
       itemCount: stores.length,

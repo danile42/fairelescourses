@@ -769,6 +769,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Which shop has \"{item}\"?'**
   String whichShopForItem(String item);
+
+  /// No description provided for @firebaseInstanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Firebase instance'**
+  String get firebaseInstanceTitle;
+
+  /// No description provided for @firebaseInstanceDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Default (built-in)'**
+  String get firebaseInstanceDefault;
+
+  /// No description provided for @firebaseInstanceCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom: {projectId}'**
+  String firebaseInstanceCustom(String projectId);
+
+  /// No description provided for @firebaseInstanceChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get firebaseInstanceChange;
+
+  /// No description provided for @firebaseInstanceSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get firebaseInstanceSave;
+
+  /// No description provided for @firebaseInstanceReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to default'**
+  String get firebaseInstanceReset;
+
+  /// No description provided for @firebaseInstanceResetConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to the built-in Firebase instance? You will need to rejoin your household.'**
+  String get firebaseInstanceResetConfirm;
+
+  /// No description provided for @firebaseInstanceSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Firebase instance updated. Rejoin your household to sync.'**
+  String get firebaseInstanceSaved;
+
+  /// No description provided for @firebaseInstanceProjectId.
+  ///
+  /// In en, this message translates to:
+  /// **'Project ID'**
+  String get firebaseInstanceProjectId;
+
+  /// No description provided for @firebaseInstanceApiKey.
+  ///
+  /// In en, this message translates to:
+  /// **'API Key'**
+  String get firebaseInstanceApiKey;
+
+  /// No description provided for @firebaseInstanceAppId.
+  ///
+  /// In en, this message translates to:
+  /// **'App ID'**
+  String get firebaseInstanceAppId;
+
+  /// No description provided for @firebaseInstanceSenderId.
+  ///
+  /// In en, this message translates to:
+  /// **'Sender ID'**
+  String get firebaseInstanceSenderId;
+
+  /// No description provided for @firebaseInstanceBucket.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage Bucket'**
+  String get firebaseInstanceBucket;
+
+  /// No description provided for @firebaseInstancePasteJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste google-services.json instead'**
+  String get firebaseInstancePasteJson;
+
+  /// No description provided for @firebaseInstanceJsonInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not parse google-services.json.'**
+  String get firebaseInstanceJsonInvalid;
+
+  /// No description provided for @firebaseInstanceFieldsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'All fields are required.'**
+  String get firebaseInstanceFieldsRequired;
 }
 
 class _AppLocalizationsDelegate

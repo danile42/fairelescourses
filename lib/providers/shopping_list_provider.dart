@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/shopping_list.dart';
-import '../services/firestore_service.dart';
+import 'firestore_sync_provider.dart';
 import 'household_provider.dart';
 
 const _boxName = 'shopping_lists';
@@ -30,21 +30,21 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
     await _box.put(l.id, l);
     _sync();
     final hid = _hid;
-    if (hid != null) FirestoreService.upsertList(hid, l).ignore();
+    if (hid != null) ref.read(firestoreServiceProvider).upsertList(hid, l).ignore();
   }
 
   Future<void> update(ShoppingList l) async {
     await _box.put(l.id, l);
     _sync();
     final hid = _hid;
-    if (hid != null) FirestoreService.upsertList(hid, l).ignore();
+    if (hid != null) ref.read(firestoreServiceProvider).upsertList(hid, l).ignore();
   }
 
   Future<void> remove(String id) async {
     await _box.delete(id);
     _sync();
     final hid = _hid;
-    if (hid != null) FirestoreService.deleteList(hid, id).ignore();
+    if (hid != null) ref.read(firestoreServiceProvider).deleteList(hid, id).ignore();
   }
 
   Future<void> toggleItem(String listId, int index) async {
@@ -56,7 +56,7 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
     await _box.put(listId, updated);
     _sync();
     final hid = _hid;
-    if (hid != null) FirestoreService.upsertList(hid, updated).ignore();
+    if (hid != null) ref.read(firestoreServiceProvider).upsertList(hid, updated).ignore();
   }
 
   /// Called by the Firestore sync listener. Merges remote state into Hive and memory.
@@ -73,8 +73,9 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
 
   /// Upload all local lists to Firestore (called when joining a household).
   Future<void> uploadAll(String hid) async {
+    final svc = ref.read(firestoreServiceProvider);
     for (final l in state) {
-      await FirestoreService.upsertList(hid, l);
+      await svc.upsertList(hid, l);
     }
   }
 }

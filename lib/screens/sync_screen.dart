@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fairelescourses/l10n/app_localizations.dart';
 
+import '../models/firebase_credentials.dart';
+import '../providers/firebase_app_provider.dart';
 import '../providers/home_location_provider.dart';
 import '../providers/household_provider.dart';
 import '../providers/supermarket_provider.dart';
@@ -23,10 +25,27 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
   bool _joining = false;
   bool _settingHome = false;
 
+  // Firebase instance editing
+  bool _editingFirebase = false;
+  bool _pasteJsonMode = false;
+  bool _applyingFirebase = false;
+  final _projectIdCtrl = TextEditingController();
+  final _apiKeyCtrl = TextEditingController();
+  final _appIdCtrl = TextEditingController();
+  final _senderIdCtrl = TextEditingController();
+  final _bucketCtrl = TextEditingController();
+  final _jsonCtrl = TextEditingController();
+
   @override
   void dispose() {
     _joinCtrl.dispose();
     _homeCtrl.dispose();
+    _projectIdCtrl.dispose();
+    _apiKeyCtrl.dispose();
+    _appIdCtrl.dispose();
+    _senderIdCtrl.dispose();
+    _bucketCtrl.dispose();
+    _jsonCtrl.dispose();
     super.dispose();
   }
 
@@ -110,12 +129,103 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
         .showSnackBar(SnackBar(content: Text(l.copiedToClipboard)));
   }
 
+  void _startEditingFirebase() {
+    final saved = loadSavedFirebaseCredentials();
+    if (saved != null) {
+      _projectIdCtrl.text = saved.projectId;
+      _apiKeyCtrl.text = saved.apiKey;
+      _appIdCtrl.text = saved.appId;
+      _senderIdCtrl.text = saved.messagingSenderId;
+      _bucketCtrl.text = saved.storageBucket;
+    }
+    setState(() {
+      _editingFirebase = true;
+      _pasteJsonMode = false;
+    });
+  }
+
+  Future<void> _applyFirebaseCredentials() async {
+    final l = AppLocalizations.of(context)!;
+
+    FirebaseCredentials? creds;
+    if (_pasteJsonMode) {
+      creds = FirebaseCredentials.fromGoogleServicesJson(_jsonCtrl.text.trim());
+      if (creds == null) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(l.firebaseInstanceJsonInvalid)));
+        return;
+      }
+    } else {
+      final projectId = _projectIdCtrl.text.trim();
+      final apiKey = _apiKeyCtrl.text.trim();
+      final appId = _appIdCtrl.text.trim();
+      final senderId = _senderIdCtrl.text.trim();
+      final bucket = _bucketCtrl.text.trim();
+      if (projectId.isEmpty ||
+          apiKey.isEmpty ||
+          appId.isEmpty ||
+          senderId.isEmpty ||
+          bucket.isEmpty) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(l.firebaseInstanceFieldsRequired)));
+        return;
+      }
+      creds = FirebaseCredentials(
+        projectId: projectId,
+        apiKey: apiKey,
+        appId: appId,
+        messagingSenderId: senderId,
+        storageBucket: bucket,
+      );
+    }
+
+    setState(() => _applyingFirebase = true);
+    try {
+      await applyCustomFirebaseCredentials(
+          creds, ref.read(firebaseAppProvider.notifier));
+      if (!mounted) return;
+      // Leave household — it belongs to the old instance
+      ref.read(householdProvider.notifier).clear();
+      setState(() => _editingFirebase = false);
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l.firebaseInstanceSaved)));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    } finally {
+      if (mounted) setState(() => _applyingFirebase = false);
+    }
+  }
+
+  Future<void> _resetFirebaseInstance() async {
+    final l = AppLocalizations.of(context)!;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        content: Text(l.firebaseInstanceResetConfirm),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.cancel)),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.yes)),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    await clearCustomFirebaseCredentials(ref.read(firebaseAppProvider.notifier));
+    if (!mounted) return;
+    ref.read(householdProvider.notifier).clear();
+    setState(() => _editingFirebase = false);
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(l.firebaseInstanceSaved)));
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final hid = ref.watch(householdProvider);
     final homeLoc = ref.watch(homeLocationProvider);
     final theme = Theme.of(context);
+    final savedCreds = loadSavedFirebaseCredentials();
 
     return Scaffold(
       appBar: AppBar(
@@ -279,9 +389,129 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                 ),
               ],
             ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Divider(),
+            ),
+            // ── Firebase instance ────────────────────────────────────────────
+            Row(
+              children: [
+                Expanded(
+                  child: Text(l.firebaseInstanceTitle,
+                      style: theme.textTheme.titleMedium),
+                ),
+                if (!_editingFirebase)
+                  TextButton(
+                    onPressed: _startEditingFirebase,
+                    child: Text(l.firebaseInstanceChange),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (!_editingFirebase) ...[
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  savedCreds != null
+                      ? l.firebaseInstanceCustom(savedCreds.projectId)
+                      : l.firebaseInstanceDefault,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ),
+            ] else ...[
+              // Toggle: fields vs paste JSON
+              Row(
+                children: [
+                  Expanded(
+                    child: SegmentedButton<bool>(
+                      segments: [
+                        ButtonSegment(
+                            value: false,
+                            label: Text(l.firebaseInstanceProjectId)),
+                        ButtonSegment(
+                            value: true,
+                            label: Text(l.firebaseInstancePasteJson)),
+                      ],
+                      selected: {_pasteJsonMode},
+                      onSelectionChanged: (v) =>
+                          setState(() => _pasteJsonMode = v.first),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (_pasteJsonMode) ...[
+                TextField(
+                  controller: _jsonCtrl,
+                  maxLines: 8,
+                  decoration: const InputDecoration(
+                    hintText: 'google-services.json',
+                    border: OutlineInputBorder(),
+                    alignLabelWithHint: true,
+                  ),
+                ),
+              ] else ...[
+                _field(_projectIdCtrl, l.firebaseInstanceProjectId),
+                _field(_apiKeyCtrl, l.firebaseInstanceApiKey),
+                _field(_appIdCtrl, l.firebaseInstanceAppId),
+                _field(_senderIdCtrl, l.firebaseInstanceSenderId),
+                _field(_bucketCtrl, l.firebaseInstanceBucket),
+              ],
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _applyingFirebase ? null : _applyFirebaseCredentials,
+                      child: _applyingFirebase
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(l.firebaseInstanceSave),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  TextButton(
+                    onPressed:
+                        _applyingFirebase ? null : () => setState(() => _editingFirebase = false),
+                    child: Text(l.cancel),
+                  ),
+                ],
+              ),
+              if (savedCreds != null) ...[
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: _applyingFirebase ? null : _resetFirebaseInstance,
+                  style: TextButton.styleFrom(
+                      foregroundColor: theme.colorScheme.error),
+                  child: Text(l.firebaseInstanceReset),
+                ),
+              ],
+            ],
+            const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
+
+  Widget _field(TextEditingController ctrl, String label) => Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: TextField(
+          controller: ctrl,
+          decoration: InputDecoration(
+            labelText: label,
+            border: const OutlineInputBorder(),
+            isDense: true,
+          ),
+        ),
+      );
 }

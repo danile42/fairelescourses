@@ -362,4 +362,57 @@ class AppLocalizationsEn extends AppLocalizations {
   String whichShopForItem(String item) {
     return 'Which shop has \"$item\"?';
   }
+
+  @override
+  String get firebaseInstanceTitle => 'Firebase instance';
+
+  @override
+  String get firebaseInstanceDefault => 'Default (built-in)';
+
+  @override
+  String firebaseInstanceCustom(String projectId) {
+    return 'Custom: $projectId';
+  }
+
+  @override
+  String get firebaseInstanceChange => 'Change';
+
+  @override
+  String get firebaseInstanceSave => 'Apply';
+
+  @override
+  String get firebaseInstanceReset => 'Reset to default';
+
+  @override
+  String get firebaseInstanceResetConfirm =>
+      'Reset to the built-in Firebase instance? You will need to rejoin your household.';
+
+  @override
+  String get firebaseInstanceSaved =>
+      'Firebase instance updated. Rejoin your household to sync.';
+
+  @override
+  String get firebaseInstanceProjectId => 'Project ID';
+
+  @override
+  String get firebaseInstanceApiKey => 'API Key';
+
+  @override
+  String get firebaseInstanceAppId => 'App ID';
+
+  @override
+  String get firebaseInstanceSenderId => 'Sender ID';
+
+  @override
+  String get firebaseInstanceBucket => 'Storage Bucket';
+
+  @override
+  String get firebaseInstancePasteJson => 'Paste google-services.json instead';
+
+  @override
+  String get firebaseInstanceJsonInvalid =>
+      'Could not parse google-services.json.';
+
+  @override
+  String get firebaseInstanceFieldsRequired => 'All fields are required.';
 }

@@ -157,5 +157,26 @@
     "placeholders": {
       "n": { "type": "int" }
     }
-  }
+  },
+  "firebaseInstanceTitle": "Firebase instance",
+  "firebaseInstanceDefault": "Default (built-in)",
+  "firebaseInstanceCustom": "Custom: {projectId}",
+  "@firebaseInstanceCustom": {
+    "placeholders": {
+      "projectId": { "type": "String" }
+    }
+  },
+  "firebaseInstanceChange": "Change",
+  "firebaseInstanceSave": "Apply",
+  "firebaseInstanceReset": "Reset to default",
+  "firebaseInstanceResetConfirm": "Reset to the built-in Firebase instance? You will need to rejoin your household.",
+  "firebaseInstanceSaved": "Firebase instance updated. Rejoin your household to sync.",
+  "firebaseInstanceProjectId": "Project ID",
+  "firebaseInstanceApiKey": "API Key",
+  "firebaseInstanceAppId": "App ID",
+  "firebaseInstanceSenderId": "Sender ID",
+  "firebaseInstanceBucket": "Storage Bucket",
+  "firebaseInstancePasteJson": "Paste google-services.json instead",
+  "firebaseInstanceJsonInvalid": "Could not parse google-services.json.",
+  "firebaseInstanceFieldsRequired": "All fields are required."
 }

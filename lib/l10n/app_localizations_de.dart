@@ -370,4 +370,58 @@ class AppLocalizationsDe extends AppLocalizations {
   String whichShopForItem(String item) {
     return 'In welchem Markt gibt es \"$item\"?';
   }
+
+  @override
+  String get firebaseInstanceTitle => 'Firebase-Instanz';
+
+  @override
+  String get firebaseInstanceDefault => 'Standard (eingebaut)';
+
+  @override
+  String firebaseInstanceCustom(String projectId) {
+    return 'Benutzerdefiniert: $projectId';
+  }
+
+  @override
+  String get firebaseInstanceChange => 'Ändern';
+
+  @override
+  String get firebaseInstanceSave => 'Übernehmen';
+
+  @override
+  String get firebaseInstanceReset => 'Auf Standard zurücksetzen';
+
+  @override
+  String get firebaseInstanceResetConfirm =>
+      'Zur eingebauten Firebase-Instanz zurücksetzen? Du musst deinem Haushalt erneut beitreten.';
+
+  @override
+  String get firebaseInstanceSaved =>
+      'Firebase-Instanz aktualisiert. Tritt deinem Haushalt erneut bei, um zu synchronisieren.';
+
+  @override
+  String get firebaseInstanceProjectId => 'Projekt-ID';
+
+  @override
+  String get firebaseInstanceApiKey => 'API-Schlüssel';
+
+  @override
+  String get firebaseInstanceAppId => 'App-ID';
+
+  @override
+  String get firebaseInstanceSenderId => 'Sender-ID';
+
+  @override
+  String get firebaseInstanceBucket => 'Storage Bucket';
+
+  @override
+  String get firebaseInstancePasteJson =>
+      'Stattdessen google-services.json einfügen';
+
+  @override
+  String get firebaseInstanceJsonInvalid =>
+      'google-services.json konnte nicht gelesen werden.';
+
+  @override
+  String get firebaseInstanceFieldsRequired => 'Alle Felder sind erforderlich.';
 }

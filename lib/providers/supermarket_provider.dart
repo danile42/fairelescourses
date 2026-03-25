@@ -1,8 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/supermarket.dart';
-import '../services/firestore_service.dart';
+import 'firestore_sync_provider.dart';
 import 'household_provider.dart';
 
 const _boxName = 'supermarkets';
@@ -26,32 +25,30 @@ class SupermarketNotifier extends Notifier<List<Supermarket>> {
   String? get _hid => ref.read(householdProvider);
 
   Future<void> add(Supermarket s) async {
-    s.ownerUid = FirebaseAuth.instance.currentUser?.uid;
+    s.ownerUid = ref.read(currentUidProvider);
     await _box.put(s.id, s);
     state = [...state, s];
     final hid = _hid;
-    if (hid != null) FirestoreService.upsertShop(hid, s).ignore();
+    if (hid != null) ref.read(firestoreServiceProvider).upsertShop(hid, s).ignore();
   }
 
   Future<void> update(Supermarket s) async {
-    // Preserve ownerUid from existing state entry if not set
     s.ownerUid ??= state.where((e) => e.id == s.id).firstOrNull?.ownerUid
-        ?? FirebaseAuth.instance.currentUser?.uid;
+        ?? ref.read(currentUidProvider);
     await _box.put(s.id, s);
     state = [for (final e in state) e.id == s.id ? s : e];
     final hid = _hid;
-    if (hid != null) FirestoreService.upsertShop(hid, s).ignore();
+    if (hid != null) ref.read(firestoreServiceProvider).upsertShop(hid, s).ignore();
   }
 
   Future<void> remove(String id) async {
     await _box.delete(id);
     state = state.where((s) => s.id != id).toList();
     final hid = _hid;
-    if (hid != null) FirestoreService.deleteShop(hid, id).ignore();
+    if (hid != null) ref.read(firestoreServiceProvider).deleteShop(hid, id).ignore();
   }
 
-  /// Called by the Firestore sync listener. Replaces state with remote data,
-  /// preserving ownerUid (which is not stored in Hive).
+  /// Called by the Firestore sync listener. Replaces state with remote data.
   Future<void> syncFromRemote(List<Supermarket> remote) async {
     final remoteIds = remote.map((s) => s.id).toSet();
     for (final s in remote) {
@@ -65,8 +62,9 @@ class SupermarketNotifier extends Notifier<List<Supermarket>> {
 
   /// Upload all local shops to Firestore (called when joining a household).
   Future<void> uploadAll(String hid) async {
+    final svc = ref.read(firestoreServiceProvider);
     for (final s in state) {
-      await FirestoreService.upsertShop(hid, s);
+      await svc.upsertShop(hid, s);
     }
   }
 }

@@ -157,5 +157,26 @@
     "placeholders": {
       "n": { "type": "int" }
     }
-  }
+  },
+  "firebaseInstanceTitle": "Firebase-Instanz",
+  "firebaseInstanceDefault": "Standard (eingebaut)",
+  "firebaseInstanceCustom": "Benutzerdefiniert: {projectId}",
+  "@firebaseInstanceCustom": {
+    "placeholders": {
+      "projectId": { "type": "String" }
+    }
+  },
+  "firebaseInstanceChange": "Ändern",
+  "firebaseInstanceSave": "Übernehmen",
+  "firebaseInstanceReset": "Auf Standard zurücksetzen",
+  "firebaseInstanceResetConfirm": "Zur eingebauten Firebase-Instanz zurücksetzen? Du musst deinem Haushalt erneut beitreten.",
+  "firebaseInstanceSaved": "Firebase-Instanz aktualisiert. Tritt deinem Haushalt erneut bei, um zu synchronisieren.",
+  "firebaseInstanceProjectId": "Projekt-ID",
+  "firebaseInstanceApiKey": "API-Schlüssel",
+  "firebaseInstanceAppId": "App-ID",
+  "firebaseInstanceSenderId": "Sender-ID",
+  "firebaseInstanceBucket": "Storage Bucket",
+  "firebaseInstancePasteJson": "Stattdessen google-services.json einfügen",
+  "firebaseInstanceJsonInvalid": "google-services.json konnte nicht gelesen werden.",
+  "firebaseInstanceFieldsRequired": "Alle Felder sind erforderlich."
 }

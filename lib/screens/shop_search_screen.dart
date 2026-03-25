@@ -9,6 +9,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/supermarket.dart';
+import '../providers/firestore_sync_provider.dart';
 import '../providers/home_location_provider.dart';
 import '../providers/supermarket_provider.dart';
 import '../services/firestore_service.dart';
@@ -89,9 +90,10 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       if (_mode == _SearchMode.byLocation) {
         await _searchByLocation(q);
       } else {
+        final svc = ref.read(firestoreServiceProvider);
         final shops = _mode == _SearchMode.byItem
-            ? await FirestoreService.searchByItem(q)
-            : await FirestoreService.searchByName(q);
+            ? await svc.searchByItem(q)
+            : await svc.searchByName(q);
         if (mounted) {
           setState(() {
             _firestoreResults = shops.map((s) => ShopSearchResult(shop: s)).toList();
@@ -142,7 +144,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
 
     List<ShopSearchResult> firestoreHits;
     try {
-      firestoreHits = await FirestoreService.searchNearby(lat, lng, 25.0);
+      firestoreHits = await ref.read(firestoreServiceProvider).searchNearby(lat, lng, 25.0);
     } catch (e) {
       if (!mounted) return;
       setState(() {
