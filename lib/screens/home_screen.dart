@@ -10,7 +10,6 @@ import '../providers/household_provider.dart';
 import '../providers/firestore_sync_provider.dart';
 import '../models/shopping_list.dart';
 import 'list_editor_screen.dart';
-import 'easter_egg_screen.dart';
 import 'osm_shops_screen.dart';
 import 'store_editor_screen.dart';
 import 'navigation_screen.dart';
@@ -29,23 +28,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  int _titleTaps = 0;
-
-  void _onTitleTap() {
-    _titleTaps++;
-    if (_titleTaps >= 7) {
-      _titleTaps = 0;
-      Navigator.of(context).push(
-        PageRouteBuilder(
-          pageBuilder: (_, a, b) => const EasterEggScreen(),
-          transitionsBuilder: (_, animation, b, child) =>
-              FadeTransition(opacity: animation, child: child),
-          transitionDuration: const Duration(milliseconds: 500),
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
@@ -58,10 +40,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: GestureDetector(
-            onTap: _onTitleTap,
-            child: Text(l.appTitle),
-          ),
+          title: Text(l.appTitle),
           backgroundColor: Theme.of(context).colorScheme.primary,
           foregroundColor: Colors.white,
           actions: [

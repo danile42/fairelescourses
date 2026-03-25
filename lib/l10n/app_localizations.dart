@@ -769,24 +769,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Which shop has \"{item}\"?'**
   String whichShopForItem(String item);
-
-  /// No description provided for @easterButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Everything will be fine!'**
-  String get easterButton;
-
-  /// No description provided for @easterQuestion.
-  ///
-  /// In en, this message translates to:
-  /// **'Do you feel better now?'**
-  String get easterQuestion;
-
-  /// No description provided for @easterYes.
-  ///
-  /// In en, this message translates to:
-  /// **'Yes 🎉'**
-  String get easterYes;
 }
 
 class _AppLocalizationsDelegate

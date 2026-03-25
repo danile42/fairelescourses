@@ -362,13 +362,4 @@ class AppLocalizationsEn extends AppLocalizations {
   String whichShopForItem(String item) {
     return 'Which shop has \"$item\"?';
   }
-
-  @override
-  String get easterButton => 'Everything will be fine!';
-
-  @override
-  String get easterQuestion => 'Do you feel better now?';
-
-  @override
-  String get easterYes => 'Yes 🎉';
 }

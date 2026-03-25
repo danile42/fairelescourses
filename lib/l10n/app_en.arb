@@ -153,9 +153,6 @@
       "item": { "type": "String" }
     }
   },
-  "easterButton": "Everything will be fine!",
-  "easterQuestion": "Do you feel better now?",
-  "easterYes": "Yes 🎉",
   "@moreGoods": {
     "placeholders": {
       "n": { "type": "int" }
