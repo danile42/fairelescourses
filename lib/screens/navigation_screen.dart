@@ -28,13 +28,15 @@ class NavigationScreen extends ConsumerStatefulWidget {
 class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   late List<Set<String>> _checkedPerStore; // checked item names per store plan
   int _storeIndex = 0;
-  late Set<String> _resolvedUnmatched; // unmatched items now found in a shop
+  late Set<String> _resolvedUnmatched; // assigned to a shop, pending navigation
+  late Set<String> _navigatedUnmatched; // navigated to — permanently hidden
 
   @override
   void initState() {
     super.initState();
     _checkedPerStore = List.generate(widget.plan.storePlans.length, (_) => {});
     _resolvedUnmatched = {};
+    _navigatedUnmatched = {};
   }
 
   StorePlan get _currentPlan => widget.plan.storePlans[_storeIndex];
@@ -71,7 +73,10 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
               NavigationScreen(plan: newPlan, listId: tempList.id)),
     );
     if (!mounted) return;
-    setState(() => _resolvedUnmatched = {});
+    setState(() {
+      _navigatedUnmatched = {..._navigatedUnmatched, ..._resolvedUnmatched};
+      _resolvedUnmatched = {};
+    });
   }
 
   Future<void> _showShopPicker(String item) async {
@@ -112,7 +117,9 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     };
     setState(() {
       _resolvedUnmatched = allUnmatched
-          .where((u) => allShopGoods.contains(u.toLowerCase()))
+          .where((u) =>
+              allShopGoods.contains(u.toLowerCase()) &&
+              !_navigatedUnmatched.contains(u))
           .toSet();
     });
   }
@@ -131,7 +138,9 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
 
     if (plan.storePlans.isEmpty) {
       final stillUnmatched = plan.globalUnmatched
-          .where((i) => !_resolvedUnmatched.contains(i))
+          .where((i) =>
+              !_resolvedUnmatched.contains(i) &&
+              !_navigatedUnmatched.contains(i))
           .toList();
       return Scaffold(
         appBar: AppBar(title: Text(l.navigationTitle)),
@@ -302,6 +311,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                     onNextShop: () => setState(() => _storeIndex++),
                     onAssignToShop: _showShopPicker,
                     resolvedUnmatched: _resolvedUnmatched,
+                    navigatedUnmatched: _navigatedUnmatched,
                     onNavigateResolved: _navigateForResolved,
                   )
                 : ListView.builder(
@@ -406,6 +416,7 @@ class _DoneView extends ConsumerWidget {
   final VoidCallback onNextShop;
   final Future<void> Function(String item) onAssignToShop;
   final Set<String> resolvedUnmatched;
+  final Set<String> navigatedUnmatched;
   final Future<void> Function() onNavigateResolved;
 
   const _DoneView({
@@ -414,6 +425,7 @@ class _DoneView extends ConsumerWidget {
     required this.onNextShop,
     required this.onAssignToShop,
     required this.resolvedUnmatched,
+    required this.navigatedUnmatched,
     required this.onNavigateResolved,
   });
 
@@ -424,7 +436,7 @@ class _DoneView extends ConsumerWidget {
     final stillUnmatched = {
       ...plan.globalUnmatched,
       ...plan.storePlans.expand((s) => s.unmatched),
-    }.where((i) => !resolvedUnmatched.contains(i)).toList();
+    }.where((i) => !resolvedUnmatched.contains(i) && !navigatedUnmatched.contains(i)).toList();
     final hasExtra = resolvedUnmatched.isNotEmpty || stillUnmatched.isNotEmpty;
 
     return Center(
