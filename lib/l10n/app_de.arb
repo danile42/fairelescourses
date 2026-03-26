@@ -158,6 +158,15 @@
       "n": { "type": "int" }
     }
   },
+  "mergeLists": "Zusammenführen",
+  "mergeListsSelected": "{n} ausgewählt",
+  "@mergeListsSelected": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "mergeTargetTitle": "In welche Liste zusammenführen?",
+  "mergeTargetSubtitle": "Artikel aller anderen ausgewählten Listen werden hier hinzugefügt. Duplikate werden entfernt.",
   "firebaseInstanceTitle": "Firebase-Instanz",
   "firebaseInstanceDefault": "Standard (eingebaut)",
   "firebaseInstanceCustom": "Benutzerdefiniert: {projectId}",

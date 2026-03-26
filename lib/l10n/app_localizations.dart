@@ -770,6 +770,30 @@ abstract class AppLocalizations {
   /// **'Which shop has \"{item}\"?'**
   String whichShopForItem(String item);
 
+  /// No description provided for @mergeLists.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge'**
+  String get mergeLists;
+
+  /// No description provided for @mergeListsSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} selected'**
+  String mergeListsSelected(int n);
+
+  /// No description provided for @mergeTargetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge into which list?'**
+  String get mergeTargetTitle;
+
+  /// No description provided for @mergeTargetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Items from all other selected lists will be added here. Duplicates are removed.'**
+  String get mergeTargetSubtitle;
+
   /// No description provided for @firebaseInstanceTitle.
   ///
   /// In en, this message translates to:

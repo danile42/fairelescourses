@@ -203,57 +203,70 @@ class _MiniButton extends StatelessWidget {
   }
 }
 
-class _ListsTab extends ConsumerWidget {
+class _ListsTab extends ConsumerStatefulWidget {
   final List<ShoppingList> lists;
   const _ListsTab({required this.lists});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l = AppLocalizations.of(context)!;
-    if (lists.isEmpty) {
-      return Center(child: Text(l.noLists, textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey)));
-    }
-    return ListView.builder(
-      padding: const EdgeInsets.all(8),
-      itemCount: lists.length,
-      itemBuilder: (context, i) {
-        final list = lists[i];
-        return Card(
-          child: ListTile(
-            leading: const Icon(Icons.shopping_cart_outlined),
-            title: Text(list.name.isEmpty ? '—' : list.name),
-            subtitle: Text('${list.checkedCount}/${list.items.length}'),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.play_arrow),
-                  tooltip: l.generatePlan,
-                  onPressed: () {
-                    final stores = ref.read(supermarketsProvider);
-                    final plan = NavigationPlanner.plan(list, stores);
-                    Navigator.push(context, MaterialPageRoute(
-                      builder: (_) => NavigationScreen(plan: plan, listId: list.id),
-                    ));
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  onPressed: () => _confirmDelete(context, ref, list.id, list.name, l),
-                ),
-              ],
-            ),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => ListEditorScreen(list: list, isNew: false)),
-            ),
-          ),
-        );
-      },
-    );
+  ConsumerState<_ListsTab> createState() => _ListsTabState();
+}
+
+class _ListsTabState extends ConsumerState<_ListsTab> {
+  final Set<String> _selectedIds = {};
+
+  bool get _selecting => _selectedIds.isNotEmpty;
+
+  void _toggleSelect(String id) {
+    setState(() {
+      if (_selectedIds.contains(id)) {
+        _selectedIds.remove(id);
+      } else {
+        _selectedIds.add(id);
+      }
+    });
   }
 
-  Future<void> _confirmDelete(BuildContext context, WidgetRef ref, String id, String name, AppLocalizations l) async {
+  void _cancelSelection() => setState(() => _selectedIds.clear());
+
+  Future<void> _showMergeDialog() async {
+    final l = AppLocalizations.of(context)!;
+    final selected = widget.lists.where((l) => _selectedIds.contains(l.id)).toList();
+    final targetId = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l.mergeTargetTitle),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l.mergeTargetSubtitle,
+                style: Theme.of(ctx).textTheme.bodySmall),
+            const SizedBox(height: 12),
+            ...selected.map((list) => ListTile(
+                  title: Text(list.name.isEmpty ? '—' : list.name),
+                  subtitle: Text('${list.items.length} items'),
+                  contentPadding: EdgeInsets.zero,
+                  onTap: () => Navigator.pop(ctx, list.id),
+                )),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l.cancel),
+          ),
+        ],
+      ),
+    );
+    if (targetId == null || !mounted) return;
+    await ref
+        .read(shoppingListsProvider.notifier)
+        .merge(_selectedIds.toList(), targetId);
+    if (mounted) setState(() => _selectedIds.clear());
+  }
+
+  Future<void> _confirmDelete(String id, String name) async {
+    final l = AppLocalizations.of(context)!;
     final ok = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -264,7 +277,134 @@ class _ListsTab extends ConsumerWidget {
         ],
       ),
     );
-    if (ok == true) ref.read(shoppingListsProvider.notifier).remove(id);
+    if (ok == true && mounted) ref.read(shoppingListsProvider.notifier).remove(id);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final lists = widget.lists;
+
+    if (lists.isEmpty) {
+      return Center(
+          child: Text(l.noLists,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.grey)));
+    }
+
+    return Column(
+      children: [
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.all(8),
+            itemCount: lists.length,
+            itemBuilder: (context, i) {
+              final list = lists[i];
+              final isSelected = _selectedIds.contains(list.id);
+              return Card(
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primaryContainer
+                    : null,
+                child: ListTile(
+                  leading: _selecting
+                      ? Checkbox(
+                          value: isSelected,
+                          onChanged: (_) => _toggleSelect(list.id),
+                        )
+                      : const Icon(Icons.shopping_cart_outlined),
+                  title: Text(list.name.isEmpty ? '—' : list.name),
+                  subtitle: Text('${list.checkedCount}/${list.items.length}'),
+                  trailing: _selecting
+                      ? null
+                      : Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.play_arrow),
+                              tooltip: l.generatePlan,
+                              onPressed: () {
+                                final stores = ref.read(supermarketsProvider);
+                                final plan = NavigationPlanner.plan(list, stores);
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => NavigationScreen(
+                                            plan: plan, listId: list.id)));
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline),
+                              onPressed: () =>
+                                  _confirmDelete(list.id, list.name),
+                            ),
+                          ],
+                        ),
+                  onTap: _selecting
+                      ? () => _toggleSelect(list.id)
+                      : () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    ListEditorScreen(list: list, isNew: false)),
+                          ),
+                  onLongPress: _selecting
+                      ? null
+                      : () => _toggleSelect(list.id),
+                ),
+              );
+            },
+          ),
+        ),
+        if (_selecting)
+          _MergeBar(
+            selectedCount: _selectedIds.length,
+            onMerge: _selectedIds.length >= 2 ? _showMergeDialog : null,
+            onCancel: _cancelSelection,
+          ),
+      ],
+    );
+  }
+}
+
+class _MergeBar extends StatelessWidget {
+  final int selectedCount;
+  final VoidCallback? onMerge;
+  final VoidCallback onCancel;
+
+  const _MergeBar({
+    required this.selectedCount,
+    required this.onMerge,
+    required this.onCancel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    return Container(
+      color: theme.colorScheme.surfaceContainerHighest,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            Text(
+              l.mergeListsSelected(selectedCount),
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const Spacer(),
+            TextButton(onPressed: onCancel, child: Text(l.cancel)),
+            const SizedBox(width: 8),
+            FilledButton.icon(
+              onPressed: onMerge,
+              icon: const Icon(Icons.merge, size: 18),
+              label: Text(l.mergeLists),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

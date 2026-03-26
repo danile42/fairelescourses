@@ -158,6 +158,15 @@
       "n": { "type": "int" }
     }
   },
+  "mergeLists": "Merge",
+  "mergeListsSelected": "{n} selected",
+  "@mergeListsSelected": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "mergeTargetTitle": "Merge into which list?",
+  "mergeTargetSubtitle": "Items from all other selected lists will be added here. Duplicates are removed.",
   "firebaseInstanceTitle": "Firebase instance",
   "firebaseInstanceDefault": "Default (built-in)",
   "firebaseInstanceCustom": "Custom: {projectId}",

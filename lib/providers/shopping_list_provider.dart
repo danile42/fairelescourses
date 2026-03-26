@@ -71,6 +71,33 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
     _sync();
   }
 
+  /// Merge [ids] into [targetId]: combine all items (deduplicated by name,
+  /// unchecked wins), keep the target list's name and preferred stores,
+  /// then delete all other selected lists.
+  Future<void> merge(List<String> ids, String targetId) async {
+    final selected = state.where((l) => ids.contains(l.id)).toList();
+    final target = selected.firstWhere((l) => l.id == targetId);
+
+    // Merge items; for duplicate names, unchecked wins.
+    final merged = <String, ShoppingItem>{};
+    for (final list in selected) {
+      for (final item in list.items) {
+        final key = item.name.toLowerCase();
+        if (!merged.containsKey(key)) {
+          merged[key] = item;
+        } else if (!item.checked) {
+          merged[key] = merged[key]!.copyWith(checked: false);
+        }
+      }
+    }
+
+    final mergedList = target.copyWith(items: merged.values.toList());
+    await update(mergedList);
+    for (final id in ids) {
+      if (id != targetId) await remove(id);
+    }
+  }
+
   /// Upload all local lists to Firestore (called when joining a household).
   Future<void> uploadAll(String hid) async {
     final svc = ref.read(firestoreServiceProvider);

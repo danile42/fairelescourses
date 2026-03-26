@@ -364,6 +364,21 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get mergeLists => 'Merge';
+
+  @override
+  String mergeListsSelected(int n) {
+    return '$n selected';
+  }
+
+  @override
+  String get mergeTargetTitle => 'Merge into which list?';
+
+  @override
+  String get mergeTargetSubtitle =>
+      'Items from all other selected lists will be added here. Duplicates are removed.';
+
+  @override
   String get firebaseInstanceTitle => 'Firebase instance';
 
   @override
