@@ -770,6 +770,54 @@ abstract class AppLocalizations {
   /// **'Which shop has \"{item}\"?'**
   String whichShopForItem(String item);
 
+  /// No description provided for @navModeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigation mode'**
+  String get navModeTitle;
+
+  /// No description provided for @navModeSingle.
+  ///
+  /// In en, this message translates to:
+  /// **'Single'**
+  String get navModeSingle;
+
+  /// No description provided for @navModeSingleDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigate on your own — no sharing'**
+  String get navModeSingleDesc;
+
+  /// No description provided for @navModeCollaborative.
+  ///
+  /// In en, this message translates to:
+  /// **'Collaborative'**
+  String get navModeCollaborative;
+
+  /// No description provided for @navModeCollaborativeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'All household members see checked items in real time'**
+  String get navModeCollaborativeDesc;
+
+  /// No description provided for @navCollaborativeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Collaborative'**
+  String get navCollaborativeLabel;
+
+  /// No description provided for @navCollaborativeActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Collaborative navigation active'**
+  String get navCollaborativeActive;
+
+  /// No description provided for @navJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Join'**
+  String get navJoin;
+
   /// No description provided for @mergeLists.
   ///
   /// In en, this message translates to:

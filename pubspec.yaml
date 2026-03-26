@@ -2,7 +2,7 @@ name: fairelescourses
 description: "Fairelescourses - Shopping navigation assistant"
 publish_to: 'none'
 
-version: 0.7.2+15
+version: 0.8.1+17
 
 environment:
   sdk: ^3.11.1

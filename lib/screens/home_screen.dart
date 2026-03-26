@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fairelescourses/l10n/app_localizations.dart';
 
+import '../models/nav_session.dart';
+import '../models/shopping_list.dart';
+import '../providers/firestore_sync_provider.dart';
 import '../providers/home_location_provider.dart';
+import '../providers/household_provider.dart';
+import '../providers/nav_session_provider.dart';
 import '../providers/shopping_list_provider.dart';
 import '../providers/supermarket_provider.dart';
-import '../providers/firestore_sync_provider.dart';
-import '../providers/household_provider.dart';
-import '../models/shopping_list.dart';
 import 'list_editor_screen.dart';
 import 'osm_shops_screen.dart';
 import 'store_editor_screen.dart';
@@ -34,6 +36,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final stores = ref.watch(supermarketsProvider);
     final hid = ref.watch(householdProvider);
     ref.watch(firestoreSyncProvider); // activates real-time sync
+
+    final session = ref.watch(navSessionProvider);
 
     return DefaultTabController(
       length: 2,
@@ -73,10 +77,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ],
           ),
         ),
-        body: TabBarView(
+        body: Column(
           children: [
-            _ListsTab(lists: lists),
-            _StoresTab(stores: stores),
+            if (session.hasValue && session.value != null)
+              _JoinBanner(session: session.value!, lists: lists),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  _ListsTab(lists: lists),
+                  _StoresTab(stores: stores),
+                ],
+              ),
+            ),
           ],
         ),
         floatingActionButton: _HomeFab(lists: lists),
@@ -265,6 +277,67 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
     if (mounted) setState(() => _selectedIds.clear());
   }
 
+  void _startNavigation(ShoppingList list) {
+    final hid = ref.read(householdProvider);
+    if (hid == null) {
+      _launchNavigation(list, collaborative: false);
+    } else {
+      _showModePicker(list);
+    }
+  }
+
+  void _showModePicker(ShoppingList list) {
+    final l = AppLocalizations.of(context)!;
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+            child: Text(l.navModeTitle,
+                style: Theme.of(ctx).textTheme.titleMedium),
+          ),
+          ListTile(
+            leading: const Icon(Icons.person_outline),
+            title: Text(l.navModeSingle),
+            subtitle: Text(l.navModeSingleDesc),
+            onTap: () {
+              Navigator.pop(ctx);
+              _launchNavigation(list, collaborative: false);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.group_outlined),
+            title: Text(l.navModeCollaborative),
+            subtitle: Text(l.navModeCollaborativeDesc),
+            onTap: () {
+              Navigator.pop(ctx);
+              _launchNavigation(list, collaborative: true);
+            },
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  void _launchNavigation(ShoppingList list, {required bool collaborative}) {
+    final stores = ref.read(supermarketsProvider);
+    final plan = NavigationPlanner.plan(list, stores);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => NavigationScreen(
+          plan: plan,
+          listId: list.id,
+          isCollaborative: collaborative,
+          isHost: collaborative,
+        ),
+      ),
+    );
+  }
+
   Future<void> _confirmDelete(String id, String name) async {
     final l = AppLocalizations.of(context)!;
     final ok = await showDialog<bool>(
@@ -322,15 +395,7 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
                             IconButton(
                               icon: const Icon(Icons.play_arrow),
                               tooltip: l.generatePlan,
-                              onPressed: () {
-                                final stores = ref.read(supermarketsProvider);
-                                final plan = NavigationPlanner.plan(list, stores);
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (_) => NavigationScreen(
-                                            plan: plan, listId: list.id)));
-                              },
+                              onPressed: () => _startNavigation(list),
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete_outline),
@@ -362,6 +427,66 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
             onCancel: _cancelSelection,
           ),
       ],
+    );
+  }
+}
+
+class _JoinBanner extends ConsumerWidget {
+  final NavSession session;
+  final List<ShoppingList> lists;
+  const _JoinBanner({required this.session, required this.lists});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context)!;
+    final list = lists.where((e) => e.id == session.listId).firstOrNull;
+    final listName =
+        list == null ? '?' : (list.name.isEmpty ? '—' : list.name);
+    final theme = Theme.of(context);
+
+    return Material(
+      color: theme.colorScheme.secondaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          children: [
+            const Icon(Icons.group, size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '${l.navCollaborativeActive} · $listName',
+                style: theme.textTheme.bodySmall
+                    ?.copyWith(fontWeight: FontWeight.w600),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            FilledButton.tonal(
+              onPressed: list == null
+                  ? null
+                  : () {
+                      final stores = ref.read(supermarketsProvider);
+                      final plan = NavigationPlanner.plan(list, stores);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => NavigationScreen(
+                            plan: plan,
+                            listId: list.id,
+                            isCollaborative: true,
+                            isHost: false,
+                          ),
+                        ),
+                      );
+                    },
+              style: FilledButton.styleFrom(
+                  visualDensity: VisualDensity.compact),
+              child: Text(l.navJoin),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

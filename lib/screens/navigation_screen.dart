@@ -6,8 +6,10 @@ import 'package:uuid/uuid.dart';
 import '../models/navigation_plan.dart';
 import '../models/shopping_list.dart';
 import '../models/supermarket.dart';
+import '../providers/household_provider.dart';
 import '../providers/shopping_list_provider.dart';
 import '../providers/supermarket_provider.dart';
+import '../providers/firestore_sync_provider.dart';
 import '../services/navigation_planner.dart';
 import '../widgets/mini_map.dart';
 import 'list_editor_screen.dart';
@@ -18,18 +20,26 @@ const _uuid = Uuid();
 class NavigationScreen extends ConsumerStatefulWidget {
   final NavigationPlan plan;
   final String listId;
+  final bool isCollaborative;
+  final bool isHost;
 
-  const NavigationScreen({super.key, required this.plan, required this.listId});
+  const NavigationScreen({
+    super.key,
+    required this.plan,
+    required this.listId,
+    this.isCollaborative = false,
+    this.isHost = false,
+  });
 
   @override
   ConsumerState<NavigationScreen> createState() => _NavigationScreenState();
 }
 
 class _NavigationScreenState extends ConsumerState<NavigationScreen> {
-  late List<Set<String>> _checkedPerStore; // checked item names per store plan
+  late List<Set<String>> _checkedPerStore;
   int _storeIndex = 0;
-  late Set<String> _resolvedUnmatched; // assigned to a shop, pending navigation
-  late Set<String> _navigatedUnmatched; // navigated to — permanently hidden
+  late Set<String> _resolvedUnmatched;
+  late Set<String> _navigatedUnmatched;
 
   @override
   void initState() {
@@ -37,10 +47,57 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     _checkedPerStore = List.generate(widget.plan.storePlans.length, (_) => {});
     _resolvedUnmatched = {};
     _navigatedUnmatched = {};
+
+    if (widget.isCollaborative) {
+      // Pre-populate checked state from current shopping list.
+      final list = ref
+          .read(shoppingListsProvider)
+          .where((l) => l.id == widget.listId)
+          .firstOrNull;
+      if (list != null) _syncCheckedFromList(list);
+
+      // Host creates the session document.
+      if (widget.isHost) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final hid = ref.read(householdProvider);
+          if (hid != null) {
+            ref
+                .read(firestoreServiceProvider)
+                .upsertNavSession(hid, widget.listId)
+                .ignore();
+          }
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    // Host cleans up the session when the screen is closed.
+    if (widget.isCollaborative && widget.isHost) {
+      final hid = ref.read(householdProvider);
+      if (hid != null) {
+        ref.read(firestoreServiceProvider).deleteNavSession(hid).ignore();
+      }
+    }
+    super.dispose();
+  }
+
+  /// Derives per-store checked sets from the shopping list's checked items.
+  void _syncCheckedFromList(ShoppingList list) {
+    final checkedNames = list.items
+        .where((i) => i.checked)
+        .map((i) => i.name.toLowerCase())
+        .toSet();
+    for (int si = 0; si < widget.plan.storePlans.length; si++) {
+      _checkedPerStore[si] = widget.plan.storePlans[si].stops
+          .expand((s) => s.items)
+          .where((item) => checkedNames.contains(item.toLowerCase()))
+          .toSet();
+    }
   }
 
   StorePlan get _currentPlan => widget.plan.storePlans[_storeIndex];
-
   int get _checkedCount => _checkedPerStore[_storeIndex].length;
   int get _totalCount => _currentPlan.totalItems;
 
@@ -53,6 +110,13 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         set.add(item);
       }
     });
+    // In collaborative mode, persist the checked state to the shared list.
+    if (widget.isCollaborative) {
+      ref
+          .read(shoppingListsProvider.notifier)
+          .toggleItemByName(widget.listId, item)
+          .ignore();
+    }
   }
 
   bool _isChecked(String item) => _checkedPerStore[_storeIndex].contains(item);
@@ -80,7 +144,6 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
       _resolvedUnmatched = {};
     });
 
-    // If nothing remains to handle, skip the redundant "Finish" screen.
     final allUnmatched = {
       ...widget.plan.globalUnmatched,
       ...widget.plan.storePlans.expand((s) => s.unmatched),
@@ -117,7 +180,6 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
           builder: (_) => StoreEditorScreen(existing: shop, focusItems: [item])),
     );
     if (!mounted) return;
-    // Re-check which unmatched items are now covered by any shop's cells.
     final allShopGoods = ref
         .read(supermarketsProvider)
         .expand((s) => [
@@ -151,6 +213,15 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     final l = AppLocalizations.of(context)!;
     final plan = widget.plan;
 
+    // In collaborative mode, keep checked state in sync with the shared list.
+    if (widget.isCollaborative) {
+      ref.listen<List<ShoppingList>>(shoppingListsProvider, (_, lists) {
+        final list =
+            lists.where((l) => l.id == widget.listId).firstOrNull;
+        if (list != null) setState(() => _syncCheckedFromList(list));
+      });
+    }
+
     if (plan.storePlans.isEmpty) {
       final stillUnmatched = plan.globalUnmatched
           .where((i) =>
@@ -158,13 +229,15 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
               !_navigatedUnmatched.contains(i))
           .toList();
       return Scaffold(
-        appBar: AppBar(title: Text(l.navigationTitle)),
+        appBar: AppBar(
+          title: Text(l.navigationTitle),
+          actions: [if (widget.isCollaborative) _CollaborativeBadge()],
+        ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Resolved: now in shops ───────────────────────────────
               if (_resolvedUnmatched.isNotEmpty) ...[
                 Container(
                   width: double.infinity,
@@ -205,7 +278,6 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                 ),
                 const SizedBox(height: 16),
               ],
-              // ── Still not found in any shop ──────────────────────────
               if (stillUnmatched.isNotEmpty) ...[
                 Container(
                   width: double.infinity,
@@ -251,7 +323,6 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                   ),
                 ),
               ] else if (_resolvedUnmatched.isEmpty) ...[
-                // Nothing assigned yet — original empty state
                 Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -279,6 +350,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         title: Text(l.navigationTitle),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
+        actions: [if (widget.isCollaborative) _CollaborativeBadge()],
         bottom: plan.storePlans.length > 1
             ? PreferredSize(
                 preferredSize: const Size.fromHeight(48),
@@ -292,7 +364,6 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
       ),
       body: Column(
         children: [
-          // Progress bar
           LinearProgressIndicator(
             value: _totalCount == 0 ? 1.0 : _checkedCount / _totalCount,
             minHeight: 6,
@@ -302,22 +373,23 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
-                Icon(Icons.store_outlined, size: 16, color: Theme.of(context).colorScheme.primary),
+                Icon(Icons.store_outlined,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 6),
-                Text(storePlan.storeName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(storePlan.storeName,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
                 const Spacer(),
                 Text(l.progress(_checkedCount, _totalCount)),
               ],
             ),
           ),
-          // Mini map
           MiniMap(
             storePlan: storePlan,
             currentCell: _currentCell,
             checkedItems: _checkedPerStore[_storeIndex],
           ),
           const Divider(height: 1),
-          // Stop list
           Expanded(
             child: allDone
                 ? _DoneView(
@@ -339,44 +411,72 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                         opacity: allStopDone ? 0.4 : 1.0,
                         duration: const Duration(milliseconds: 300),
                         child: Card(
-                          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          color: isCurrent ? Theme.of(context).colorScheme.primaryContainer : null,
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
+                          color: isCurrent
+                              ? Theme.of(context)
+                                  .colorScheme
+                                  .primaryContainer
+                              : null,
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Container(
-                                  margin: const EdgeInsets.only(top: 6, right: 8),
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  margin: const EdgeInsets.only(
+                                      top: 6, right: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primary,
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Text(stop.cell,
-                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12)),
                                 ),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: stop.items.map((item) => SizedBox(
-                                      height: 32,
-                                      child: CheckboxListTile(
-                                        dense: true,
-                                        visualDensity: VisualDensity.compact,
-                                        contentPadding: EdgeInsets.zero,
-                                        controlAffinity: ListTileControlAffinity.leading,
-                                        value: _isChecked(item),
-                                        title: Text(item,
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            decoration: _isChecked(item) ? TextDecoration.lineThrough : null,
-                                            color: _isChecked(item) ? Colors.grey : null,
-                                          ),
-                                        ),
-                                        onChanged: (_) => _toggleItem(item),
-                                      ),
-                                    )).toList(),
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: stop.items
+                                        .map((item) => SizedBox(
+                                              height: 32,
+                                              child: CheckboxListTile(
+                                                dense: true,
+                                                visualDensity:
+                                                    VisualDensity.compact,
+                                                contentPadding:
+                                                    EdgeInsets.zero,
+                                                controlAffinity:
+                                                    ListTileControlAffinity
+                                                        .leading,
+                                                value: _isChecked(item),
+                                                title: Text(
+                                                  item,
+                                                  style: TextStyle(
+                                                    fontSize: 13,
+                                                    decoration: _isChecked(
+                                                            item)
+                                                        ? TextDecoration
+                                                            .lineThrough
+                                                        : null,
+                                                    color: _isChecked(item)
+                                                        ? Colors.grey
+                                                        : null,
+                                                  ),
+                                                ),
+                                                onChanged: (_) =>
+                                                    _toggleItem(item),
+                                              ),
+                                            ))
+                                        .toList(),
                                   ),
                                 ),
                               ],
@@ -393,12 +493,30 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   }
 }
 
+class _CollaborativeBadge extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: Chip(
+        avatar: const Icon(Icons.group, size: 14),
+        label: Text(l.navCollaborativeLabel,
+            style: const TextStyle(fontSize: 11)),
+        padding: EdgeInsets.zero,
+        visualDensity: VisualDensity.compact,
+      ),
+    );
+  }
+}
+
 class _StoreTabs extends StatelessWidget {
   final List<StorePlan> plans;
   final int currentIndex;
   final ValueChanged<int> onTap;
 
-  const _StoreTabs({required this.plans, required this.currentIndex, required this.onTap});
+  const _StoreTabs(
+      {required this.plans, required this.currentIndex, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -415,8 +533,12 @@ class _StoreTabs extends StatelessWidget {
               selected: selected,
               onSelected: (_) => onTap(i),
               selectedColor: Colors.white,
-              backgroundColor: Theme.of(context).colorScheme.primary.withAlpha(100),
-              labelStyle: TextStyle(color: selected ? Theme.of(context).colorScheme.primary : Colors.white),
+              backgroundColor:
+                  Theme.of(context).colorScheme.primary.withAlpha(100),
+              labelStyle: TextStyle(
+                  color: selected
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.white),
             ),
           );
         }),
@@ -451,7 +573,10 @@ class _DoneView extends ConsumerWidget {
     final stillUnmatched = {
       ...plan.globalUnmatched,
       ...plan.storePlans.expand((s) => s.unmatched),
-    }.where((i) => !resolvedUnmatched.contains(i) && !navigatedUnmatched.contains(i)).toList();
+    }
+        .where((i) =>
+            !resolvedUnmatched.contains(i) && !navigatedUnmatched.contains(i))
+        .toList();
     final hasExtra = resolvedUnmatched.isNotEmpty || stillUnmatched.isNotEmpty;
 
     return Center(
@@ -470,7 +595,9 @@ class _DoneView extends ConsumerWidget {
               l.allItemsChecked,
               style: TextStyle(
                   fontSize: 18,
-                  color: hasExtra && isLastShop ? Colors.orange.shade800 : null),
+                  color: hasExtra && isLastShop
+                      ? Colors.orange.shade800
+                      : null),
             ),
             if (!isLastShop) ...[
               const SizedBox(height: 16),
@@ -479,7 +606,6 @@ class _DoneView extends ConsumerWidget {
                 child: Text(l.nextShop),
               ),
             ] else ...[
-              // ── Items now assigned to a shop (newly resolved) ──────────
               if (resolvedUnmatched.isNotEmpty) ...[
                 const SizedBox(height: 20),
                 Container(
@@ -547,7 +673,6 @@ class _DoneView extends ConsumerWidget {
                   ),
                 ),
               ],
-              // ── Items still not in any shop ────────────────────────────
               if (stillUnmatched.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Container(
@@ -575,13 +700,15 @@ class _DoneView extends ConsumerWidget {
                               children: [
                                 Expanded(
                                     child: Text('• $item',
-                                        style: const TextStyle(fontSize: 13))),
+                                        style:
+                                            const TextStyle(fontSize: 13))),
                                 TextButton.icon(
                                   onPressed: () => onAssignToShop(item),
                                   icon: const Icon(Icons.store_outlined,
                                       size: 14),
                                   label: Text(l.assignToShop,
-                                      style: const TextStyle(fontSize: 12)),
+                                      style:
+                                          const TextStyle(fontSize: 12)),
                                   style: TextButton.styleFrom(
                                       visualDensity: VisualDensity.compact),
                                 ),
@@ -626,4 +753,3 @@ class _DoneView extends ConsumerWidget {
     );
   }
 }
-

@@ -158,6 +158,14 @@
       "n": { "type": "int" }
     }
   },
+  "navModeTitle": "Navigation mode",
+  "navModeSingle": "Single",
+  "navModeSingleDesc": "Navigate on your own — no sharing",
+  "navModeCollaborative": "Collaborative",
+  "navModeCollaborativeDesc": "All household members see checked items in real time",
+  "navCollaborativeLabel": "Collaborative",
+  "navCollaborativeActive": "Collaborative navigation active",
+  "navJoin": "Join",
   "mergeLists": "Merge",
   "mergeListsSelected": "{n} selected",
   "@mergeListsSelected": {

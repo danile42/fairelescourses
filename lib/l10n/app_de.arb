@@ -158,6 +158,14 @@
       "n": { "type": "int" }
     }
   },
+  "navModeTitle": "Navigationsmodus",
+  "navModeSingle": "Einzeln",
+  "navModeSingleDesc": "Alleine navigieren – keine Freigabe",
+  "navModeCollaborative": "Gemeinsam",
+  "navModeCollaborativeDesc": "Alle Haushaltsmitglieder sehen abgehakte Artikel in Echtzeit",
+  "navCollaborativeLabel": "Gemeinsam",
+  "navCollaborativeActive": "Gemeinsame Navigation aktiv",
+  "navJoin": "Beitreten",
   "mergeLists": "Zusammenführen",
   "mergeListsSelected": "{n} ausgewählt",
   "@mergeListsSelected": {

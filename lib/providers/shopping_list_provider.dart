@@ -59,6 +59,16 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
     if (hid != null) ref.read(firestoreServiceProvider).upsertList(hid, updated).ignore();
   }
 
+  /// Toggle a list item by name (case-insensitive). Used by collaborative navigation.
+  Future<void> toggleItemByName(String listId, String name) async {
+    final list = _box.get(listId);
+    if (list == null) return;
+    final idx = list.items.indexWhere(
+        (i) => i.name.toLowerCase() == name.toLowerCase());
+    if (idx < 0) return;
+    await toggleItem(listId, idx);
+  }
+
   /// Called by the Firestore sync listener. Merges remote state into Hive and memory.
   Future<void> syncFromRemote(List<ShoppingList> remote) async {
     final remoteIds = remote.map((l) => l.id).toSet();

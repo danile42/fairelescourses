@@ -8,6 +8,7 @@ import 'package:encrypt/encrypt.dart' as enc;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+import '../models/nav_session.dart';
 import '../models/supermarket.dart';
 import '../models/shopping_list.dart';
 
@@ -172,6 +173,30 @@ class FirestoreService {
 
   Future<void> deleteList(String hid, String id) =>
       _lists(hid).doc(id).delete();
+
+  // ── Collaborative navigation session ─────────────────────────────────────
+
+  DocumentReference<Map<String, dynamic>> _navDoc(String hid) =>
+      _db.collection('h').doc(_pathId(hid)).collection('nav').doc('current');
+
+  Future<void> upsertNavSession(String hid, String listId) =>
+      _navDoc(hid).set({
+        'listId': listId,
+        'startedBy': _auth.currentUser!.uid,
+        'startedAt': FieldValue.serverTimestamp(),
+      });
+
+  Future<void> deleteNavSession(String hid) => _navDoc(hid).delete();
+
+  Stream<NavSession?> navSessionStream(String hid) =>
+      _navDoc(hid).snapshots().map((snap) {
+        if (!snap.exists || snap.data() == null) return null;
+        final data = snap.data()!;
+        return NavSession(
+          listId: data['listId'] as String,
+          startedBy: data['startedBy'] as String,
+        );
+      });
 
   Stream<List<ShoppingList>> listsStream(String hid) =>
       _lists(hid).snapshots().map((snap) => snap.docs

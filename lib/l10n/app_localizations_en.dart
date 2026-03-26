@@ -364,6 +364,31 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get navModeTitle => 'Navigation mode';
+
+  @override
+  String get navModeSingle => 'Single';
+
+  @override
+  String get navModeSingleDesc => 'Navigate on your own — no sharing';
+
+  @override
+  String get navModeCollaborative => 'Collaborative';
+
+  @override
+  String get navModeCollaborativeDesc =>
+      'All household members see checked items in real time';
+
+  @override
+  String get navCollaborativeLabel => 'Collaborative';
+
+  @override
+  String get navCollaborativeActive => 'Collaborative navigation active';
+
+  @override
+  String get navJoin => 'Join';
+
+  @override
   String get mergeLists => 'Merge';
 
   @override
