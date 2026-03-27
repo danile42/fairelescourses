@@ -215,5 +215,20 @@
   "catGardenCentre": "Gartencenter",
   "catPet": "Tierbedarf",
   "catFlorist": "Blumen",
-  "catShoes": "Schuhe"
+  "catShoes": "Schuhe",
+  "collectLater": "Später sammeln",
+  "deferToShop": "Bei {shop} versuchen",
+  "@deferToShop": {
+    "placeholders": {
+      "shop": { "type": "String" }
+    }
+  },
+  "deferToNewList": "Zur neuen Liste",
+  "fromPreviousShop": "Von {shop}",
+  "@fromPreviousShop": {
+    "placeholders": {
+      "shop": { "type": "String" }
+    }
+  },
+  "deferredToNextShop": "Beim nächsten Markt versuchen"
 }

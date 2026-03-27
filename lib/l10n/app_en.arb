@@ -215,5 +215,20 @@
   "catGardenCentre": "Garden centre",
   "catPet": "Pet supplies",
   "catFlorist": "Florist",
-  "catShoes": "Shoes"
+  "catShoes": "Shoes",
+  "collectLater": "Collect later",
+  "deferToShop": "Try at {shop}",
+  "@deferToShop": {
+    "placeholders": {
+      "shop": { "type": "String" }
+    }
+  },
+  "deferToNewList": "Add to new list",
+  "fromPreviousShop": "From {shop}",
+  "@fromPreviousShop": {
+    "placeholders": {
+      "shop": { "type": "String" }
+    }
+  },
+  "deferredToNextShop": "Will try at next shop"
 }

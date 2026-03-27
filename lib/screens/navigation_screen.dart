@@ -42,6 +42,18 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   int _storeIndex = 0;
   late Set<String> _resolvedUnmatched;
   late Set<String> _navigatedUnmatched;
+
+  // ── Collect-later state ──────────────────────────────────────────────────
+  // Items the user deferred to the next store in the route.
+  final Set<String> _deferNextShop = {};
+  // Items the user wants saved to a new list at the end.
+  final Set<String> _forNewList = {};
+  // Items carried over from the previous store (populated when advancing).
+  final List<String> _carriedOverItems = [];
+  // Name of the store that sent the carried-over items (for section header).
+  String? _carriedFromStoreName;
+  // ────────────────────────────────────────────────────────────────────────
+
   // Cached for use in dispose() — ref.read() is illegal after unmount.
   String? _cachedHid;
   FirestoreService? _cachedSvc;
@@ -97,8 +109,35 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   }
 
   StorePlan get _currentPlan => widget.plan.storePlans[_storeIndex];
-  int get _checkedCount => _checkedPerStore[_storeIndex].length;
-  int get _totalCount => _currentPlan.totalItems;
+
+  // ── Progress accounting (includes carried-over and deferred items) ───────
+
+  int get _effectiveTotal =>
+      _currentPlan.totalItems + _carriedOverItems.length;
+
+  int get _effectiveHandled {
+    final checked = _checkedPerStore[_storeIndex];
+    int count = 0;
+    for (final stop in _currentPlan.stops) {
+      for (final item in stop.items) {
+        if (checked.contains(item) ||
+            _deferNextShop.contains(item) ||
+            _forNewList.contains(item)) {
+          count++;
+        }
+      }
+    }
+    for (final item in _carriedOverItems) {
+      if (checked.contains(item) ||
+          _deferNextShop.contains(item) ||
+          _forNewList.contains(item)) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  // ────────────────────────────────────────────────────────────────────────
 
   void _toggleItem(String item) {
     setState(() {
@@ -117,6 +156,84 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   }
 
   bool _isChecked(String item) => _checkedPerStore[_storeIndex].contains(item);
+
+  bool _isDeferred(String item) =>
+      _deferNextShop.contains(item) || _forNewList.contains(item);
+
+  /// Shows a bottom sheet letting the user choose what to do with an item
+  /// they cannot collect right now.
+  Future<void> _showCollectLaterSheet(String item) async {
+    final l = AppLocalizations.of(context)!;
+    final storePlans = widget.plan.storePlans;
+    final hasNextShop = _storeIndex < storePlans.length - 1;
+    final nextShopName =
+        hasNextShop ? storePlans[_storeIndex + 1].storeName : null;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+              child: Text(
+                item,
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Text(l.collectLater,
+                  style: const TextStyle(color: Colors.grey, fontSize: 13)),
+            ),
+            const Divider(height: 1),
+            if (hasNextShop)
+              ListTile(
+                leading:
+                    const Icon(Icons.skip_next, color: Colors.deepPurple),
+                title: Text(l.deferToShop(nextShopName!)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  setState(() {
+                    _forNewList.remove(item);
+                    _deferNextShop.add(item);
+                  });
+                },
+              ),
+            ListTile(
+              leading: const Icon(Icons.playlist_add, color: Colors.teal),
+              title: Text(l.deferToNewList),
+              onTap: () {
+                Navigator.pop(ctx);
+                setState(() {
+                  _deferNextShop.remove(item);
+                  _forNewList.add(item);
+                });
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.close),
+              title: Text(l.cancel),
+              onTap: () => Navigator.pop(ctx),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Advances to the next store, transferring deferred-to-next-shop items.
+  void _advanceToNextShop() {
+    setState(() {
+      _carriedFromStoreName = _currentPlan.storeName;
+      _carriedOverItems.addAll(_deferNextShop);
+      _deferNextShop.clear();
+      _storeIndex++;
+    });
+  }
 
   void _finishTour() {
     ref
@@ -162,7 +279,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     final allHandled = allUnmatched.every((i) => newNavigated.contains(i));
     final planDone = widget.plan.storePlans.isEmpty ||
         (_storeIndex >= widget.plan.storePlans.length - 1 &&
-            _checkedCount >= _totalCount);
+            _effectiveHandled >= _effectiveTotal);
     if (allHandled && planDone && mounted) {
       Navigator.pop(context);
     }
@@ -235,10 +352,111 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
 
   String? get _currentCell {
     for (final stop in _currentPlan.stops) {
-      if (stop.items.any((i) => !_isChecked(i))) return stop.cell;
+      if (stop.items.any((i) => !_isChecked(i) && !_isDeferred(i))) {
+        return stop.cell;
+      }
     }
     return null;
   }
+
+  // ── Item row builders ────────────────────────────────────────────────────
+
+  Widget _buildItemRow(String item) {
+    final l = AppLocalizations.of(context)!;
+    final isChecked = _isChecked(item);
+    final isDeferredNext = _deferNextShop.contains(item);
+    final isDeferredList = _forNewList.contains(item);
+    final isDeferred = isDeferredNext || isDeferredList;
+
+    return SizedBox(
+      height: 36,
+      child: Row(
+        children: [
+          SizedBox(
+            width: 36,
+            child: Checkbox(
+              value: isChecked,
+              onChanged: isDeferred ? null : (_) => _toggleItem(item),
+              visualDensity: VisualDensity.compact,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              item,
+              style: TextStyle(
+                fontSize: 13,
+                decoration: (isChecked || isDeferred)
+                    ? TextDecoration.lineThrough
+                    : null,
+                color: (isChecked || isDeferred) ? Colors.grey : null,
+              ),
+            ),
+          ),
+          if (isDeferred) ...[
+            Icon(
+              isDeferredNext ? Icons.skip_next : Icons.playlist_add,
+              size: 14,
+              color: Colors.grey,
+            ),
+            SizedBox(
+              width: 32,
+              child: IconButton(
+                icon: const Icon(Icons.undo, size: 14),
+                visualDensity: VisualDensity.compact,
+                tooltip: l.cancel,
+                onPressed: () => setState(() {
+                  _deferNextShop.remove(item);
+                  _forNewList.remove(item);
+                }),
+              ),
+            ),
+          ] else if (!isChecked)
+            SizedBox(
+              width: 32,
+              child: IconButton(
+                icon: const Icon(Icons.schedule, size: 16),
+                visualDensity: VisualDensity.compact,
+                tooltip: l.collectLater,
+                onPressed: () => _showCollectLaterSheet(item),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCarriedOverSection(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    return Card(
+      margin: const EdgeInsets.fromLTRB(8, 8, 8, 2),
+      color: Colors.deepPurple.shade50,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Icon(Icons.history, size: 16, color: theme.colorScheme.primary),
+              const SizedBox(width: 6),
+              Text(
+                l.fromPreviousShop(_carriedFromStoreName ?? ''),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ]),
+            const SizedBox(height: 4),
+            ..._carriedOverItems.map(_buildItemRow),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ────────────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -375,7 +593,9 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     }
 
     final storePlan = _currentPlan;
-    final allDone = _checkedCount >= _totalCount;
+    final total = _effectiveTotal;
+    final handled = _effectiveHandled;
+    final allDone = total == 0 || handled >= total;
 
     return Scaffold(
       appBar: AppBar(
@@ -413,7 +633,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
       body: Column(
         children: [
           LinearProgressIndicator(
-            value: _totalCount == 0 ? 1.0 : _checkedCount / _totalCount,
+            value: total == 0 ? 1.0 : handled / total,
             minHeight: 6,
             backgroundColor: Colors.grey.shade200,
           ),
@@ -428,7 +648,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                 Text(storePlan.storeName,
                     style: const TextStyle(fontWeight: FontWeight.bold)),
                 const Spacer(),
-                Text(l.progress(_checkedCount, _totalCount)),
+                Text(l.progress(handled, total)),
               ],
             ),
           ),
@@ -443,18 +663,30 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                 ? _DoneView(
                     plan: plan,
                     storeIndex: _storeIndex,
-                    onNextShop: () => setState(() => _storeIndex++),
+                    onNextShop: _advanceToNextShop,
                     onAssignToShop: _showShopPicker,
                     resolvedUnmatched: _resolvedUnmatched,
                     navigatedUnmatched: _navigatedUnmatched,
                     onNavigateResolved: _navigateForResolved,
                     onFinish: _finishTour,
+                    deferNextShop: _deferNextShop,
+                    forNewList: _forNewList,
+                    carriedOverItems: _carriedOverItems,
+                    checkedAtCurrentStore: _checkedPerStore[_storeIndex],
                   )
                 : ListView.builder(
-                    itemCount: storePlan.stops.length,
+                    itemCount: storePlan.stops.length +
+                        (_carriedOverItems.isNotEmpty ? 1 : 0),
                     itemBuilder: (context, i) {
+                      if (_carriedOverItems.isNotEmpty) {
+                        if (i == 0) {
+                          return _buildCarriedOverSection(context);
+                        }
+                        i -= 1;
+                      }
                       final stop = storePlan.stops[i];
-                      final allStopDone = stop.items.every(_isChecked);
+                      final allStopDone = stop.items
+                          .every((item) => _isChecked(item) || _isDeferred(item));
                       final isCurrent = stop.cell == _currentCell;
                       return AnimatedOpacity(
                         opacity: allStopDone ? 0.4 : 1.0,
@@ -495,36 +727,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: stop.items
-                                        .map((item) => SizedBox(
-                                              height: 32,
-                                              child: CheckboxListTile(
-                                                dense: true,
-                                                visualDensity:
-                                                    VisualDensity.compact,
-                                                contentPadding:
-                                                    EdgeInsets.zero,
-                                                controlAffinity:
-                                                    ListTileControlAffinity
-                                                        .leading,
-                                                value: _isChecked(item),
-                                                title: Text(
-                                                  item,
-                                                  style: TextStyle(
-                                                    fontSize: 13,
-                                                    decoration: _isChecked(
-                                                            item)
-                                                        ? TextDecoration
-                                                            .lineThrough
-                                                        : null,
-                                                    color: _isChecked(item)
-                                                        ? Colors.grey
-                                                        : null,
-                                                  ),
-                                                ),
-                                                onChanged: (_) =>
-                                                    _toggleItem(item),
-                                              ),
-                                            ))
+                                        .map(_buildItemRow)
                                         .toList(),
                                   ),
                                 ),
@@ -605,6 +808,11 @@ class _DoneView extends ConsumerWidget {
   final Set<String> navigatedUnmatched;
   final Future<void> Function() onNavigateResolved;
   final VoidCallback onFinish;
+  // Collect-later state passed from parent:
+  final Set<String> deferNextShop;
+  final Set<String> forNewList;
+  final List<String> carriedOverItems;
+  final Set<String> checkedAtCurrentStore;
 
   const _DoneView({
     required this.plan,
@@ -615,6 +823,10 @@ class _DoneView extends ConsumerWidget {
     required this.navigatedUnmatched,
     required this.onNavigateResolved,
     required this.onFinish,
+    required this.deferNextShop,
+    required this.forNewList,
+    required this.carriedOverItems,
+    required this.checkedAtCurrentStore,
   });
 
   @override
@@ -630,176 +842,305 @@ class _DoneView extends ConsumerWidget {
         .toList();
     final hasExtra = resolvedUnmatched.isNotEmpty || stillUnmatched.isNotEmpty;
 
+    // Items to save to a new list at the end of the tour.
+    // At last shop: everything the user chose to defer, plus unchecked carried-over items.
+    // At intermediate shops: only the forNewList set (they accumulate quietly until the end).
+    final finalDeferredItems = isLastShop
+        ? <String>{
+            ...deferNextShop, // couldn't defer to a next shop (last store)
+            ...forNewList,
+            ...carriedOverItems
+                .where((i) => !checkedAtCurrentStore.contains(i)),
+          }.toList()
+        : <String>[];
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.check_circle_outline,
-              size: 64,
-              color: hasExtra && isLastShop ? Colors.orange : Colors.green,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              l.allItemsChecked,
-              style: TextStyle(
-                  fontSize: 18,
-                  color: hasExtra && isLastShop
-                      ? Colors.orange.shade800
-                      : null),
-            ),
-            if (!isLastShop) ...[
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: onNextShop,
-                child: Text(l.nextShop),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.check_circle_outline,
+                size: 64,
+                color: (hasExtra || finalDeferredItems.isNotEmpty) && isLastShop
+                    ? Colors.orange
+                    : Colors.green,
               ),
-            ] else ...[
-              if (resolvedUnmatched.isNotEmpty) ...[
-                const SizedBox(height: 20),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(8),
+              const SizedBox(height: 12),
+              Text(
+                l.allItemsChecked,
+                style: TextStyle(
+                    fontSize: 18,
+                    color: (hasExtra || finalDeferredItems.isNotEmpty) &&
+                            isLastShop
+                        ? Colors.orange.shade800
+                        : null),
+              ),
+              if (!isLastShop) ...[
+                // ── Intermediate store done ──────────────────────────────
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: onNextShop,
+                  child: Text(l.nextShop),
+                ),
+                // Show items that will be carried to the next store.
+                if (deferNextShop.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  _deferredInfoBox(
+                    color: Colors.deepPurple.shade50,
+                    iconColor: Colors.deepPurple,
+                    icon: Icons.skip_next,
+                    label: l.deferredToNextShop,
+                    items: deferNextShop.toList(),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(children: [
-                        Icon(Icons.store_outlined,
-                            color: Colors.blue.shade700, size: 18),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(l.nowInShops,
+                ],
+              ] else ...[
+                // ── Last store done ──────────────────────────────────────
+                if (resolvedUnmatched.isNotEmpty) ...[
+                  const SizedBox(height: 20),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(children: [
+                          Icon(Icons.store_outlined,
+                              color: Colors.blue.shade700, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(l.nowInShops,
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue.shade700)),
+                          ),
+                        ]),
+                        const SizedBox(height: 6),
+                        ...resolvedUnmatched.map((item) => Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 1),
+                              child: Text('• $item',
+                                  style: const TextStyle(fontSize: 13)),
+                            )),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: onNavigateResolved,
+                              icon: const Icon(Icons.navigation, size: 16),
+                              label: Text(l.generatePlan),
+                            ),
+                            const SizedBox(width: 8),
+                            OutlinedButton.icon(
+                              onPressed: () {
+                                final newList = ShoppingList(
+                                  id: _uuid.v4(),
+                                  name: '',
+                                  preferredStoreIds: [],
+                                  items: resolvedUnmatched
+                                      .map((n) => ShoppingItem(name: n))
+                                      .toList(),
+                                );
+                                ref
+                                    .read(shoppingListsProvider.notifier)
+                                    .add(newList);
+                                Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => ListEditorScreen(
+                                            list: newList, isNew: false)));
+                              },
+                              icon: const Icon(Icons.list_alt, size: 16),
+                              label: Text(l.newList),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                if (stillUnmatched.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(children: [
+                          const Icon(Icons.warning_amber_outlined,
+                              color: Colors.orange, size: 18),
+                          const SizedBox(width: 8),
+                          Text(l.unmatched,
+                              style: const TextStyle(
+                                  fontSize: 13, fontWeight: FontWeight.bold)),
+                        ]),
+                        const SizedBox(height: 8),
+                        ...stillUnmatched.map((item) => Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 2),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                      child: Text('• $item',
+                                          style: const TextStyle(
+                                              fontSize: 13))),
+                                  TextButton.icon(
+                                    onPressed: () => onAssignToShop(item),
+                                    icon: const Icon(Icons.store_outlined,
+                                        size: 14),
+                                    label: Text(l.assignToShop,
+                                        style: const TextStyle(fontSize: 12)),
+                                    style: TextButton.styleFrom(
+                                        visualDensity: VisualDensity.compact),
+                                  ),
+                                ],
+                              ),
+                            )),
+                        const SizedBox(height: 8),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            final newList = ShoppingList(
+                              id: _uuid.v4(),
+                              name: '',
+                              preferredStoreIds: [],
+                              items: stillUnmatched
+                                  .map((n) => ShoppingItem(name: n))
+                                  .toList(),
+                            );
+                            ref
+                                .read(shoppingListsProvider.notifier)
+                                .add(newList);
+                            Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => ListEditorScreen(
+                                        list: newList, isNew: false)));
+                          },
+                          icon: const Icon(Icons.list_alt, size: 16),
+                          label: Text(l.newList),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                // ── Deferred / collect-later section ────────────────────
+                if (finalDeferredItems.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.deepPurple.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(children: [
+                          Icon(Icons.playlist_add,
+                              color: Colors.deepPurple.shade700, size: 18),
+                          const SizedBox(width: 8),
+                          Text(l.deferToNewList,
                               style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.blue.shade700)),
+                                  color: Colors.deepPurple.shade700)),
+                        ]),
+                        const SizedBox(height: 6),
+                        ...finalDeferredItems.map((item) => Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 1),
+                              child: Text('• $item',
+                                  style: const TextStyle(fontSize: 13)),
+                            )),
+                        const SizedBox(height: 10),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            final newList = ShoppingList(
+                              id: _uuid.v4(),
+                              name: '',
+                              preferredStoreIds: [],
+                              items: finalDeferredItems
+                                  .map((n) => ShoppingItem(name: n))
+                                  .toList(),
+                            );
+                            ref
+                                .read(shoppingListsProvider.notifier)
+                                .add(newList);
+                            Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => ListEditorScreen(
+                                        list: newList, isNew: false)));
+                          },
+                          icon: const Icon(Icons.list_alt, size: 16),
+                          label: Text(l.newList),
                         ),
-                      ]),
-                      const SizedBox(height: 6),
-                      ...resolvedUnmatched.map((item) => Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 1),
-                            child: Text('• $item',
-                                style: const TextStyle(fontSize: 13)),
-                          )),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: onNavigateResolved,
-                            icon: const Icon(Icons.navigation, size: 16),
-                            label: Text(l.generatePlan),
-                          ),
-                          const SizedBox(width: 8),
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              final newList = ShoppingList(
-                                id: _uuid.v4(),
-                                name: '',
-                                preferredStoreIds: [],
-                                items: resolvedUnmatched
-                                    .map((n) => ShoppingItem(name: n))
-                                    .toList(),
-                              );
-                              ref
-                                  .read(shoppingListsProvider.notifier)
-                                  .add(newList);
-                              Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) => ListEditorScreen(
-                                          list: newList, isNew: false)));
-                            },
-                            icon: const Icon(Icons.list_alt, size: 16),
-                            label: Text(l.newList),
-                          ),
-                        ],
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
+                ],
+                const SizedBox(height: 20),
+                OutlinedButton.icon(
+                  onPressed: onFinish,
+                  icon: const Icon(Icons.check),
+                  label: Text(l.finish),
                 ),
               ],
-              if (stillUnmatched.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(children: [
-                        const Icon(Icons.warning_amber_outlined,
-                            color: Colors.orange, size: 18),
-                        const SizedBox(width: 8),
-                        Text(l.unmatched,
-                            style: const TextStyle(
-                                fontSize: 13, fontWeight: FontWeight.bold)),
-                      ]),
-                      const SizedBox(height: 8),
-                      ...stillUnmatched.map((item) => Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 2),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                    child: Text('• $item',
-                                        style:
-                                            const TextStyle(fontSize: 13))),
-                                TextButton.icon(
-                                  onPressed: () => onAssignToShop(item),
-                                  icon: const Icon(Icons.store_outlined,
-                                      size: 14),
-                                  label: Text(l.assignToShop,
-                                      style:
-                                          const TextStyle(fontSize: 12)),
-                                  style: TextButton.styleFrom(
-                                      visualDensity: VisualDensity.compact),
-                                ),
-                              ],
-                            ),
-                          )),
-                      const SizedBox(height: 8),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          final newList = ShoppingList(
-                            id: _uuid.v4(),
-                            name: '',
-                            preferredStoreIds: [],
-                            items: stillUnmatched
-                                .map((n) => ShoppingItem(name: n))
-                                .toList(),
-                          );
-                          ref.read(shoppingListsProvider.notifier).add(newList);
-                          Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => ListEditorScreen(
-                                      list: newList, isNew: false)));
-                        },
-                        icon: const Icon(Icons.list_alt, size: 16),
-                        label: Text(l.newList),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-              const SizedBox(height: 20),
-              OutlinedButton.icon(
-                onPressed: onFinish,
-                icon: const Icon(Icons.check),
-                label: Text(l.finish),
-              ),
             ],
-          ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _deferredInfoBox({
+    required Color color,
+    required Color iconColor,
+    required IconData icon,
+    required String label,
+    required List<String> items,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            Icon(icon, color: iconColor, size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(label,
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: iconColor)),
+            ),
+          ]),
+          const SizedBox(height: 6),
+          ...items.map((item) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 1),
+                child:
+                    Text('• $item', style: const TextStyle(fontSize: 13)),
+              )),
+        ],
       ),
     );
   }

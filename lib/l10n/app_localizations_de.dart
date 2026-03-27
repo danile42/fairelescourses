@@ -524,4 +524,23 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get catShoes => 'Schuhe';
+
+  @override
+  String get collectLater => 'Später sammeln';
+
+  @override
+  String deferToShop(String shop) {
+    return 'Bei $shop versuchen';
+  }
+
+  @override
+  String get deferToNewList => 'Zur neuen Liste';
+
+  @override
+  String fromPreviousShop(String shop) {
+    return 'Von $shop';
+  }
+
+  @override
+  String get deferredToNextShop => 'Beim nächsten Markt versuchen';
 }

@@ -1057,6 +1057,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shoes'**
   String get catShoes;
+
+  /// No description provided for @collectLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Collect later'**
+  String get collectLater;
+
+  /// No description provided for @deferToShop.
+  ///
+  /// In en, this message translates to:
+  /// **'Try at {shop}'**
+  String deferToShop(String shop);
+
+  /// No description provided for @deferToNewList.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to new list'**
+  String get deferToNewList;
+
+  /// No description provided for @fromPreviousShop.
+  ///
+  /// In en, this message translates to:
+  /// **'From {shop}'**
+  String fromPreviousShop(String shop);
+
+  /// No description provided for @deferredToNextShop.
+  ///
+  /// In en, this message translates to:
+  /// **'Will try at next shop'**
+  String get deferredToNextShop;
 }
 
 class _AppLocalizationsDelegate
