@@ -46,6 +46,11 @@ class Supermarket extends HiveObject {
   @HiveField(11)
   Map<String, List<String>> subcells;
 
+  /// OSM shop category value (e.g. "supermarket", "bakery") set when the shop
+  /// is created by importing from OpenStreetMap. Used for category filtering.
+  @HiveField(12)
+  String? osmCategory;
+
   /// Firebase Auth UID of the creator. Not persisted to Hive — populated
   /// from Firestore metadata so the UI can gate edit/delete controls.
   String? ownerUid;
@@ -63,6 +68,7 @@ class Supermarket extends HiveObject {
     this.lng,
     this.parentId,
     this.ownerUid,
+    this.osmCategory,
     Map<String, List<String>>? subcells,
   }) : subcells = subcells ?? {};
 
@@ -152,6 +158,7 @@ class Supermarket extends HiveObject {
         if (subcells.isNotEmpty)
           'subcells':
               subcells.map((k, v) => MapEntry(k, List<String>.from(v))),
+        if (osmCategory != null) 'osmCategory': osmCategory,
       };
 
   factory Supermarket.fromMap(Map<String, dynamic> m) => Supermarket(
@@ -173,6 +180,7 @@ class Supermarket extends HiveObject {
                 (k, v) => MapEntry(k, List<String>.from(v as List)),
               )
             : null,
+        osmCategory: m['osmCategory'] as String?,
       );
 
   Supermarket copyWith({
@@ -187,6 +195,7 @@ class Supermarket extends HiveObject {
     Object? lat = _sentinel,
     Object? lng = _sentinel,
     Object? parentId = _sentinel,
+    Object? osmCategory = _sentinel,
   }) =>
       Supermarket(
         id: id,
@@ -201,6 +210,7 @@ class Supermarket extends HiveObject {
         lat: lat == _sentinel ? this.lat : lat as double?,
         lng: lng == _sentinel ? this.lng : lng as double?,
         parentId: parentId == _sentinel ? this.parentId : parentId as String?,
+        osmCategory: osmCategory == _sentinel ? this.osmCategory : osmCategory as String?,
       );
 }
 

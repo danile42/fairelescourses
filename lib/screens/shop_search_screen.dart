@@ -322,6 +322,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       lat: source.lat,
       lng: source.lng,
       parentId: source.id,
+      osmCategory: source.osmCategory,
     );
     await ref.read(supermarketsProvider.notifier).add(copy);
     if (!mounted) return;
@@ -690,6 +691,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                         address: osm.address,
                         lat: osm.lat,
                         lng: osm.lng,
+                        osmCategory: osm.osmCategory,
                       ),
                     ),
                   ),
@@ -870,6 +872,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                                   address: osm.address,
                                   lat: osm.lat,
                                   lng: osm.lng,
+                                  osmCategory: osm.osmCategory,
                                 ),
                               ),
                             ),

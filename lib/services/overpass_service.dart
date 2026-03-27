@@ -68,6 +68,8 @@ class OsmShop {
   final double lng;
   final String? address; // constructed from addr:* tags
   final String? brand;
+  /// The OSM category value that matched this shop (e.g. "supermarket", "bakery").
+  final String? osmCategory;
 
   const OsmShop({
     required this.osmId,
@@ -76,6 +78,7 @@ class OsmShop {
     required this.lng,
     this.address,
     this.brand,
+    this.osmCategory,
   });
 }
 
@@ -148,9 +151,17 @@ class OverpassService {
         lng: elLng,
         address: address,
         brand: tags['brand'] as String?,
+        osmCategory: _matchedCategory(tags),
       ));
     }
     return shops;
+  }
+
+  static String? _matchedCategory(Map<String, dynamic> tags) {
+    for (final c in osmShopCategories) {
+      if (tags[c.osmKey] == c.osmValue) return c.osmValue;
+    }
+    return null;
   }
 
   static String? _buildAddress(Map<String, dynamic> tags) {

@@ -48,6 +48,19 @@ class _OsmShopsScreenState extends ConsumerState<OsmShopsScreen> {
     }
   }
 
+  /// True if [store] is already represented in the Overpass results
+  /// (same name or within 200 m of any OSM result).
+  bool _coveredByOsmResults(Supermarket store, List<OsmShop> osmShops) {
+    final nameLower = store.name.toLowerCase();
+    for (final osm in osmShops) {
+      if (osm.name.toLowerCase() == nameLower) return true;
+      if (store.lat != null && store.lng != null) {
+        if (_haversine(store.lat!, store.lng!, osm.lat, osm.lng) < 0.2) return true;
+      }
+    }
+    return false;
+  }
+
   /// True if [osm] is already covered by an existing app shop
   /// (same name, case-insensitive, or within 200 m).
   bool _alreadyDefined(OsmShop osm, List<Supermarket> stores) {
@@ -108,10 +121,38 @@ class _OsmShopsScreenState extends ConsumerState<OsmShopsScreen> {
         child: Text(l.noOsmShopsFound, style: const TextStyle(color: Colors.grey)),
       );
     } else {
+      // Local shops with a matching osmCategory not already in Overpass results.
+      final selectedValues = _selectedCategories.map((c) => c.osmValue).toSet();
+      final localOnly = stores.where((s) {
+        if (s.osmCategory == null) return false;
+        if (!selectedValues.contains(s.osmCategory)) return false;
+        return !_coveredByOsmResults(s, _shops!);
+      }).toList();
+
+      final totalItems = localOnly.length + _shops!.length;
       body = ListView.builder(
-        itemCount: _shops!.length,
+        itemCount: totalItems,
         itemBuilder: (context, i) {
-          final shop = _shops![i];
+          if (i < localOnly.length) {
+            final store = localOnly[i];
+            return Card(
+              margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              child: ListTile(
+                leading: Icon(Icons.store_outlined, color: theme.colorScheme.primary),
+                title: Text(store.name),
+                subtitle: Text(store.address ?? ''),
+                trailing: Chip(
+                  label: Text(l.alreadyDefined,
+                      style: TextStyle(
+                          color: theme.colorScheme.onSecondaryContainer,
+                          fontSize: 12)),
+                  backgroundColor: theme.colorScheme.secondaryContainer,
+                  padding: EdgeInsets.zero,
+                ),
+              ),
+            );
+          }
+          final shop = _shops![i - localOnly.length];
           final defined = _alreadyDefined(shop, stores);
           return Card(
             margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -141,6 +182,7 @@ class _OsmShopsScreenState extends ConsumerState<OsmShopsScreen> {
                               address: shop.address,
                               lat: shop.lat,
                               lng: shop.lng,
+                              osmCategory: shop.osmCategory,
                             ),
                           ),
                         ),

@@ -22,7 +22,7 @@ List<String> _makeRows(int n) =>
 List<String> _makeCols(int n) =>
     List.generate(n, (i) => '${i + 1}'); // 1, 2, 3 …
 
-typedef ShopPrefill = ({String name, String? address, double? lat, double? lng});
+typedef ShopPrefill = ({String name, String? address, double? lat, double? lng, String? osmCategory});
 
 class StoreEditorScreen extends ConsumerStatefulWidget {
   final Supermarket? existing;
@@ -173,6 +173,7 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       address: addressText.isEmpty ? null : addressText,
       lat: lat,
       lng: lng,
+      osmCategory: widget.existing?.osmCategory ?? widget.prefill?.osmCategory,
     );
     final notifier = ref.read(supermarketsProvider.notifier);
     if (widget.existing != null) {
