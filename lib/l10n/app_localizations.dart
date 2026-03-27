@@ -563,7 +563,7 @@ abstract class AppLocalizations {
   /// No description provided for @nearMe.
   ///
   /// In en, this message translates to:
-  /// **'Near me (25 km)'**
+  /// **'Near me'**
   String get nearMe;
 
   /// No description provided for @distanceKm.
@@ -937,6 +937,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All fields are required.'**
   String get firebaseInstanceFieldsRequired;
+
+  /// No description provided for @copyList.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get copyList;
+
+  /// No description provided for @cancelTour.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel tour'**
+  String get cancelTour;
+
+  /// No description provided for @catSupermarket.
+  ///
+  /// In en, this message translates to:
+  /// **'Supermarket'**
+  String get catSupermarket;
+
+  /// No description provided for @catConvenience.
+  ///
+  /// In en, this message translates to:
+  /// **'Convenience'**
+  String get catConvenience;
+
+  /// No description provided for @catElectronics.
+  ///
+  /// In en, this message translates to:
+  /// **'Electronics'**
+  String get catElectronics;
+
+  /// No description provided for @catComputer.
+  ///
+  /// In en, this message translates to:
+  /// **'Computers'**
+  String get catComputer;
+
+  /// No description provided for @catDoItYourself.
+  ///
+  /// In en, this message translates to:
+  /// **'DIY'**
+  String get catDoItYourself;
+
+  /// No description provided for @catHardware.
+  ///
+  /// In en, this message translates to:
+  /// **'Hardware'**
+  String get catHardware;
+
+  /// No description provided for @catBakery.
+  ///
+  /// In en, this message translates to:
+  /// **'Bakery'**
+  String get catBakery;
+
+  /// No description provided for @catButcher.
+  ///
+  /// In en, this message translates to:
+  /// **'Butcher'**
+  String get catButcher;
+
+  /// No description provided for @catPharmacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Pharmacy'**
+  String get catPharmacy;
+
+  /// No description provided for @catClothes.
+  ///
+  /// In en, this message translates to:
+  /// **'Clothing'**
+  String get catClothes;
+
+  /// No description provided for @catDepartmentStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Department store'**
+  String get catDepartmentStore;
+
+  /// No description provided for @catFurniture.
+  ///
+  /// In en, this message translates to:
+  /// **'Furniture'**
+  String get catFurniture;
+
+  /// No description provided for @catBooks.
+  ///
+  /// In en, this message translates to:
+  /// **'Books'**
+  String get catBooks;
+
+  /// No description provided for @catSports.
+  ///
+  /// In en, this message translates to:
+  /// **'Sports'**
+  String get catSports;
+
+  /// No description provided for @catGardenCentre.
+  ///
+  /// In en, this message translates to:
+  /// **'Garden centre'**
+  String get catGardenCentre;
+
+  /// No description provided for @catPet.
+  ///
+  /// In en, this message translates to:
+  /// **'Pet supplies'**
+  String get catPet;
+
+  /// No description provided for @catFlorist.
+  ///
+  /// In en, this message translates to:
+  /// **'Florist'**
+  String get catFlorist;
+
+  /// No description provided for @catShoes.
+  ///
+  /// In en, this message translates to:
+  /// **'Shoes'**
+  String get catShoes;
 }
 
 class _AppLocalizationsDelegate

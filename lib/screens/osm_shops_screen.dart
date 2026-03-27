@@ -28,6 +28,7 @@ class OsmShopsScreen extends ConsumerStatefulWidget {
 class _OsmShopsScreenState extends ConsumerState<OsmShopsScreen> {
   List<OsmShop>? _shops;
   bool _error = false;
+  Set<OsmShopCategory> _selectedCategories = {osmShopCategories[0]};
 
   @override
   void initState() {
@@ -39,7 +40,8 @@ class _OsmShopsScreenState extends ConsumerState<OsmShopsScreen> {
     setState(() { _shops = null; _error = false; });
     try {
       final shops = await OverpassService.searchNearby(
-          widget.lat, widget.lng, widget.radiusMeters);
+          widget.lat, widget.lng, widget.radiusMeters,
+          categories: _selectedCategories);
       if (mounted) setState(() => _shops = shops);
     } catch (_) {
       if (mounted) setState(() => _error = true);
@@ -162,6 +164,47 @@ class _OsmShopsScreenState extends ConsumerState<OsmShopsScreen> {
       ),
       body: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 6, 12, 2),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: PopupMenuButton<OsmShopCategory>(
+                onSelected: (cat) {
+                  setState(() {
+                    if (_selectedCategories.contains(cat)) {
+                      if (_selectedCategories.length > 1) _selectedCategories.remove(cat);
+                    } else {
+                      _selectedCategories.add(cat);
+                    }
+                  });
+                  _load();
+                },
+                itemBuilder: (ctx) => osmShopCategories
+                    .map((cat) => CheckedPopupMenuItem<OsmShopCategory>(
+                          value: cat,
+                          checked: _selectedCategories.contains(cat),
+                          child: Text(osmCategoryLabel(l, cat.labelKey)),
+                        ))
+                    .toList(),
+                child: InputChip(
+                  avatar: Icon(Icons.category_outlined,
+                      size: 18,
+                      color: _selectedCategories.length > 1
+                          ? theme.colorScheme.onSecondaryContainer
+                          : theme.colorScheme.onSurfaceVariant),
+                  label: Text(_selectedCategories.length == 1
+                      ? osmCategoryLabel(l, _selectedCategories.first.labelKey)
+                      : '${osmCategoryLabel(l, _selectedCategories.first.labelKey)} + ${_selectedCategories.length - 1}'),
+                  selected: _selectedCategories.length > 1,
+                  onDeleted: _selectedCategories.length > 1
+                      ? () { setState(() => _selectedCategories = {osmShopCategories[0]}); _load(); }
+                      : null,
+                  onPressed: null,
+                ),
+              ),
+            ),
+          ),
+          const Divider(height: 1),
           Expanded(child: body),
           Padding(
             padding: const EdgeInsets.all(8),

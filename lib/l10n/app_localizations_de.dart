@@ -256,7 +256,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ort nicht gefunden. Bitte anderen Begriff eingeben.';
 
   @override
-  String get nearMe => 'In der Nähe (25 km)';
+  String get nearMe => 'In der Nähe';
 
   @override
   String distanceKm(String distance) {
@@ -464,4 +464,64 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get firebaseInstanceFieldsRequired => 'Alle Felder sind erforderlich.';
+
+  @override
+  String get copyList => 'Kopieren';
+
+  @override
+  String get cancelTour => 'Tour abbrechen';
+
+  @override
+  String get catSupermarket => 'Supermarkt';
+
+  @override
+  String get catConvenience => 'Kiosk / Laden';
+
+  @override
+  String get catElectronics => 'Elektronik';
+
+  @override
+  String get catComputer => 'Computer';
+
+  @override
+  String get catDoItYourself => 'Baumarkt';
+
+  @override
+  String get catHardware => 'Eisenwaren';
+
+  @override
+  String get catBakery => 'Bäckerei';
+
+  @override
+  String get catButcher => 'Metzgerei';
+
+  @override
+  String get catPharmacy => 'Apotheke';
+
+  @override
+  String get catClothes => 'Kleidung';
+
+  @override
+  String get catDepartmentStore => 'Kaufhaus';
+
+  @override
+  String get catFurniture => 'Möbel';
+
+  @override
+  String get catBooks => 'Bücher';
+
+  @override
+  String get catSports => 'Sport';
+
+  @override
+  String get catGardenCentre => 'Gartencenter';
+
+  @override
+  String get catPet => 'Tierbedarf';
+
+  @override
+  String get catFlorist => 'Blumen';
+
+  @override
+  String get catShoes => 'Schuhe';
 }

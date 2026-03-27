@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:uuid/uuid.dart';
 import '../models/shopping_list.dart';
 import 'firestore_sync_provider.dart';
 import 'household_provider.dart';
@@ -106,6 +107,30 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
     for (final id in ids) {
       if (id != targetId) await remove(id);
     }
+  }
+
+  Future<void> copy(String listId) async {
+    final list = _box.get(listId);
+    if (list == null) return;
+    final items = list.items.map((i) => i.copyWith(checked: false)).toList();
+    final duplicate = ShoppingList(
+      id: const Uuid().v4(),
+      name: list.name,
+      preferredStoreIds: list.preferredStoreIds,
+      items: items,
+    );
+    await add(duplicate);
+  }
+
+  Future<void> uncheckAll(String listId) async {
+    final list = _box.get(listId);
+    if (list == null) return;
+    final items = list.items.map((i) => i.copyWith(checked: false)).toList();
+    final updated = list.copyWith(items: items);
+    await _box.put(listId, updated);
+    _sync();
+    final hid = _hid;
+    if (hid != null) ref.read(firestoreServiceProvider).upsertList(hid, updated).ignore();
   }
 
   /// Upload all local lists to Firestore (called when joining a household).

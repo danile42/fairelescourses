@@ -10,9 +10,11 @@ import '../providers/household_provider.dart';
 import '../providers/shopping_list_provider.dart';
 import '../providers/supermarket_provider.dart';
 import '../providers/firestore_sync_provider.dart';
+import '../services/firestore_service.dart';
 import '../services/navigation_planner.dart';
 import '../widgets/mini_map.dart';
 import 'list_editor_screen.dart';
+import 'shop_search_screen.dart';
 import 'store_editor_screen.dart';
 
 const _uuid = Uuid();
@@ -40,6 +42,9 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   int _storeIndex = 0;
   late Set<String> _resolvedUnmatched;
   late Set<String> _navigatedUnmatched;
+  // Cached for use in dispose() — ref.read() is illegal after unmount.
+  String? _cachedHid;
+  FirestoreService? _cachedSvc;
 
   @override
   void initState() {
@@ -48,23 +53,24 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     _resolvedUnmatched = {};
     _navigatedUnmatched = {};
 
-    if (widget.isCollaborative) {
-      // Pre-populate checked state from current shopping list.
-      final list = ref
-          .read(shoppingListsProvider)
-          .where((l) => l.id == widget.listId)
-          .firstOrNull;
-      if (list != null) _syncCheckedFromList(list);
+    // Always restore checked state from the shopping list so progress
+    // survives app restarts in both single and collaborative mode.
+    final list = ref
+        .read(shoppingListsProvider)
+        .where((l) => l.id == widget.listId)
+        .firstOrNull;
+    if (list != null) _syncCheckedFromList(list);
 
-      // Host creates the session document.
+    if (widget.isCollaborative) {
+      // Cache values needed in dispose().
       if (widget.isHost) {
+        _cachedHid = ref.read(householdProvider);
+        _cachedSvc = ref.read(firestoreServiceProvider);
+
+        // Host creates the session document.
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          final hid = ref.read(householdProvider);
-          if (hid != null) {
-            ref
-                .read(firestoreServiceProvider)
-                .upsertNavSession(hid, widget.listId)
-                .ignore();
+          if (_cachedHid != null) {
+            _cachedSvc!.upsertNavSession(_cachedHid!, widget.listId).ignore();
           }
         });
       }
@@ -73,13 +79,6 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
 
   @override
   void dispose() {
-    // Host cleans up the session when the screen is closed.
-    if (widget.isCollaborative && widget.isHost) {
-      final hid = ref.read(householdProvider);
-      if (hid != null) {
-        ref.read(firestoreServiceProvider).deleteNavSession(hid).ignore();
-      }
-    }
     super.dispose();
   }
 
@@ -110,16 +109,28 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         set.add(item);
       }
     });
-    // In collaborative mode, persist the checked state to the shared list.
-    if (widget.isCollaborative) {
-      ref
-          .read(shoppingListsProvider.notifier)
-          .toggleItemByName(widget.listId, item)
-          .ignore();
-    }
+    // Persist checked state to the shopping list so progress survives restarts.
+    ref
+        .read(shoppingListsProvider.notifier)
+        .toggleItemByName(widget.listId, item)
+        .ignore();
   }
 
   bool _isChecked(String item) => _checkedPerStore[_storeIndex].contains(item);
+
+  void _finishTour() {
+    ref
+        .read(shoppingListsProvider.notifier)
+        .uncheckAll(widget.listId)
+        .ignore();
+    // Host deletes the collaborative session here (while still mounted,
+    // so ref.read is legal). Doing it in dispose() would also fire on back.
+    if (widget.isCollaborative && widget.isHost) {
+      final hid = _cachedHid;
+      if (hid != null) _cachedSvc?.deleteNavSession(hid).ignore();
+    }
+    Navigator.pop(context, true); // true = tour finished, not just paused
+  }
 
   Future<void> _navigateForResolved() async {
     final shops = ref.read(supermarketsProvider);
@@ -160,25 +171,46 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   Future<void> _showShopPicker(String item) async {
     final l = AppLocalizations.of(context)!;
     final shops = ref.read(supermarketsProvider);
-    if (shops.isEmpty || !mounted) return;
-    final shop = await showDialog<Supermarket>(
+
+    // null = cancelled, _searchSentinel = open search, Supermarket = pick existing
+    const searchSentinel = _SearchSentinel();
+    final result = await showDialog<Object>(
       context: context,
       builder: (ctx) => SimpleDialog(
         title: Text(l.whichShopForItem(item)),
-        children: shops
-            .map((s) => SimpleDialogOption(
-                  onPressed: () => Navigator.pop(ctx, s),
-                  child: Text(s.name),
-                ))
-            .toList(),
+        children: [
+          ...shops.map((s) => SimpleDialogOption(
+                onPressed: () => Navigator.pop(ctx, s),
+                child: Text(s.name),
+              )),
+          const Divider(height: 1),
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(ctx, searchSentinel),
+            child: Row(children: [
+              const Icon(Icons.search, size: 18),
+              const SizedBox(width: 8),
+              Text(l.searchShops),
+            ]),
+          ),
+        ],
       ),
     );
-    if (shop == null || !mounted) return;
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-          builder: (_) => StoreEditorScreen(existing: shop, focusItems: [item])),
-    );
+    if (!mounted || result == null) return;
+
+    if (result is _SearchSentinel) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const ShopSearchScreen()),
+      );
+    } else if (result is Supermarket) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (_) =>
+                StoreEditorScreen(existing: result, focusItems: [item])),
+      );
+    }
+    if (!mounted) return;
     if (!mounted) return;
     final allShopGoods = ref
         .read(supermarketsProvider)
@@ -350,7 +382,23 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         title: Text(l.navigationTitle),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
-        actions: [if (widget.isCollaborative) _CollaborativeBadge()],
+        actions: [
+          if (widget.isCollaborative) _CollaborativeBadge(),
+          PopupMenuButton<String>(
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                value: 'cancel',
+                child: ListTile(
+                  leading: const Icon(Icons.cancel_outlined),
+                  title: Text(l.cancelTour),
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                ),
+              ),
+            ],
+            onSelected: (_) => _finishTour(),
+          ),
+        ],
         bottom: plan.storePlans.length > 1
             ? PreferredSize(
                 preferredSize: const Size.fromHeight(48),
@@ -400,6 +448,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                     resolvedUnmatched: _resolvedUnmatched,
                     navigatedUnmatched: _navigatedUnmatched,
                     onNavigateResolved: _navigateForResolved,
+                    onFinish: _finishTour,
                   )
                 : ListView.builder(
                     itemCount: storePlan.stops.length,
@@ -555,6 +604,7 @@ class _DoneView extends ConsumerWidget {
   final Set<String> resolvedUnmatched;
   final Set<String> navigatedUnmatched;
   final Future<void> Function() onNavigateResolved;
+  final VoidCallback onFinish;
 
   const _DoneView({
     required this.plan,
@@ -564,6 +614,7 @@ class _DoneView extends ConsumerWidget {
     required this.resolvedUnmatched,
     required this.navigatedUnmatched,
     required this.onNavigateResolved,
+    required this.onFinish,
   });
 
   @override
@@ -742,7 +793,7 @@ class _DoneView extends ConsumerWidget {
               ],
               const SizedBox(height: 20),
               OutlinedButton.icon(
-                onPressed: () => Navigator.pop(context),
+                onPressed: onFinish,
                 icon: const Icon(Icons.check),
                 label: Text(l.finish),
               ),
@@ -752,4 +803,8 @@ class _DoneView extends ConsumerWidget {
       ),
     );
   }
+}
+
+class _SearchSentinel {
+  const _SearchSentinel();
 }

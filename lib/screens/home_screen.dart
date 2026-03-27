@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fairelescourses/l10n/app_localizations.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import '../models/nav_session.dart';
 import '../models/shopping_list.dart';
@@ -277,6 +278,9 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
     if (mounted) setState(() => _selectedIds.clear());
   }
 
+  bool get _navModeSeen =>
+      Hive.box<String>('settings').get('navModeSeen') == 'true';
+
   void _startNavigation(ShoppingList list) {
     final hid = ref.read(householdProvider);
     if (hid == null) {
@@ -288,6 +292,11 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
 
   void _showModePicker(ShoppingList list) {
     final l = AppLocalizations.of(context)!;
+    final hasActiveCollabSession =
+        ref.read(navSessionProvider).asData?.value != null;
+    // Mark as seen so that after this the two buttons appear directly.
+    Hive.box<String>('settings').put('navModeSeen', 'true');
+    setState(() {});
     showModalBottomSheet(
       context: context,
       builder: (ctx) => Column(
@@ -299,22 +308,28 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
                 style: Theme.of(ctx).textTheme.titleMedium),
           ),
           ListTile(
-            leading: const Icon(Icons.person_outline),
+            leading: const _NavIcon(Icons.person_outline),
             title: Text(l.navModeSingle),
             subtitle: Text(l.navModeSingleDesc),
-            onTap: () {
-              Navigator.pop(ctx);
-              _launchNavigation(list, collaborative: false);
-            },
+            enabled: !hasActiveCollabSession,
+            onTap: hasActiveCollabSession
+                ? null
+                : () {
+                    Navigator.pop(ctx);
+                    _launchNavigation(list, collaborative: false);
+                  },
           ),
           ListTile(
-            leading: const Icon(Icons.group_outlined),
+            leading: const _NavIcon(Icons.group_outlined),
             title: Text(l.navModeCollaborative),
             subtitle: Text(l.navModeCollaborativeDesc),
-            onTap: () {
-              Navigator.pop(ctx);
-              _launchNavigation(list, collaborative: true);
-            },
+            enabled: !hasActiveCollabSession && !_singleNavActive,
+            onTap: hasActiveCollabSession || _singleNavActive
+                ? null
+                : () {
+                    Navigator.pop(ctx);
+                    _launchNavigation(list, collaborative: true);
+                  },
           ),
           const SizedBox(height: 8),
         ],
@@ -322,9 +337,18 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
     );
   }
 
+  static const _singleNavKey = 'singleNavActive';
+
+  bool get _singleNavActive =>
+      Hive.box<String>('settings').get(_singleNavKey) == 'true';
+
   void _launchNavigation(ShoppingList list, {required bool collaborative}) {
     final stores = ref.read(supermarketsProvider);
     final plan = NavigationPlanner.plan(list, stores);
+    if (!collaborative) {
+      Hive.box<String>('settings').put(_singleNavKey, 'true');
+      setState(() {});
+    }
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -335,7 +359,12 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
           isHost: collaborative,
         ),
       ),
-    );
+    ).then((finished) {
+      if (!collaborative && mounted && finished == true) {
+        Hive.box<String>('settings').delete(_singleNavKey);
+        setState(() {});
+      }
+    });
   }
 
   Future<void> _confirmDelete(String id, String name) async {
@@ -350,13 +379,26 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
         ],
       ),
     );
-    if (ok == true && mounted) ref.read(shoppingListsProvider.notifier).remove(id);
+    if (ok == true && mounted) {
+      ref.read(shoppingListsProvider.notifier).remove(id);
+      final session = ref.read(navSessionProvider).asData?.value;
+      if (session != null && session.listId == id) {
+        final hid = ref.read(householdProvider);
+        if (hid != null) {
+          ref.read(firestoreServiceProvider).deleteNavSession(hid).ignore();
+        }
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final lists = widget.lists;
+    final hid = ref.watch(householdProvider);
+    final showTwoNavButtons = hid != null && _navModeSeen;
+    final activeSession = ref.watch(navSessionProvider).asData?.value;
+    final hasActiveCollabSession = activeSession != null;
 
     if (lists.isEmpty) {
       return Center(
@@ -374,11 +416,19 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
             itemBuilder: (context, i) {
               final list = lists[i];
               final isSelected = _selectedIds.contains(list.id);
+              final isSessionList = activeSession?.listId == list.id;
+              final inProgress = !_selecting &&
+                  list.checkedCount > 0 &&
+                  list.checkedCount < list.items.length;
               return Card(
                 color: isSelected
                     ? Theme.of(context).colorScheme.primaryContainer
                     : null,
-                child: ListTile(
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                ListTile(
                   leading: _selecting
                       ? Checkbox(
                           value: isSelected,
@@ -392,15 +442,67 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
                       : Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            IconButton(
-                              icon: const Icon(Icons.play_arrow),
-                              tooltip: l.generatePlan,
-                              onPressed: () => _startNavigation(list),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete_outline),
-                              onPressed: () =>
-                                  _confirmDelete(list.id, list.name),
+                            if (showTwoNavButtons) ...[
+                              IconButton(
+                                icon: const _NavIcon(Icons.person_outline),
+                                tooltip: l.navModeSingle,
+                                onPressed: hasActiveCollabSession
+                                    ? null
+                                    : () => _launchNavigation(list,
+                                        collaborative: false),
+                              ),
+                              IconButton(
+                                icon: const _NavIcon(Icons.group_outlined),
+                                tooltip: l.navModeCollaborative,
+                                onPressed: hasActiveCollabSession || _singleNavActive
+                                    ? null
+                                    : () => _launchNavigation(list,
+                                        collaborative: true),
+                              ),
+                            ] else
+                              IconButton(
+                                icon: const Icon(Icons.play_arrow),
+                                tooltip: l.generatePlan,
+                                onPressed: hasActiveCollabSession
+                                    ? null
+                                    : () => _startNavigation(list),
+                              ),
+                            PopupMenuButton<String>(
+                              itemBuilder: (_) => [
+                                PopupMenuItem(
+                                  value: 'copy',
+                                  child: ListTile(
+                                    leading: const Icon(Icons.content_copy),
+                                    title: Text(l.copyList),
+                                    contentPadding: EdgeInsets.zero,
+                                    dense: true,
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: 'delete',
+                                  enabled: !isSessionList,
+                                  child: ListTile(
+                                    leading: Icon(Icons.delete_outline,
+                                        color: isSessionList ? Colors.grey : null),
+                                    title: Text(l.delete,
+                                        style: isSessionList
+                                            ? const TextStyle(color: Colors.grey)
+                                            : null),
+                                    contentPadding: EdgeInsets.zero,
+                                    dense: true,
+                                  ),
+                                ),
+                              ],
+                              onSelected: (value) {
+                                if (value == 'copy') {
+                                  ref
+                                      .read(shoppingListsProvider.notifier)
+                                      .copy(list.id)
+                                      .ignore();
+                                } else if (value == 'delete') {
+                                  _confirmDelete(list.id, list.name);
+                                }
+                              },
                             ),
                           ],
                         ),
@@ -415,6 +517,13 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
                   onLongPress: _selecting
                       ? null
                       : () => _toggleSelect(list.id),
+                ),
+                if (inProgress)
+                  LinearProgressIndicator(
+                    value: list.checkedCount / list.items.length,
+                    minHeight: 3,
+                  ),
+                  ],
                 ),
               );
             },
@@ -454,7 +563,7 @@ class _JoinBanner extends ConsumerWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                '${l.navCollaborativeActive} · $listName',
+                '$listName · ${l.navCollaborativeActive}',
                 style: theme.textTheme.bodySmall
                     ?.copyWith(fontWeight: FontWeight.w600),
                 maxLines: 1,
@@ -466,6 +575,8 @@ class _JoinBanner extends ConsumerWidget {
               onPressed: list == null
                   ? null
                   : () {
+                      final uid = ref.read(currentUidProvider);
+                      final isHost = session.startedBy == uid;
                       final stores = ref.read(supermarketsProvider);
                       final plan = NavigationPlanner.plan(list, stores);
                       Navigator.push(
@@ -475,7 +586,7 @@ class _JoinBanner extends ConsumerWidget {
                             plan: plan,
                             listId: list.id,
                             isCollaborative: true,
-                            isHost: false,
+                            isHost: isHost,
                           ),
                         ),
                       );
@@ -594,6 +705,38 @@ class _StoresTab extends ConsumerWidget {
       ),
     );
     if (ok == true) ref.read(supermarketsProvider.notifier).remove(id);
+  }
+}
+
+/// Icon that overlays a small play triangle badge on a base icon,
+/// used to distinguish single-person and collaborative navigation buttons.
+class _NavIcon extends StatelessWidget {
+  final IconData base;
+  const _NavIcon(this.base);
+
+  @override
+  Widget build(BuildContext context) {
+    final color = IconTheme.of(context).color;
+    return SizedBox(
+      width: 26,
+      height: 26,
+      child: Stack(
+        children: [
+          Icon(base, size: 22, color: color),
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.play_arrow, size: 13, color: color),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

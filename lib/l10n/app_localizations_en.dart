@@ -253,7 +253,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get geocodeFailed => 'Location not found. Try a different address.';
 
   @override
-  String get nearMe => 'Near me (25 km)';
+  String get nearMe => 'Near me';
 
   @override
   String distanceKm(String distance) {
@@ -455,4 +455,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get firebaseInstanceFieldsRequired => 'All fields are required.';
+
+  @override
+  String get copyList => 'Copy';
+
+  @override
+  String get cancelTour => 'Cancel tour';
+
+  @override
+  String get catSupermarket => 'Supermarket';
+
+  @override
+  String get catConvenience => 'Convenience';
+
+  @override
+  String get catElectronics => 'Electronics';
+
+  @override
+  String get catComputer => 'Computers';
+
+  @override
+  String get catDoItYourself => 'DIY';
+
+  @override
+  String get catHardware => 'Hardware';
+
+  @override
+  String get catBakery => 'Bakery';
+
+  @override
+  String get catButcher => 'Butcher';
+
+  @override
+  String get catPharmacy => 'Pharmacy';
+
+  @override
+  String get catClothes => 'Clothing';
+
+  @override
+  String get catDepartmentStore => 'Department store';
+
+  @override
+  String get catFurniture => 'Furniture';
+
+  @override
+  String get catBooks => 'Books';
+
+  @override
+  String get catSports => 'Sports';
+
+  @override
+  String get catGardenCentre => 'Garden centre';
+
+  @override
+  String get catPet => 'Pet supplies';
+
+  @override
+  String get catFlorist => 'Florist';
+
+  @override
+  String get catShoes => 'Shoes';
 }

@@ -103,7 +103,7 @@
   "homeLocationSaved": "Home location saved.",
   "homeLocationCleared": "Home location cleared.",
   "geocodeFailed": "Location not found. Try a different address.",
-  "nearMe": "Near me (25 km)",
+  "nearMe": "Near me",
   "distanceKm": "{distance} km",
   "@distanceKm": {
     "placeholders": {
@@ -195,5 +195,25 @@
   "firebaseInstanceBucket": "Storage Bucket",
   "firebaseInstancePasteJson": "Paste google-services.json instead",
   "firebaseInstanceJsonInvalid": "Could not parse google-services.json.",
-  "firebaseInstanceFieldsRequired": "All fields are required."
+  "firebaseInstanceFieldsRequired": "All fields are required.",
+  "copyList": "Copy",
+  "cancelTour": "Cancel tour",
+  "catSupermarket": "Supermarket",
+  "catConvenience": "Convenience",
+  "catElectronics": "Electronics",
+  "catComputer": "Computers",
+  "catDoItYourself": "DIY",
+  "catHardware": "Hardware",
+  "catBakery": "Bakery",
+  "catButcher": "Butcher",
+  "catPharmacy": "Pharmacy",
+  "catClothes": "Clothing",
+  "catDepartmentStore": "Department store",
+  "catFurniture": "Furniture",
+  "catBooks": "Books",
+  "catSports": "Sports",
+  "catGardenCentre": "Garden centre",
+  "catPet": "Pet supplies",
+  "catFlorist": "Florist",
+  "catShoes": "Shoes"
 }

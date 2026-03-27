@@ -1,1 +1,24 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"fairelescourses-app","appId":"1:1089873679581:android:9f9becc58003bbdd133734","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"fairelescourses-app","configurations":{"android":"1:1089873679581:android:9f9becc58003bbdd133734"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "fairelescourses-app",
+          "appId": "1:1089873679581:android:9f9becc58003bbdd133734",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "fairelescourses-app",
+          "configurations": {
+            "android": "1:1089873679581:android:9f9becc58003bbdd133734"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  }
+}

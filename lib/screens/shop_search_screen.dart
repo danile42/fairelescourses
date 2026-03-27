@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fairelescourses/l10n/app_localizations.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:uuid/uuid.dart';
 
@@ -42,9 +43,40 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
   double? _lastLng;
   _SearchMode _mode = _SearchMode.byName;
   bool _nearMe = true;
+  Set<OsmShopCategory> _selectedCategories = {osmShopCategories[0]};
   Set<String> _selectedBrands = {};
+  String? _osmNameFilter;
   bool _showMap = false;
+  int _osmRadiusMeters = 2000;
   Timer? _debounce;
+
+  static const _kRadius = 'osmSearchRadius';
+  static const _kCategories = 'osmSearchCategories';
+
+  @override
+  void initState() {
+    super.initState();
+    final box = Hive.box<String>('settings');
+    final r = int.tryParse(box.get(_kRadius) ?? '');
+    if (r != null) _osmRadiusMeters = r;
+    final cats = box.get(_kCategories);
+    if (cats != null && cats.isNotEmpty) {
+      final loaded = cats.split(',')
+          .map((k) => osmShopCategories
+              .where((c) => '${c.osmKey}:${c.osmValue}' == k)
+              .firstOrNull)
+          .nonNulls
+          .toSet();
+      if (loaded.isNotEmpty) _selectedCategories = loaded;
+    }
+  }
+
+  void _persistFilters() {
+    final box = Hive.box<String>('settings');
+    box.put(_kRadius, _osmRadiusMeters.toString());
+    box.put(_kCategories,
+        _selectedCategories.map((c) => '${c.osmKey}:${c.osmValue}').join(','));
+  }
 
   @override
   void dispose() {
@@ -62,6 +94,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     _lastLat = null;
     _lastLng = null;
     _selectedBrands = {};
+    _osmNameFilter = null;
     _showMap = false;
   }
 
@@ -101,6 +134,15 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
             _loading = false;
             _searched = true;
           });
+          if (_mode == _SearchMode.byName && shops.isEmpty) {
+            final home = ref.read(homeLocationProvider);
+            if (home != null) {
+              _lastLat = home.lat;
+              _lastLng = home.lng;
+              _osmNameFilter = q.toLowerCase();
+              _retryOsm();
+            }
+          }
         }
       }
     } catch (e) {
@@ -164,7 +206,8 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     });
 
     try {
-      final osmHits = await OverpassService.searchNearby(lat, lng, 2000);
+      final osmHits = await OverpassService.searchNearby(lat, lng, _osmRadiusMeters,
+          categories: _selectedCategories);
       if (!mounted) return;
       final osmOnly = osmHits
           .where((osm) => !_coveredByFirestore(osm, firestoreHits))
@@ -191,7 +234,8 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       _osmLoading = true;
     });
     try {
-      final osmHits = await OverpassService.searchNearby(lat, lng, 2000);
+      final osmHits = await OverpassService.searchNearby(lat, lng, _osmRadiusMeters,
+          categories: _selectedCategories);
       if (!mounted) return;
       final osmOnly = osmHits
           .where((osm) => !_coveredByFirestore(osm, _firestoreResults))
@@ -306,11 +350,13 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
         : _firestoreResults
             .where((r) => _selectedBrands.contains(_extractBrand(r.shop.name, null)))
             .toList();
-    final filteredOsm = _selectedBrands.isEmpty
-        ? _osmResults
-        : _osmResults
-            .where((osm) => _selectedBrands.contains(_extractBrand(osm.name, osm.brand)))
-            .toList();
+    final filteredOsm = _osmResults.where((osm) {
+      if (_osmNameFilter != null &&
+          !osm.name.toLowerCase().contains(_osmNameFilter!)) return false;
+      if (_selectedBrands.isNotEmpty &&
+          !_selectedBrands.contains(_extractBrand(osm.name, osm.brand))) return false;
+      return true;
+    }).toList();
 
     final availableBrands = _availableBrands;
 
@@ -371,6 +417,10 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                       }
                     },
                   ),
+                  if (_nearMe) ...[
+                    const SizedBox(width: 8),
+                    _buildRadiusPicker(theme),
+                  ],
                 ],
               ),
             ),
@@ -426,14 +476,26 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                 },
               ),
             ),
-          if (_searched && availableBrands.length >= 2)
-            _buildBrandFilter(l, theme, availableBrands),
-          if (_showMap && _hasMapData)
+          if (_mode == _SearchMode.byLocation || (_searched && availableBrands.length >= 2))
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
+              child: Row(
+                children: [
+                  if (_mode == _SearchMode.byLocation) _buildCategoryFilter(l, theme),
+                  if (_mode == _SearchMode.byLocation && _searched && availableBrands.length >= 2)
+                    const SizedBox(width: 8),
+                  if (_searched && availableBrands.length >= 2)
+                    _buildBrandFilter(l, theme, availableBrands),
+                ],
+              ),
+            ),
+          if (_showMap && _hasMapData) ...[
+            if (_osmError != null || _osmLoading) _buildOsmStatusRow(l, theme),
             Expanded(
               child: _buildMapView(
                   context, l, knownNames, stores, theme, filteredFirestore, filteredOsm),
-            )
-          else
+            ),
+          ] else
             Expanded(
               child: _buildResults(
                   context, l, knownNames, stores, theme, filteredFirestore, filteredOsm),
@@ -551,32 +613,8 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
               context, l, filteredFirestore[i], knownNames, theme);
         }
 
-        if (_osmLoading) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 24),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        if (_osmError != null) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            child: Row(
-              children: [
-                const Icon(Icons.cloud_off, size: 18, color: Colors.grey),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(l.osmLoadFailed,
-                      style: const TextStyle(color: Colors.grey)),
-                ),
-                TextButton.icon(
-                  onPressed: _retryOsm,
-                  icon: const Icon(Icons.refresh, size: 18),
-                  label: Text(l.retry),
-                ),
-              ],
-            ),
-          );
+        if (_osmLoading || _osmError != null) {
+          return _buildOsmStatusRow(l, theme);
         }
 
         final osmIndex = i - osmSectionStart;
@@ -847,19 +885,132 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     );
   }
 
+  // ── Category filter (byLocation mode) ────────────────────────────────────────
+
+  Widget _buildCategoryFilter(AppLocalizations l, ThemeData theme) {
+    final active = _selectedCategories.length > 1;
+    return PopupMenuButton<OsmShopCategory>(
+          tooltip: l.brandFilter,
+          onSelected: (cat) {
+            setState(() {
+              if (_selectedCategories.contains(cat)) {
+                if (_selectedCategories.length > 1) _selectedCategories.remove(cat);
+              } else {
+                _selectedCategories.add(cat);
+              }
+              _osmResults = [];
+              _osmError = null;
+            });
+            _persistFilters();
+            if (_lastLat != null) _retryOsm();
+          },
+          itemBuilder: (ctx) => osmShopCategories
+              .map((cat) => CheckedPopupMenuItem<OsmShopCategory>(
+                    value: cat,
+                    checked: _selectedCategories.contains(cat),
+                    child: Text(osmCategoryLabel(l, cat.labelKey)),
+                  ))
+              .toList(),
+          child: InputChip(
+            avatar: Icon(Icons.category_outlined,
+                size: 18,
+                color: active
+                    ? theme.colorScheme.onSecondaryContainer
+                    : theme.colorScheme.onSurfaceVariant),
+            label: Text(_selectedCategories.length == 1
+                ? osmCategoryLabel(l, _selectedCategories.first.labelKey)
+                : '${osmCategoryLabel(l, _selectedCategories.first.labelKey)} + ${_selectedCategories.length - 1}'),
+            selected: active,
+            onDeleted: active
+                ? () {
+                    setState(() {
+                      _selectedCategories = {osmShopCategories[0]};
+                      _osmResults = [];
+                      _osmError = null;
+                    });
+                    _persistFilters();
+                    if (_lastLat != null) _retryOsm();
+                  }
+                : null,
+            onPressed: null,
+          ),
+    );
+  }
+
+  // ── Radius picker ─────────────────────────────────────────────────────────────
+
+  static const _radiusOptions = [500, 1000, 2000, 5000, 10000];
+
+  static String _formatRadius(int meters) {
+    if (meters >= 1000) {
+      final km = meters / 1000;
+      return km == km.roundToDouble() ? '${km.toInt()} km' : '$km km';
+    }
+    return '$meters m';
+  }
+
+  Widget _buildRadiusPicker(ThemeData theme) {
+    return PopupMenuButton<int>(
+      onSelected: (r) {
+        setState(() {
+          _osmRadiusMeters = r;
+          _osmResults = [];
+          _osmError = null;
+        });
+        _persistFilters();
+        if (_lastLat != null) _retryOsm();
+      },
+      itemBuilder: (ctx) => _radiusOptions
+          .map((r) => CheckedPopupMenuItem<int>(
+                value: r,
+                checked: r == _osmRadiusMeters,
+                child: Text(_formatRadius(r)),
+              ))
+          .toList(),
+      child: Chip(
+        avatar: Icon(Icons.radio_button_checked,
+            size: 18, color: theme.colorScheme.onSurfaceVariant),
+        label: Text(_formatRadius(_osmRadiusMeters)),
+      ),
+    );
+  }
+
+  // ── OSM status row (error or loading) ────────────────────────────────────────
+
+  Widget _buildOsmStatusRow(AppLocalizations l, ThemeData theme) {
+    if (_osmLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      child: Row(
+        children: [
+          const Icon(Icons.cloud_off, size: 18, color: Colors.grey),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(l.osmLoadFailed,
+                style: const TextStyle(color: Colors.grey)),
+          ),
+          TextButton.icon(
+            onPressed: _retryOsm,
+            icon: const Icon(Icons.refresh, size: 18),
+            label: Text(l.retry),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ── Brand filter ─────────────────────────────────────────────────────────────
 
   Widget _buildBrandFilter(AppLocalizations l, ThemeData theme, Set<String> brands) {
     final sorted = brands.toList()..sort();
     final active = _selectedBrands.isNotEmpty;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: PopupMenuButton<String>(
+    return PopupMenuButton<String>(
           tooltip: l.brandFilter,
-          // Close only on explicit dismiss, not on item tap, by returning
-          // a dummy future from onSelected and never popping.
           onSelected: (brand) {
             setState(() {
               if (_selectedBrands.contains(brand)) {
@@ -886,15 +1037,15 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
             ),
             label: Text(
               active
-                  ? '${l.brandFilter}: ${_selectedBrands.join(', ')}'
+                  ? _selectedBrands.length == 1
+                      ? _selectedBrands.first
+                      : '${_selectedBrands.first} + ${_selectedBrands.length - 1}'
                   : l.brandFilter,
             ),
             selected: active,
             onDeleted: active ? () => setState(() => _selectedBrands = {}) : null,
             onPressed: null, // tap handled by PopupMenuButton
           ),
-        ),
-      ),
     );
   }
 }
