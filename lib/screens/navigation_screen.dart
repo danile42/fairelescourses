@@ -317,7 +317,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     if (result is _SearchSentinel) {
       await Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => const ShopSearchScreen()),
+        MaterialPageRoute(builder: (_) => ShopSearchScreen(focusItem: item)),
       );
     } else if (result is Supermarket) {
       await Navigator.push(

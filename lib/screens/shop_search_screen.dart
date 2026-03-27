@@ -23,7 +23,11 @@ const _uuid = Uuid();
 enum _SearchMode { byName, byItem, byLocation }
 
 class ShopSearchScreen extends ConsumerStatefulWidget {
-  const ShopSearchScreen({super.key});
+  /// When set, importing or creating a shop will open it immediately in the
+  /// store editor with this item pre-focused, then return to the caller.
+  final String? focusItem;
+
+  const ShopSearchScreen({super.key, this.focusItem});
 
   @override
   ConsumerState<ShopSearchScreen> createState() => _ShopSearchScreenState();
@@ -326,8 +330,21 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     );
     await ref.read(supermarketsProvider.notifier).add(copy);
     if (!mounted) return;
-    messenger.showSnackBar(SnackBar(content: Text(l.shopImported)));
-    setState(() {});
+    if (widget.focusItem != null) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => StoreEditorScreen(
+            existing: copy,
+            focusItems: [widget.focusItem!],
+          ),
+        ),
+      );
+      if (mounted) Navigator.pop(context);
+    } else {
+      messenger.showSnackBar(SnackBar(content: Text(l.shopImported)));
+      setState(() {});
+    }
   }
 
   @override
@@ -682,20 +699,28 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                 padding: EdgeInsets.zero,
               )
             : FilledButton(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => StoreEditorScreen(
-                      prefill: (
-                        name: osm.name,
-                        address: osm.address,
-                        lat: osm.lat,
-                        lng: osm.lng,
-                        osmCategory: osm.osmCategory,
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => StoreEditorScreen(
+                        prefill: (
+                          name: osm.name,
+                          address: osm.address,
+                          lat: osm.lat,
+                          lng: osm.lng,
+                          osmCategory: osm.osmCategory,
+                        ),
+                        focusItems: widget.focusItem != null
+                            ? [widget.focusItem!]
+                            : const [],
                       ),
                     ),
-                  ),
-                ),
+                  );
+                  if (widget.focusItem != null && mounted) {
+                    Navigator.pop(context);
+                  }
+                },
                 child: Text(l.createShop),
               ),
       ),
@@ -861,9 +886,9 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                         child: Text(l.alreadyDefined),
                       )
                     : FilledButton(
-                        onPressed: () {
+                        onPressed: () async {
                           Navigator.pop(sheetCtx);
-                          Navigator.push(
+                          await Navigator.push(
                             pageContext,
                             MaterialPageRoute(
                               builder: (_) => StoreEditorScreen(
@@ -874,9 +899,15 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                                   lng: osm.lng,
                                   osmCategory: osm.osmCategory,
                                 ),
+                                focusItems: widget.focusItem != null
+                                    ? [widget.focusItem!]
+                                    : const [],
                               ),
                             ),
                           );
+                          if (widget.focusItem != null && mounted) {
+                            Navigator.pop(pageContext);
+                          }
                         },
                         child: Text(l.createShop),
                       ),
