@@ -941,14 +941,6 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
 
   static const _radiusOptions = [500, 1000, 2000, 5000, 10000];
 
-  static String _formatRadius(int meters) {
-    if (meters >= 1000) {
-      final km = meters / 1000;
-      return km == km.roundToDouble() ? '${km.toInt()} km' : '$km km';
-    }
-    return '$meters m';
-  }
-
   Widget _buildRadiusPicker(ThemeData theme) {
     return PopupMenuButton<int>(
       onSelected: (r) {
@@ -964,13 +956,13 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
           .map((r) => CheckedPopupMenuItem<int>(
                 value: r,
                 checked: r == _osmRadiusMeters,
-                child: Text(_formatRadius(r)),
+                child: Text(formatOsmRadius(r)),
               ))
           .toList(),
       child: Chip(
         avatar: Icon(Icons.radio_button_checked,
             size: 18, color: theme.colorScheme.onSurfaceVariant),
-        label: Text(_formatRadius(_osmRadiusMeters)),
+        label: Text(formatOsmRadius(_osmRadiusMeters)),
       ),
     );
   }

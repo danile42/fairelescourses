@@ -79,24 +79,40 @@ class OsmShop {
   });
 }
 
+/// Formats a radius in metres to a human-readable string (e.g. 500 m, 2 km).
+String formatOsmRadius(int meters) {
+  if (meters >= 1000) {
+    final km = meters / 1000;
+    return km == km.roundToDouble() ? '${km.toInt()} km' : '$km km';
+  }
+  return '$meters m';
+}
+
 class OverpassService {
   static const _endpoint = 'https://overpass-api.de/api/interpreter';
 
   /// Returns shops of [category] within [radiusMeters] of [lat]/[lng].
   static Future<List<OsmShop>> searchNearby(
       double lat, double lng, int radiusMeters,
-      {Set<OsmShopCategory> categories = const <OsmShopCategory>{}}) async {
+      {Set<OsmShopCategory> categories = const <OsmShopCategory>{},
+      http.Client? httpClient}) async {
     final cats = categories.isEmpty ? osmShopCategories : categories.toList();
     final clauses = cats
         .map((c) => '  nwr["${c.osmKey}"="${c.osmValue}"](around:$radiusMeters,$lat,$lng);')
         .join('\n');
     final timeout = (cats.length * 8).clamp(15, 45);
     final query = '[out:json][timeout:$timeout];\n(\n$clauses\n);\nout center tags;\n';
-    final response = await http.post(
-      Uri.parse(_endpoint),
-      body: {'data': query},
-      headers: {'User-Agent': 'Fairelescourses/1.0'},
-    ).timeout(Duration(seconds: timeout + 10));
+    final client = httpClient ?? http.Client();
+    final http.Response response;
+    try {
+      response = await client
+          .post(Uri.parse(_endpoint),
+              body: {'data': query},
+              headers: {'User-Agent': 'Fairelescourses/1.0'})
+          .timeout(Duration(seconds: timeout + 10));
+    } finally {
+      if (httpClient == null) client.close();
+    }
 
     if (response.statusCode != 200) {
       throw Exception('Overpass HTTP ${response.statusCode}');
