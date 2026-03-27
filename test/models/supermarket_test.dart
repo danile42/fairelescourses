@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fairelescourses/models/supermarket.dart';
+import 'package:fairelescourses/models/shop_floor.dart';
 
 Supermarket makeStore({
   List<String> rows = const ['A', 'B', 'C'],
@@ -216,6 +217,96 @@ void main() {
       expect(restored.lat, 48.1);
       expect(restored.lng, 11.5);
       expect(restored.parentId, 'pid');
+    });
+  });
+
+  group('multi-floor', () {
+    ShopFloor _floor1({Map<String, List<String>>? cells}) => ShopFloor(
+          name: 'Upper',
+          rows: ['A', 'B'],
+          cols: ['1', '2'],
+          entrance: 'A1',
+          exit: 'B2',
+          cells: cells ?? {},
+        );
+
+    test('single-floor store has no additionalFloors', () {
+      final s = makeStore();
+      expect(s.additionalFloors, isEmpty);
+      expect(s.allFloors.length, 1);
+    });
+
+    test('floorAt(0) returns ground floor data', () {
+      final s = makeStore(
+        rows: ['A', 'B'],
+        cols: ['1', '2'],
+        entrance: 'A1',
+        exit: 'B2',
+        cells: {'A1': ['Milk']},
+      );
+      final f = s.floorAt(0);
+      expect(f.rows, ['A', 'B']);
+      expect(f.entrance, 'A1');
+      expect(f.cells['A1'], ['Milk']);
+    });
+
+    test('additionalFloors setter and getter roundtrip', () {
+      final s = makeStore();
+      s.additionalFloors = [_floor1()];
+      expect(s.additionalFloors.length, 1);
+      expect(s.additionalFloors.first.name, 'Upper');
+      expect(s.allFloors.length, 2);
+    });
+
+    test('floorAt(1) returns first additional floor', () {
+      final s = makeStore();
+      s.additionalFloors = [_floor1(cells: {'B1': ['Books']})];
+      final f = s.floorAt(1);
+      expect(f.name, 'Upper');
+      expect(f.cells['B1'], ['Books']);
+    });
+
+    test('findCellWithFloor returns (0, cell) for ground-floor item', () {
+      final s = makeStore(cells: {'A1': ['Milk']});
+      expect(s.findCellWithFloor('Milk'), (0, 'A1'));
+    });
+
+    test('findCellWithFloor returns (1, cell) for upper-floor item', () {
+      final s = makeStore();
+      s.additionalFloors = [_floor1(cells: {'B2': ['Cheese']})];
+      expect(s.findCellWithFloor('Cheese'), (1, 'B2'));
+    });
+
+    test('exact match on floor 1 wins over partial match on floor 0', () {
+      // "Brot" is on floor 0; "Brotaufstrich" is on floor 1.
+      // Query "Brotaufstrich" should match floor 1 exactly,
+      // not floor 0 via the partial-match ("Brot" contained in query).
+      final s = makeStore(cells: {'A1': ['Brot']});
+      s.additionalFloors = [_floor1(cells: {'A2': ['Brotaufstrich']})];
+      final result = s.findCellWithFloor('Brotaufstrich');
+      expect(result?.$1, 1);
+      expect(result?.$2, 'A2');
+    });
+
+    test('findCellWithFloor returns null when item not on any floor', () {
+      final s = makeStore(cells: {'A1': ['Milk']});
+      s.additionalFloors = [_floor1(cells: {'B2': ['Cheese']})];
+      expect(s.findCellWithFloor('Fish'), isNull);
+    });
+
+    test('toMap / fromMap roundtrip preserves additional floors', () {
+      final s = makeStore(cells: {'A1': ['Milk']});
+      s.additionalFloors = [_floor1(cells: {'B2': ['Electronics']})];
+      final restored = Supermarket.fromMap(s.toMap());
+      expect(restored.additionalFloors.length, 1);
+      expect(restored.additionalFloors.first.name, 'Upper');
+      expect(restored.additionalFloors.first.cells['B2'], ['Electronics']);
+    });
+
+    test('fromMap with no floors produces empty additionalFloors', () {
+      final s = makeStore();
+      final restored = Supermarket.fromMap(s.toMap());
+      expect(restored.additionalFloors, isEmpty);
     });
   });
 }

@@ -8,18 +8,22 @@ class MiniMap extends ConsumerWidget {
   final StorePlan storePlan;
   final String? currentCell;
   final Set<String> checkedItems;
+  /// Which floor's grid to display (0 = ground floor).
+  final int currentFloor;
 
   const MiniMap({
     super.key,
     required this.storePlan,
     required this.currentCell,
     required this.checkedItems,
+    this.currentFloor = 0,
   });
 
-  /// Returns the next stop cell that still has unchecked items after [currentCell].
+  /// Returns the next stop cell (on the same floor) with unchecked items after [currentCell].
   String? _nextCell() {
     bool foundCurrent = false;
     for (final stop in storePlan.stops) {
+      if (stop.floor != currentFloor) continue;
       if (foundCurrent && stop.items.any((i) => !checkedItems.contains(i))) {
         return stop.cell;
       }
@@ -60,18 +64,22 @@ class MiniMap extends ConsumerWidget {
     final store = stores.where((s) => s.id == storePlan.storeId).firstOrNull;
     if (store == null) return const SizedBox.shrink();
 
+    final floor = store.floorAt(currentFloor);
     final theme = Theme.of(context);
     const cellSize = 28.0;
 
-    final stopCells = {for (final s in storePlan.stops) s.cell};
-    final doneCells = storePlan.stops
+    // Only show stops that belong to the currently displayed floor.
+    final floorStops = storePlan.stops.where((s) => s.floor == currentFloor);
+    final stopCells = {for (final s in floorStops) s.cell};
+    final doneCells = floorStops
         .where((s) => s.items.every((i) => checkedItems.contains(i)))
         .map((s) => s.cell)
         .toSet();
 
-    final nextCell = _nextCell() ?? store.exit;
+    final nextCell = _nextCell() ?? floor.exit;
+    // Only draw arrow if the next cell is on the same floor.
     final arrowAngle = (currentCell != null && nextCell != currentCell)
-        ? _angle(currentCell!, nextCell, store.rows, store.cols)
+        ? _angle(currentCell!, nextCell, floor.rows, floor.cols)
         : null;
 
     return Container(
@@ -83,16 +91,17 @@ class MiniMap extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: store.rows.map((row) {
+          children: floor.rows.map((row) {
             return Row(
               mainAxisSize: MainAxisSize.min,
-              children: store.cols.map((col) {
+              children: floor.cols.map((col) {
                 final cellId = '$row$col';
                 final isStop = stopCells.contains(cellId);
                 final isDone = doneCells.contains(cellId);
-                final isCurrent = cellId == currentCell;
-                final isEntrance = cellId == store.entrance;
-                final isExit = cellId == store.exit;
+                // Only highlight as current if the current cell is on this displayed floor.
+                final isCurrent = cellId == currentCell && stopCells.contains(cellId);
+                final isEntrance = cellId == floor.entrance;
+                final isExit = cellId == floor.exit;
 
                 Color bg = Colors.grey.shade200;
                 if (isEntrance) bg = Colors.green.shade200;

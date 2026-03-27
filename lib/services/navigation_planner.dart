@@ -51,35 +51,49 @@ class NavigationPlanner {
     return NavigationPlan(storePlans: storePlans, globalUnmatched: globalUnmatched);
   }
 
-  /// Build an ordered list of stops for the given items in [store],
-  /// starting at entrance, ending at exit, using nearest-neighbor heuristic.
+  /// Build an ordered list of stops for the given items in [store].
+  /// Groups by floor, then runs nearest-neighbor routing within each floor.
   static List<NavigationStop> _buildRoute(Supermarket store, List<String> items) {
-    // Group items by cell.
-    final Map<String, List<String>> cellItems = {};
+    // Group items by (floor, cell).
+    final Map<(int, String), List<String>> floorCellItems = {};
     for (final item in items) {
-      final cell = store.findCell(item);
-      if (cell != null) {
-        cellItems.putIfAbsent(cell, () => []).add(item);
+      final found = store.findCellWithFloor(item);
+      if (found != null) {
+        floorCellItems.putIfAbsent(found, () => []).add(item);
       }
     }
 
-    if (cellItems.isEmpty) return [];
+    if (floorCellItems.isEmpty) return [];
 
-    // Nearest-neighbor TSP from entrance → all cells → exit.
-    final remaining = cellItems.keys.toList();
-    final route = <String>[];
-    String current = store.entrance;
+    // Route floor by floor in ascending order.
+    final floors = floorCellItems.keys.map((k) => k.$1).toSet().toList()..sort();
+    final stops = <NavigationStop>[];
 
-    while (remaining.isNotEmpty) {
-      remaining.sort((a, b) {
-        final da = store.distance(current, a) ?? 9999;
-        final db = store.distance(current, b) ?? 9999;
-        return da.compareTo(db);
-      });
-      current = remaining.removeAt(0);
-      route.add(current);
+    for (final floorIdx in floors) {
+      final floorObj = store.floorAt(floorIdx);
+      final cellItems = {
+        for (final e in floorCellItems.entries)
+          if (e.key.$1 == floorIdx) e.key.$2: e.value,
+      };
+
+      final remaining = cellItems.keys.toList();
+      String current = floorObj.entrance;
+
+      while (remaining.isNotEmpty) {
+        remaining.sort((a, b) {
+          final da = floorObj.distance(current, a) ?? 9999;
+          final db = floorObj.distance(current, b) ?? 9999;
+          return da.compareTo(db);
+        });
+        current = remaining.removeAt(0);
+        stops.add(NavigationStop(
+          cell: current,
+          items: cellItems[current]!,
+          floor: floorIdx,
+        ));
+      }
     }
 
-    return route.map((cell) => NavigationStop(cell: cell, items: cellItems[cell]!)).toList();
+    return stops;
   }
 }

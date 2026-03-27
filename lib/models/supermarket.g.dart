@@ -34,13 +34,14 @@ class SupermarketAdapter extends TypeAdapter<Supermarket> {
               MapEntry(k as String, (v as List).cast<String>()))
           : null,
       osmCategory: fields[12] as String?,
+      floorsRaw: (fields[14] as List?)?.toList(),
     );
   }
 
   @override
   void write(BinaryWriter writer, Supermarket obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -66,7 +67,9 @@ class SupermarketAdapter extends TypeAdapter<Supermarket> {
       ..writeByte(11)
       ..write(obj.subcells)
       ..writeByte(12)
-      ..write(obj.osmCategory);
+      ..write(obj.osmCategory)
+      ..writeByte(14)
+      ..write(obj.floorsRaw);
   }
 
   @override

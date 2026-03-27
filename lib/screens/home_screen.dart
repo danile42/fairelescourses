@@ -669,7 +669,11 @@ class _StoresTab extends ConsumerWidget {
               color: isOwned ? null : Theme.of(context).colorScheme.secondary,
             ),
             title: Text(store.name),
-            subtitle: Text('${store.rows.length}×${store.cols.length}'),
+            subtitle: Text(() {
+              final grid = '${store.rows.length}×${store.cols.length}';
+              final floorCount = 1 + store.additionalFloors.length as int;
+              return floorCount > 1 ? '$grid  •  ${l.nFloors(floorCount)}' : grid;
+            }()),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [

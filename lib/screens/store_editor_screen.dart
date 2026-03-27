@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fairelescourses/l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
 
+import '../models/shop_floor.dart';
 import '../models/supermarket.dart';
 import '../providers/supermarket_provider.dart';
 import '../providers/shopping_list_provider.dart';
@@ -23,6 +24,28 @@ List<String> _makeCols(int n) =>
     List.generate(n, (i) => '${i + 1}'); // 1, 2, 3 …
 
 typedef ShopPrefill = ({String name, String? address, double? lat, double? lng, String? osmCategory});
+
+/// Holds the editable state for one floor in the store editor.
+class _FloorEditData {
+  String name; // user-visible label (empty = use l10n default)
+  int rowCount;
+  int colCount;
+  String entrance;
+  String exit;
+  Map<String, List<String>> cells;
+  Map<String, List<String>> subcells;
+
+  _FloorEditData({
+    this.name = '',
+    required this.rowCount,
+    required this.colCount,
+    required this.entrance,
+    required this.exit,
+    Map<String, List<String>>? cells,
+    Map<String, List<String>>? subcells,
+  })  : cells = cells ?? {},
+        subcells = subcells ?? {};
+}
 
 class StoreEditorScreen extends ConsumerStatefulWidget {
   final Supermarket? existing;
@@ -47,37 +70,73 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
   late final TextEditingController _entranceCtrl;
   late final TextEditingController _exitCtrl;
   late final TextEditingController _addressCtrl;
-  late int _rowCount;
-  late int _colCount;
-  late Map<String, List<String>> _cells;
-  late Map<String, List<String>> _subcells;
+  late final TextEditingController _floorNameCtrl;
+  late List<_FloorEditData> _floorData;
+  int _currentFloor = 0;
   bool _dirty = false;
   bool _geocoding = false;
   _TapMode _tapMode = _TapMode.normal;
+
+  // Proxy getters/setters — all grid-editing methods work unchanged.
+  int get _rowCount => _floorData[_currentFloor].rowCount;
+  set _rowCount(int v) => _floorData[_currentFloor].rowCount = v;
+  int get _colCount => _floorData[_currentFloor].colCount;
+  set _colCount(int v) => _floorData[_currentFloor].colCount = v;
+  Map<String, List<String>> get _cells => _floorData[_currentFloor].cells;
+  set _cells(Map<String, List<String>> v) => _floorData[_currentFloor].cells = v;
+  Map<String, List<String>> get _subcells => _floorData[_currentFloor].subcells;
+  set _subcells(Map<String, List<String>> v) => _floorData[_currentFloor].subcells = v;
 
   @override
   void initState() {
     super.initState();
     final s = widget.existing;
     final p = widget.prefill;
+
+    // Build floor data from existing store or defaults.
+    _floorData = [
+      _FloorEditData(
+        rowCount: s != null ? s.rows.length.clamp(1, _maxDim) : 5,
+        colCount: s != null ? s.cols.length.clamp(1, _maxDim) : 5,
+        entrance: s?.entrance ?? 'A1',
+        exit: s?.exit ?? 'E5',
+        cells: s != null
+            ? Map<String, List<String>>.from(
+                s.cells.map((k, v) => MapEntry(k, List<String>.from(v))))
+            : {},
+        subcells: s != null
+            ? Map<String, List<String>>.from(
+                s.subcells.map((k, v) => MapEntry(k, List<String>.from(v))))
+            : {},
+      ),
+      if (s != null)
+        ...s.additionalFloors.map((f) => _FloorEditData(
+              name: f.name,
+              rowCount: f.rows.length.clamp(1, _maxDim),
+              colCount: f.cols.length.clamp(1, _maxDim),
+              entrance: f.entrance,
+              exit: f.exit,
+              cells: Map<String, List<String>>.from(
+                  f.cells.map((k, v) => MapEntry(k, List<String>.from(v)))),
+              subcells: Map<String, List<String>>.from(
+                  f.subcells.map((k, v) => MapEntry(k, List<String>.from(v)))),
+            )),
+    ];
+
     _nameCtrl    = TextEditingController(text: s?.name ?? p?.name ?? '');
-    _rowCount    = s != null ? s.rows.length.clamp(1, _maxDim) : 5;
-    _colCount    = s != null ? s.cols.length.clamp(1, _maxDim) : 5;
-    _entranceCtrl = TextEditingController(text: s?.entrance ?? 'A1');
-    _exitCtrl     = TextEditingController(text: s?.exit ?? 'E5');
+    _entranceCtrl = TextEditingController(text: _floorData[0].entrance);
+    _exitCtrl     = TextEditingController(text: _floorData[0].exit);
     _addressCtrl  = TextEditingController(text: s?.address ?? p?.address ?? '');
-    _cells = s != null
-        ? Map<String, List<String>>.from(
-            s.cells.map((k, v) => MapEntry(k, List<String>.from(v))))
-        : {};
-    _subcells = s != null
-        ? Map<String, List<String>>.from(
-            s.subcells.map((k, v) => MapEntry(k, List<String>.from(v))))
-        : {};
+    _floorNameCtrl = TextEditingController(text: '');
+
     _nameCtrl.addListener(() => setState(() => _dirty = true));
     _entranceCtrl.addListener(() => setState(() => _dirty = true));
     _exitCtrl.addListener(() => setState(() => _dirty = true));
     _addressCtrl.addListener(() => setState(() => _dirty = true));
+    _floorNameCtrl.addListener(() {
+      _floorData[_currentFloor].name = _floorNameCtrl.text;
+      setState(() => _dirty = true);
+    });
   }
 
   @override
@@ -86,11 +145,58 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
     _entranceCtrl.dispose();
     _exitCtrl.dispose();
     _addressCtrl.dispose();
+    _floorNameCtrl.dispose();
     super.dispose();
   }
 
   List<String> get _rows => _makeRows(_rowCount);
   List<String> get _cols => _makeCols(_colCount);
+
+  // ── Floor management ──────────────────────────────────────────────────────
+
+  void _switchFloor(int newIndex) {
+    // Persist current controller values before switching.
+    _floorData[_currentFloor].entrance = _entranceCtrl.text.trim().toUpperCase();
+    _floorData[_currentFloor].exit = _exitCtrl.text.trim().toUpperCase();
+    setState(() {
+      _currentFloor = newIndex;
+      _entranceCtrl.text = _floorData[newIndex].entrance;
+      _exitCtrl.text = _floorData[newIndex].exit;
+      _floorNameCtrl.text = _floorData[newIndex].name;
+      _tapMode = _TapMode.normal;
+    });
+  }
+
+  void _addFloor() {
+    _floorData[_currentFloor].entrance = _entranceCtrl.text.trim().toUpperCase();
+    _floorData[_currentFloor].exit = _exitCtrl.text.trim().toUpperCase();
+    final newFloor = _FloorEditData(rowCount: 5, colCount: 5, entrance: 'A1', exit: 'E5');
+    setState(() {
+      _dirty = true;
+      _floorData.add(newFloor);
+      _currentFloor = _floorData.length - 1;
+      _entranceCtrl.text = newFloor.entrance;
+      _exitCtrl.text = newFloor.exit;
+      _floorNameCtrl.text = '';
+      _tapMode = _TapMode.normal;
+    });
+  }
+
+  void _removeCurrentFloor() {
+    if (_currentFloor == 0) return;
+    final prevFloor = _currentFloor - 1;
+    setState(() {
+      _dirty = true;
+      _floorData.removeAt(_currentFloor);
+      _currentFloor = prevFloor;
+      _entranceCtrl.text = _floorData[prevFloor].entrance;
+      _exitCtrl.text = _floorData[prevFloor].exit;
+      _floorNameCtrl.text = _floorData[prevFloor].name;
+      _tapMode = _TapMode.normal;
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
 
   /// Remove cells that no longer exist and fix entrance/exit if out of range.
   void _pruneAfterResize() {
@@ -137,6 +243,10 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       return;
     }
 
+    // Persist current controller values into floor data before saving.
+    _floorData[_currentFloor].entrance = _entranceCtrl.text.trim().toUpperCase();
+    _floorData[_currentFloor].exit = _exitCtrl.text.trim().toUpperCase();
+
     double? lat = widget.existing?.lat ?? widget.prefill?.lat;
     double? lng = widget.existing?.lng ?? widget.prefill?.lng;
     final addressText = _addressCtrl.text.trim();
@@ -161,20 +271,32 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       lng = null;
     }
 
+    final floor0 = _floorData[0];
     final store = Supermarket(
       id: widget.existing?.id ?? _uuid.v4(),
       name: _nameCtrl.text.trim(),
-      rows: _rows,
-      cols: _cols,
-      entrance: _entranceCtrl.text.trim().toUpperCase(),
-      exit: _exitCtrl.text.trim().toUpperCase(),
-      cells: _cells,
-      subcells: _subcells,
+      rows: _makeRows(floor0.rowCount),
+      cols: _makeCols(floor0.colCount),
+      entrance: floor0.entrance,
+      exit: floor0.exit,
+      cells: floor0.cells,
+      subcells: floor0.subcells,
       address: addressText.isEmpty ? null : addressText,
       lat: lat,
       lng: lng,
       osmCategory: widget.existing?.osmCategory ?? widget.prefill?.osmCategory,
     );
+    if (_floorData.length > 1) {
+      store.additionalFloors = _floorData.sublist(1).map((f) => ShopFloor(
+            name: f.name,
+            rows: _makeRows(f.rowCount),
+            cols: _makeCols(f.colCount),
+            entrance: f.entrance,
+            exit: f.exit,
+            cells: f.cells,
+            subcells: f.subcells,
+          )).toList();
+    }
     final notifier = ref.read(supermarketsProvider.notifier);
     if (widget.existing != null) {
       notifier.update(store);
@@ -677,6 +799,30 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
               controller: _addressCtrl,
               decoration: InputDecoration(labelText: l.shopAddress, border: const OutlineInputBorder()),
             ),
+            const SizedBox(height: 16),
+            // ── Floor tabs ─────────────────────────────────────────────────
+            _FloorTabBar(
+              floorData: _floorData,
+              currentFloor: _currentFloor,
+              onSwitch: _switchFloor,
+              onAdd: _addFloor,
+              onRemove: _currentFloor > 0 ? _removeCurrentFloor : null,
+              groundLabel: l.groundFloor,
+              floorLabel: (n) => _floorData[n].name.isNotEmpty
+                  ? _floorData[n].name
+                  : l.floorIndex(n),
+            ),
+            if (_currentFloor > 0) ...[
+              const SizedBox(height: 8),
+              TextField(
+                controller: _floorNameCtrl,
+                decoration: InputDecoration(
+                  labelText: l.floorName,
+                  border: const OutlineInputBorder(),
+                  isDense: true,
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
             Row(
               children: [
@@ -1320,6 +1466,72 @@ class _DimensionCounter extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Floor tab bar
+// ---------------------------------------------------------------------------
+
+class _FloorTabBar extends StatelessWidget {
+  final List<_FloorEditData> floorData;
+  final int currentFloor;
+  final void Function(int) onSwitch;
+  final VoidCallback onAdd;
+  final VoidCallback? onRemove;
+  final String groundLabel;
+  final String Function(int) floorLabel;
+
+  const _FloorTabBar({
+    required this.floorData,
+    required this.currentFloor,
+    required this.onSwitch,
+    required this.onAdd,
+    this.onRemove,
+    required this.groundLabel,
+    required this.floorLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (var i = 0; i < floorData.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: ChoiceChip(
+                      label: Text(i == 0 ? groundLabel : floorLabel(i)),
+                      selected: currentFloor == i,
+                      onSelected: (_) => onSwitch(i),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        if (onRemove != null)
+          IconButton(
+            icon: const Icon(Icons.delete_outline, size: 20),
+            tooltip: 'Remove floor',
+            visualDensity: VisualDensity.compact,
+            onPressed: onRemove,
+            color: theme.colorScheme.error,
+          ),
+        IconButton(
+          icon: const Icon(Icons.add, size: 20),
+          tooltip: 'Add floor',
+          visualDensity: VisualDensity.compact,
+          onPressed: onAdd,
+        ),
+      ],
     );
   }
 }

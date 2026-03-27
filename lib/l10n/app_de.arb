@@ -230,5 +230,21 @@
       "shop": { "type": "String" }
     }
   },
-  "deferredToNextShop": "Beim nächsten Markt versuchen"
+  "deferredToNextShop": "Beim nächsten Markt versuchen",
+  "groundFloor": "Erdgeschoss",
+  "floorIndex": "Etage {n}",
+  "@floorIndex": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "addFloor": "Etage hinzufügen",
+  "removeFloor": "Etage entfernen",
+  "floorName": "Etagenname",
+  "nFloors": "{n} Etagen",
+  "@nFloors": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  }
 }

@@ -1,8 +1,10 @@
 class NavigationStop {
   final String cell;
   final List<String> items;
+  /// 0 = ground floor, 1+ = additional floors.
+  final int floor;
 
-  const NavigationStop({required this.cell, required this.items});
+  const NavigationStop({required this.cell, required this.items, this.floor = 0});
 }
 
 class StorePlan {

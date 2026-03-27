@@ -9,6 +9,7 @@ import 'package:fairelescourses/l10n/app_localizations.dart';
 import 'package:fairelescourses/models/nav_session.dart';
 import 'package:fairelescourses/models/shopping_list.dart';
 import 'package:fairelescourses/models/supermarket.dart';
+import 'package:fairelescourses/models/shop_floor.dart';
 import 'package:fairelescourses/providers/firestore_sync_provider.dart';
 import 'package:fairelescourses/providers/household_provider.dart';
 import 'package:fairelescourses/providers/nav_session_provider.dart';
@@ -41,6 +42,14 @@ class _FakeStoresNotifier extends SupermarketNotifier {
   List<Supermarket> build() => [];
 }
 
+class _FakeStoresNotifierWith extends SupermarketNotifier {
+  _FakeStoresNotifierWith(this._stores);
+  final List<Supermarket> _stores;
+
+  @override
+  List<Supermarket> build() => _stores;
+}
+
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 ShoppingList _list(String id, String name) => ShoppingList(
@@ -53,6 +62,7 @@ ShoppingList _list(String id, String name) => ShoppingList(
 Widget _wrap({
   required List<ShoppingList> lists,
   NavSession? session,
+  List<Supermarket>? stores,
 }) {
   final mockSvc = MockFirestoreService();
   when(() => mockSvc.deleteNavSession(any())).thenAnswer((_) async {});
@@ -63,9 +73,14 @@ Widget _wrap({
     overrides: [
       householdProvider.overrideWith(() => _NullHouseholdNotifier()),
       shoppingListsProvider.overrideWith(() => _FakeListsNotifier(lists)),
-      supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+      if (stores != null)
+        supermarketsProvider
+            .overrideWith(() => _FakeStoresNotifierWith(stores))
+      else
+        supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
       navSessionProvider.overrideWith((ref) => Stream.value(session)),
       firestoreSyncProvider.overrideWith((ref) {}),
+      currentUidProvider.overrideWith((ref) => null),
       firestoreServiceProvider.overrideWithValue(mockSvc),
     ],
     child: MaterialApp(
@@ -164,6 +179,70 @@ void main() {
       expect(find.text('Delete'), findsOneWidget);
       final deleteText = tester.widget<Text>(find.text('Delete'));
       expect(deleteText.style?.color, isNot(Colors.grey));
+    });
+  });
+
+  group('HomeScreen shops tab', () {
+    Supermarket _makeStore({int extraFloors = 0}) {
+      final s = Supermarket(
+        id: 'store-1',
+        name: 'Test Market',
+        rows: ['A', 'B', 'C'],
+        cols: ['1', '2', '3'],
+        entrance: 'A1',
+        exit: 'C3',
+        cells: {},
+      );
+      if (extraFloors > 0) {
+        s.additionalFloors = List.generate(
+          extraFloors,
+          (i) => ShopFloor(
+            name: '',
+            rows: ['A', 'B'],
+            cols: ['1', '2'],
+            entrance: 'A1',
+            exit: 'B2',
+          ),
+        );
+      }
+      return s;
+    }
+
+    testWidgets('single-floor store shows grid size without floor count',
+        (tester) async {
+      await tester.pumpWidget(_wrap(lists: [], stores: [_makeStore()]));
+      await tester.pumpAndSettle();
+
+      // Navigate to the Shops tab.
+      await tester.tap(find.text('Shops'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('3×3'), findsOneWidget);
+      expect(find.textContaining('floors'), findsNothing);
+    });
+
+    testWidgets('multi-floor store shows floor count in subtitle',
+        (tester) async {
+      await tester.pumpWidget(
+          _wrap(lists: [], stores: [_makeStore(extraFloors: 1)]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Shops'));
+      await tester.pumpAndSettle();
+
+      // "3×3  •  2 floors"
+      expect(find.textContaining('2 floors'), findsOneWidget);
+    });
+
+    testWidgets('three-floor store shows correct count', (tester) async {
+      await tester.pumpWidget(
+          _wrap(lists: [], stores: [_makeStore(extraFloors: 2)]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Shops'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('3 floors'), findsOneWidget);
     });
   });
 }

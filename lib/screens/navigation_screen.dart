@@ -359,14 +359,24 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     return null;
   }
 
+  int get _currentFloorIndex {
+    for (final stop in _currentPlan.stops) {
+      if (stop.items.any((i) => !_isChecked(i) && !_isDeferred(i))) {
+        return stop.floor;
+      }
+    }
+    return 0;
+  }
+
   // ── Item row builders ────────────────────────────────────────────────────
 
-  Widget _buildItemRow(String item) {
+  Widget _buildItemRow(String item, {bool available = true}) {
     final l = AppLocalizations.of(context)!;
     final isChecked = _isChecked(item);
     final isDeferredNext = _deferNextShop.contains(item);
     final isDeferredList = _forNewList.contains(item);
     final isDeferred = isDeferredNext || isDeferredList;
+    final isUnavailable = !available && !isChecked && !isDeferred;
 
     return SizedBox(
       height: 36,
@@ -376,7 +386,9 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
             width: 36,
             child: Checkbox(
               value: isChecked,
-              onChanged: isDeferred ? null : (_) => _toggleItem(item),
+              onChanged: (isDeferred || isUnavailable)
+                  ? null
+                  : (_) => _toggleItem(item),
               visualDensity: VisualDensity.compact,
             ),
           ),
@@ -388,7 +400,9 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                 decoration: (isChecked || isDeferred)
                     ? TextDecoration.lineThrough
                     : null,
-                color: (isChecked || isDeferred) ? Colors.grey : null,
+                color: (isChecked || isDeferred || isUnavailable)
+                    ? Colors.grey
+                    : null,
               ),
             ),
           ),
@@ -428,6 +442,9 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   Widget _buildCarriedOverSection(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final stores = ref.read(supermarketsProvider);
+    final store =
+        stores.where((s) => s.id == _currentPlan.storeId).firstOrNull;
     return Card(
       margin: const EdgeInsets.fromLTRB(8, 8, 8, 2),
       color: Colors.deepPurple.shade50,
@@ -449,7 +466,10 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
               ),
             ]),
             const SizedBox(height: 4),
-            ..._carriedOverItems.map(_buildItemRow),
+            ..._carriedOverItems.map((item) => _buildItemRow(
+                  item,
+                  available: store?.findCell(item) != null,
+                )),
           ],
         ),
       ),
@@ -656,6 +676,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
             storePlan: storePlan,
             currentCell: _currentCell,
             checkedItems: _checkedPerStore[_storeIndex],
+            currentFloor: _currentFloorIndex,
           ),
           const Divider(height: 1),
           Expanded(
@@ -674,8 +695,20 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                     carriedOverItems: _carriedOverItems,
                     checkedAtCurrentStore: _checkedPerStore[_storeIndex],
                   )
-                : ListView.builder(
-                    itemCount: storePlan.stops.length +
+                : Builder(builder: (context) {
+                    // Build flat list: insert a floor header before the first
+                    // stop of each floor beyond floor 0.
+                    final List<Object> items = [];
+                    int? lastFloor;
+                    for (final stop in storePlan.stops) {
+                      if (lastFloor == null || stop.floor != lastFloor) {
+                        if (stop.floor > 0) items.add(_FloorHeader(stop.floor));
+                        lastFloor = stop.floor;
+                      }
+                      items.add(stop);
+                    }
+                    return ListView.builder(
+                    itemCount: items.length +
                         (_carriedOverItems.isNotEmpty ? 1 : 0),
                     itemBuilder: (context, i) {
                       if (_carriedOverItems.isNotEmpty) {
@@ -684,10 +717,27 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                         }
                         i -= 1;
                       }
-                      final stop = storePlan.stops[i];
+                      final entry = items[i];
+                      if (entry is _FloorHeader) {
+                        return _buildFloorHeader(entry.floor);
+                      }
+                      final stop = entry as NavigationStop;
                       final allStopDone = stop.items
                           .every((item) => _isChecked(item) || _isDeferred(item));
-                      final isCurrent = stop.cell == _currentCell;
+                      final isCurrent = stop.cell == _currentCell &&
+                          stop.floor == _currentFloorIndex;
+                      // Look up floor label for additional floors.
+                      String? floorLabel;
+                      if (stop.floor > 0) {
+                        final stores = ref.read(supermarketsProvider);
+                        final s = stores
+                            .where((s) => s.id == storePlan.storeId)
+                            .firstOrNull;
+                        final fname = s?.floorAt(stop.floor).name ?? '';
+                        floorLabel = fname.isNotEmpty
+                            ? fname
+                            : l.floorIndex(stop.floor);
+                      }
                       return AnimatedOpacity(
                         opacity: allStopDone ? 0.4 : 1.0,
                         duration: const Duration(milliseconds: 300),
@@ -716,11 +766,21 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                                         .primary,
                                     borderRadius: BorderRadius.circular(10),
                                   ),
-                                  child: Text(stop.cell,
-                                      style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12)),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(stop.cell,
+                                          style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12)),
+                                      if (floorLabel != null)
+                                        Text(floorLabel,
+                                            style: const TextStyle(
+                                                color: Colors.white70,
+                                                fontSize: 9)),
+                                    ],
+                                  ),
                                 ),
                                 Expanded(
                                   child: Column(
@@ -737,12 +797,52 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                         ),
                       );
                     },
-                  ),
+                  );
+                }),
           ),
         ],
       ),
     );
   }
+
+  Widget _buildFloorHeader(int floor) {
+    final l = AppLocalizations.of(context)!;
+    final stores = ref.read(supermarketsProvider);
+    final storePlan = _currentPlan;
+    final store =
+        stores.where((s) => s.id == storePlan.storeId).firstOrNull;
+    final fname = store?.floorAt(floor).name ?? '';
+    final label = fname.isNotEmpty ? fname : l.floorIndex(floor);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 10, 8, 2),
+      child: Row(
+        children: [
+          const Expanded(child: Divider()),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.stairs, size: 14, color: Colors.grey),
+                const SizedBox(width: 4),
+                Text(label,
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey)),
+              ],
+            ),
+          ),
+          const Expanded(child: Divider()),
+        ],
+      ),
+    );
+  }
+}
+
+class _FloorHeader {
+  final int floor;
+  const _FloorHeader(this.floor);
 }
 
 class _CollaborativeBadge extends StatelessWidget {

@@ -1,5 +1,7 @@
 import 'package:hive/hive.dart';
 
+import 'shop_floor.dart';
+
 part 'supermarket.g.dart';
 
 @HiveType(typeId: 0)
@@ -51,6 +53,11 @@ class Supermarket extends HiveObject {
   @HiveField(12)
   String? osmCategory;
 
+  /// Additional floors beyond the ground floor (index 0).
+  /// Stored as raw List<Map> so Hive can persist it without a custom adapter.
+  @HiveField(14)
+  List<dynamic>? floorsRaw;
+
   /// Firebase Auth UID of the creator. Not persisted to Hive — populated
   /// from Firestore metadata so the UI can gate edit/delete controls.
   String? ownerUid;
@@ -69,6 +76,7 @@ class Supermarket extends HiveObject {
     this.parentId,
     this.ownerUid,
     this.osmCategory,
+    this.floorsRaw,
     Map<String, List<String>>? subcells,
   }) : subcells = subcells ?? {};
 
@@ -98,24 +106,104 @@ class Supermarket extends HiveObject {
     return null;
   }
 
+  // ---------------------------------------------------------------------------
+  // Multi-floor helpers
+  // ---------------------------------------------------------------------------
+
+  /// Deserialised additional floors (floor index 1, 2, …).
+  List<ShopFloor> get additionalFloors {
+    final raw = floorsRaw;
+    if (raw == null || raw.isEmpty) return [];
+    return raw.map((e) => ShopFloor.fromMap(e as Map)).toList();
+  }
+
+  set additionalFloors(List<ShopFloor> floors) {
+    floorsRaw = floors.isEmpty ? null : floors.map((f) => f.toMap()).toList();
+  }
+
+  /// Returns the [ShopFloor] for [index] (0 = ground floor / main grid).
+  ShopFloor floorAt(int index) {
+    if (index == 0) {
+      return ShopFloor(
+        name: '',
+        rows: rows,
+        cols: cols,
+        entrance: entrance,
+        exit: exit,
+        cells: cells,
+        subcells: subcells,
+      );
+    }
+    return additionalFloors[index - 1];
+  }
+
+  /// All floors as [ShopFloor] views.
+  List<ShopFloor> get allFloors => [floorAt(0), ...additionalFloors];
+
+  // ---------------------------------------------------------------------------
+  // Grid helpers
+  // ---------------------------------------------------------------------------
+
   /// Find which cell contains a given item tag (case-insensitive, partial match).
-  /// Also searches draft subcells; always returns a base cell id for routing.
+  /// Searches the ground floor first, then additional floors.
+  /// Returns a base cell id for routing (floor-agnostic).
   String? findCell(String item) {
+    final found = findCellWithFloor(item);
+    return found?.$2;
+  }
+
+  /// Find which floor and cell contains [item]. Returns null if not found.
+  ///
+  /// Uses a two-pass strategy so an exact match on any floor beats a broad
+  /// partial match on the ground floor:
+  ///   Pass 1 — exact (case-insensitive) match across all floors.
+  ///   Pass 2 — partial match across all floors (ground floor first).
+  (int floor, String cell)? findCellWithFloor(String item) {
     final q = item.toLowerCase().trim();
+    final extra = additionalFloors;
+
+    // ── Pass 1: exact match ───────────────────────────────────────────────
     for (final entry in cells.entries) {
       for (final tag in entry.value) {
-        if (tag.toLowerCase().contains(q) || q.contains(tag.toLowerCase())) {
-          return entry.key;
-        }
+        if (tag.toLowerCase() == q) return (0, entry.key);
       }
     }
     for (final entry in subcells.entries) {
       for (final tag in entry.value) {
-        if (tag.toLowerCase().contains(q) || q.contains(tag.toLowerCase())) {
-          return entry.key.split(':').first; // base cell id
+        if (tag.toLowerCase() == q) return (0, entry.key.split(':').first);
+      }
+    }
+    for (var fi = 0; fi < extra.length; fi++) {
+      for (final entry in extra[fi].cells.entries) {
+        for (final tag in entry.value) {
+          if (tag.toLowerCase() == q) return (fi + 1, entry.key);
+        }
+      }
+      for (final entry in extra[fi].subcells.entries) {
+        for (final tag in entry.value) {
+          if (tag.toLowerCase() == q) return (fi + 1, entry.key.split(':').first);
         }
       }
     }
+
+    // ── Pass 2: partial match (ground floor first) ────────────────────────
+    for (final entry in cells.entries) {
+      for (final tag in entry.value) {
+        final t = tag.toLowerCase();
+        if (t.contains(q) || q.contains(t)) return (0, entry.key);
+      }
+    }
+    for (final entry in subcells.entries) {
+      for (final tag in entry.value) {
+        final t = tag.toLowerCase();
+        if (t.contains(q) || q.contains(t)) return (0, entry.key.split(':').first);
+      }
+    }
+    for (var fi = 0; fi < extra.length; fi++) {
+      final cell = extra[fi].findCell(item);
+      if (cell != null) return (fi + 1, cell);
+    }
+
     return null;
   }
 
@@ -159,6 +247,8 @@ class Supermarket extends HiveObject {
           'subcells':
               subcells.map((k, v) => MapEntry(k, List<String>.from(v))),
         if (osmCategory != null) 'osmCategory': osmCategory,
+        if (floorsRaw != null && floorsRaw!.isNotEmpty)
+          'floors': additionalFloors.map((f) => f.toMap()).toList(),
       };
 
   factory Supermarket.fromMap(Map<String, dynamic> m) => Supermarket(
@@ -181,6 +271,7 @@ class Supermarket extends HiveObject {
               )
             : null,
         osmCategory: m['osmCategory'] as String?,
+        floorsRaw: m['floors'] != null ? (m['floors'] as List).toList() : null,
       );
 
   Supermarket copyWith({
@@ -196,6 +287,7 @@ class Supermarket extends HiveObject {
     Object? lng = _sentinel,
     Object? parentId = _sentinel,
     Object? osmCategory = _sentinel,
+    Object? floorsRaw = _sentinel,
   }) =>
       Supermarket(
         id: id,
@@ -211,6 +303,7 @@ class Supermarket extends HiveObject {
         lng: lng == _sentinel ? this.lng : lng as double?,
         parentId: parentId == _sentinel ? this.parentId : parentId as String?,
         osmCategory: osmCategory == _sentinel ? this.osmCategory : osmCategory as String?,
+        floorsRaw: floorsRaw == _sentinel ? this.floorsRaw : floorsRaw as List<dynamic>?,
       );
 }
 

@@ -32,6 +32,14 @@ class _FakeStoresNotifier extends SupermarketNotifier {
   List<Supermarket> build() => [];
 }
 
+class _FakeStoresNotifierWith extends SupermarketNotifier {
+  _FakeStoresNotifierWith(this._stores);
+  final List<Supermarket> _stores;
+
+  @override
+  List<Supermarket> build() => _stores;
+}
+
 // ── helpers ───────────────────────────────────────────────────────────────────
 
 const _listId = 'nav-test-list';
@@ -72,7 +80,9 @@ NavigationPlan _twoStorePlan({
 
 /// Wraps [NavigationScreen] with minimal provider overrides.
 /// [listItems] defaults to all plan items unchecked.
-Widget _wrap(NavigationPlan plan, {List<ShoppingItem>? listItems}) {
+/// [stores] is used by the screen for availability checks on carried-over items.
+Widget _wrap(NavigationPlan plan,
+    {List<ShoppingItem>? listItems, List<Supermarket>? stores}) {
   final items = listItems ??
       plan.storePlans
           .expand((s) => s.stops)
@@ -82,7 +92,11 @@ Widget _wrap(NavigationPlan plan, {List<ShoppingItem>? listItems}) {
   return ProviderScope(
     overrides: [
       shoppingListsProvider.overrideWith(() => _FakeListsNotifier(items)),
-      supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+      if (stores != null)
+        supermarketsProvider
+            .overrideWith(() => _FakeStoresNotifierWith(stores))
+      else
+        supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
     ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -91,6 +105,18 @@ Widget _wrap(NavigationPlan plan, {List<ShoppingItem>? listItems}) {
     ),
   );
 }
+
+Supermarket _storeWithItems(String id, String name,
+        Map<String, List<String>> cells) =>
+    Supermarket(
+      id: id,
+      name: name,
+      rows: ['A', 'B'],
+      cols: ['1', '2'],
+      entrance: 'A1',
+      exit: 'B2',
+      cells: cells,
+    );
 
 // ── tests ─────────────────────────────────────────────────────────────────────
 
@@ -313,6 +339,120 @@ void main() {
       await tester.pumpAndSettle();
 
       // 'Milk' (carried over) + 'Bread' (normal stop) each have a schedule button
+      expect(find.byIcon(Icons.schedule), findsNWidgets(2));
+    });
+  });
+
+  // ── Floor headers ──────────────────────────────────────────────────────────
+
+  group('NavigationScreen – floor headers', () {
+    NavigationPlan _multiFloorPlan() => NavigationPlan(
+          storePlans: [
+            StorePlan(
+              storeId: 's1',
+              storeName: 'FloorMart',
+              stops: [
+                NavigationStop(cell: 'A1', items: ['Milk'], floor: 0),
+                NavigationStop(cell: 'B1', items: ['Electronics'], floor: 1),
+              ],
+              unmatched: [],
+            ),
+          ],
+          globalUnmatched: [],
+        );
+
+    testWidgets('floor header with stairs icon appears before floor-1 stop',
+        (tester) async {
+      await tester.pumpWidget(_wrap(_multiFloorPlan()));
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.stairs), findsOneWidget);
+    });
+
+    testWidgets('floor header shows "Floor 1" label', (tester) async {
+      await tester.pumpWidget(_wrap(_multiFloorPlan()));
+      await tester.pumpAndSettle();
+      // The floor label appears in both the header divider and the stop badge.
+      expect(find.text('Floor 1'), findsAtLeastNWidgets(1));
+    });
+
+    testWidgets('no floor header when all stops are on floor 0', (tester) async {
+      await tester.pumpWidget(_wrap(_singleStorePlan(['Milk', 'Bread'])));
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.stairs), findsNothing);
+    });
+  });
+
+  // ── Carried-over item availability ────────────────────────────────────────
+
+  group('NavigationScreen – carried-over item availability', () {
+    // Helper: defer 'Milk' from store 1 and advance to store 2.
+    Future<void> _deferAndAdvance(WidgetTester tester) async {
+      await tester.tap(find.byIcon(Icons.schedule).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.skip_next));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Next shop'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets(
+        'carried-over item available in next store has enabled checkbox',
+        (tester) async {
+      final plan = _twoStorePlan(
+          store1Items: ['Milk'], store2Items: ['Bread']);
+      // Store Two stocks Milk — carried-over 'Milk' should be collectable.
+      final stores = [
+        _storeWithItems('s1', 'Store One', {'A1': ['Milk']}),
+        _storeWithItems('s2', 'Store Two', {'A1': ['Milk'], 'B1': ['Bread']}),
+      ];
+      await tester.pumpWidget(_wrap(plan, stores: stores));
+      await tester.pumpAndSettle();
+
+      await _deferAndAdvance(tester);
+
+      // Find the Checkbox for the carried-over 'Milk' item.
+      // It appears inside the carried-over section above the regular stop.
+      final checkboxes = tester.widgetList<Checkbox>(find.byType(Checkbox));
+      // The first checkbox belongs to the carried-over section ('Milk').
+      final milkCheckbox = checkboxes.first;
+      expect(milkCheckbox.onChanged, isNotNull);
+    });
+
+    testWidgets(
+        'carried-over item not stocked at next store has disabled checkbox',
+        (tester) async {
+      final plan = _twoStorePlan(
+          store1Items: ['Milk'], store2Items: ['Bread']);
+      // Store Two does NOT stock Milk — carried-over 'Milk' should be locked.
+      final stores = [
+        _storeWithItems('s1', 'Store One', {'A1': ['Milk']}),
+        _storeWithItems('s2', 'Store Two', {'B1': ['Bread']}),
+      ];
+      await tester.pumpWidget(_wrap(plan, stores: stores));
+      await tester.pumpAndSettle();
+
+      await _deferAndAdvance(tester);
+
+      final checkboxes = tester.widgetList<Checkbox>(find.byType(Checkbox));
+      final milkCheckbox = checkboxes.first;
+      expect(milkCheckbox.onChanged, isNull);
+    });
+
+    testWidgets(
+        'unavailable carried-over item still shows schedule button',
+        (tester) async {
+      final plan = _twoStorePlan(
+          store1Items: ['Milk'], store2Items: ['Bread']);
+      final stores = [
+        _storeWithItems('s1', 'Store One', {'A1': ['Milk']}),
+        _storeWithItems('s2', 'Store Two', {'B1': ['Bread']}),
+      ];
+      await tester.pumpWidget(_wrap(plan, stores: stores));
+      await tester.pumpAndSettle();
+
+      await _deferAndAdvance(tester);
+
+      // Both carried-over 'Milk' (unavailable) and regular 'Bread' show schedule.
       expect(find.byIcon(Icons.schedule), findsNWidgets(2));
     });
   });

@@ -230,5 +230,21 @@
       "shop": { "type": "String" }
     }
   },
-  "deferredToNextShop": "Will try at next shop"
+  "deferredToNextShop": "Will try at next shop",
+  "groundFloor": "Ground floor",
+  "floorIndex": "Floor {n}",
+  "@floorIndex": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "addFloor": "Add floor",
+  "removeFloor": "Remove floor",
+  "floorName": "Floor name",
+  "nFloors": "{n} floors",
+  "@nFloors": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  }
 }

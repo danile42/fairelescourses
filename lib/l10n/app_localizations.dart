@@ -1087,6 +1087,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Will try at next shop'**
   String get deferredToNextShop;
+
+  /// No description provided for @groundFloor.
+  ///
+  /// In en, this message translates to:
+  /// **'Ground floor'**
+  String get groundFloor;
+
+  /// No description provided for @floorIndex.
+  ///
+  /// In en, this message translates to:
+  /// **'Floor {n}'**
+  String floorIndex(int n);
+
+  /// No description provided for @addFloor.
+  ///
+  /// In en, this message translates to:
+  /// **'Add floor'**
+  String get addFloor;
+
+  /// No description provided for @removeFloor.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove floor'**
+  String get removeFloor;
+
+  /// No description provided for @floorName.
+  ///
+  /// In en, this message translates to:
+  /// **'Floor name'**
+  String get floorName;
+
+  /// No description provided for @nFloors.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} floors'**
+  String nFloors(int n);
 }
 
 class _AppLocalizationsDelegate

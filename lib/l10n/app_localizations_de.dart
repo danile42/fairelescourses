@@ -543,4 +543,26 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get deferredToNextShop => 'Beim nächsten Markt versuchen';
+
+  @override
+  String get groundFloor => 'Erdgeschoss';
+
+  @override
+  String floorIndex(int n) {
+    return 'Etage $n';
+  }
+
+  @override
+  String get addFloor => 'Etage hinzufügen';
+
+  @override
+  String get removeFloor => 'Etage entfernen';
+
+  @override
+  String get floorName => 'Etagenname';
+
+  @override
+  String nFloors(int n) {
+    return '$n Etagen';
+  }
 }

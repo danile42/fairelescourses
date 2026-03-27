@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fairelescourses/models/shopping_list.dart';
 import 'package:fairelescourses/models/supermarket.dart';
+import 'package:fairelescourses/models/shop_floor.dart';
 import 'package:fairelescourses/services/navigation_planner.dart';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -146,6 +147,71 @@ void main() {
       final plan =
           NavigationPlanner.plan(makeList(['Milk', 'Butter', 'Bread']), [store]);
       expect(plan.storePlans.first.totalItems, 3);
+    });
+
+    // ── multi-floor routing ───────────────────────────────────────────────────
+
+    test('items on different floors get correct floor field on their stop', () {
+      final store = makeStore(id: 's1', cells: {'A1': ['Milk']});
+      store.additionalFloors = [
+        ShopFloor(
+          name: '',
+          rows: ['A', 'B'],
+          cols: ['1', '2'],
+          entrance: 'A1',
+          exit: 'B2',
+          cells: {'B2': ['Electronics']},
+        ),
+      ];
+      final plan =
+          NavigationPlanner.plan(makeList(['Milk', 'Electronics']), [store]);
+      final stops = plan.storePlans.first.stops;
+      final milkStop = stops.firstWhere((s) => s.items.contains('Milk'));
+      final elecStop = stops.firstWhere((s) => s.items.contains('Electronics'));
+      expect(milkStop.floor, 0);
+      expect(elecStop.floor, 1);
+    });
+
+    test('floor 0 stops precede floor 1 stops', () {
+      final store = makeStore(id: 's1', cells: {'C3': ['Bread']});
+      store.additionalFloors = [
+        ShopFloor(
+          name: '',
+          rows: ['A', 'B'],
+          cols: ['1', '2'],
+          entrance: 'A1',
+          exit: 'B2',
+          cells: {'A1': ['Cheese']},
+        ),
+      ];
+      final plan =
+          NavigationPlanner.plan(makeList(['Bread', 'Cheese']), [store]);
+      final stops = plan.storePlans.first.stops;
+      final breadIdx = stops.indexWhere((s) => s.items.contains('Bread'));
+      final cheeseIdx = stops.indexWhere((s) => s.items.contains('Cheese'));
+      expect(breadIdx, lessThan(cheeseIdx));
+    });
+
+    test('items on same upper floor are grouped into one stop', () {
+      final store = makeStore(id: 's1');
+      store.additionalFloors = [
+        ShopFloor(
+          name: '',
+          rows: ['A', 'B'],
+          cols: ['1', '2'],
+          entrance: 'A1',
+          exit: 'B2',
+          cells: {
+            'A2': ['Cheese', 'Butter'],
+          },
+        ),
+      ];
+      final plan =
+          NavigationPlanner.plan(makeList(['Cheese', 'Butter']), [store]);
+      final stops = plan.storePlans.first.stops;
+      expect(stops.length, 1);
+      expect(stops.first.floor, 1);
+      expect(stops.first.items, containsAll(['Cheese', 'Butter']));
     });
   });
 }
