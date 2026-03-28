@@ -384,13 +384,6 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                   side: BorderSide(color: theme.colorScheme.error),
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
-                child: Divider(),
-              ),
-              Text(l.joinHousehold,
-                  style: theme.textTheme.titleMedium),
-              const SizedBox(height: 4),
             ] else ...[
               ElevatedButton.icon(
                 icon: const Icon(Icons.add_home_outlined),
@@ -403,35 +396,35 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
               ),
               Text(l.joinHousehold, style: theme.textTheme.titleMedium),
               const SizedBox(height: 4),
+              TextField(
+                controller: _joinCtrl,
+                decoration: InputDecoration(
+                  hintText: l.joinHouseholdHint,
+                  border: const OutlineInputBorder(),
+                ),
+                textCapitalization: TextCapitalization.characters,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
+                  LengthLimitingTextInputFormatter(6),
+                ],
+                onSubmitted: (_) => _joining ? null : _join(),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  icon: _joining
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.link),
+                  label: Text(l.joinHousehold),
+                  onPressed: _joining ? null : _join,
+                ),
+              ),
             ],
-            TextField(
-              controller: _joinCtrl,
-              decoration: InputDecoration(
-                hintText: l.joinHouseholdHint,
-                border: const OutlineInputBorder(),
-              ),
-              textCapitalization: TextCapitalization.characters,
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
-                LengthLimitingTextInputFormatter(6),
-              ],
-              onSubmitted: (_) => _joining ? null : _join(),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: _joining
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.link),
-                label: Text(l.joinHousehold),
-                onPressed: _joining ? null : _join,
-              ),
-            ),
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
               child: Divider(),
