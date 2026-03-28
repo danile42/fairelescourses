@@ -569,4 +569,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moveToNewList => 'Move to new list';
+
+  @override
+  String get localOnlyMode => 'Local storage only';
+
+  @override
+  String get localOnlyModeDesc =>
+      'Keep all data on this device. No sync, no household.';
+
+  @override
+  String get localOnlyWarning =>
+      'Local-only mode is active. Sync and household features are disabled.';
+
+  @override
+  String get localOnlyConfirmEnable =>
+      'Switch to local-only mode? Household sync will be disabled.';
+
+  @override
+  String get localOnlyConfirmDisable =>
+      'Re-enable sync? You can rejoin a household afterwards.';
 }

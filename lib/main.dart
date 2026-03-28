@@ -27,7 +27,11 @@ void main() async {
 
   // Sign in anonymously on whichever Firebase app is configured
   // (initializes the custom named app if credentials are saved in Hive).
-  await initActiveFirebaseApp();
+  // Skipped when local-only mode is active.
+  final localOnly = Hive.box<String>('settings').get('localOnly') == 'true';
+  if (!localOnly) {
+    await initActiveFirebaseApp();
+  }
 
   runApp(const ProviderScope(child: FairelesCourses()));
 }

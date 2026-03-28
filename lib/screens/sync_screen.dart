@@ -7,6 +7,7 @@ import '../models/firebase_credentials.dart';
 import '../providers/firebase_app_provider.dart';
 import '../providers/home_location_provider.dart';
 import '../providers/household_provider.dart';
+import '../providers/local_only_provider.dart';
 import '../providers/supermarket_provider.dart';
 import '../providers/shopping_list_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -219,9 +220,27 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
         .showSnackBar(SnackBar(content: Text(l.firebaseInstanceSaved)));
   }
 
+  Future<void> _toggleLocalOnly(bool value) async {
+    final l = AppLocalizations.of(context)!;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        content: Text(value ? l.localOnlyConfirmEnable : l.localOnlyConfirmDisable),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.cancel)),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.yes)),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    await ref.read(localOnlyProvider.notifier).set(value);
+    if (value) ref.read(householdProvider.notifier).clear();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final localOnly = ref.watch(localOnlyProvider);
     final hid = ref.watch(householdProvider);
     final homeLoc = ref.watch(homeLocationProvider);
     final theme = Theme.of(context);
@@ -238,6 +257,30 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ── Local-only toggle ────────────────────────────────────────────
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(l.localOnlyMode,
+                  style: theme.textTheme.titleMedium),
+              subtitle: Text(l.localOnlyModeDesc),
+              value: localOnly,
+              onChanged: _toggleLocalOnly,
+            ),
+            if (localOnly) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.tertiaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(l.localOnlyWarning,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onTertiaryContainer)),
+              ),
+              const SizedBox(height: 8),
+            ],
+            if (!localOnly) ...[
             if (hid != null) ...[
               Text(l.yourHouseholdId, style: theme.textTheme.labelLarge),
               const SizedBox(height: 8),
@@ -497,6 +540,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
               ],
             ],
             const SizedBox(height: 24),
+            ], // end if (!localOnly)
           ],
         ),
       ),

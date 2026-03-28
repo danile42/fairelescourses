@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/firestore_service.dart';
 import 'firebase_app_provider.dart';
 import 'household_provider.dart';
+import 'local_only_provider.dart';
 import 'supermarket_provider.dart';
 import 'shopping_list_provider.dart';
 
@@ -21,6 +22,7 @@ final currentUidProvider = Provider<String?>((ref) {
 /// Watches the household ID and maintains Firestore real-time listeners.
 /// Watch this provider in the root widget to activate syncing.
 final firestoreSyncProvider = Provider<void>((ref) {
+  if (ref.watch(localOnlyProvider)) return;
   final hid = ref.watch(householdProvider);
   if (hid == null) return;
   final svc = ref.watch(firestoreServiceProvider);

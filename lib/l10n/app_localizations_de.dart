@@ -578,4 +578,23 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get moveToNewList => 'In neue Liste verschieben';
+
+  @override
+  String get localOnlyMode => 'Nur lokaler Speicher';
+
+  @override
+  String get localOnlyModeDesc =>
+      'Alle Daten bleiben auf diesem Gerät. Keine Synchronisierung, kein Haushalt.';
+
+  @override
+  String get localOnlyWarning =>
+      'Nur-Lokal-Modus aktiv. Sync und Haushalt-Funktionen sind deaktiviert.';
+
+  @override
+  String get localOnlyConfirmEnable =>
+      'Zum Nur-Lokal-Modus wechseln? Die Haushalt-Synchronisierung wird deaktiviert.';
+
+  @override
+  String get localOnlyConfirmDisable =>
+      'Synchronisierung wieder aktivieren? Du kannst danach einem Haushalt beitreten.';
 }

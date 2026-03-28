@@ -246,5 +246,10 @@
   },
   "moveToList": "In Liste verschieben",
   "copyToNewList": "In neue Liste kopieren",
-  "moveToNewList": "In neue Liste verschieben"
+  "moveToNewList": "In neue Liste verschieben",
+  "localOnlyMode": "Nur lokaler Speicher",
+  "localOnlyModeDesc": "Alle Daten bleiben auf diesem Gerät. Keine Synchronisierung, kein Haushalt.",
+  "localOnlyWarning": "Nur-Lokal-Modus aktiv. Sync und Haushalt-Funktionen sind deaktiviert.",
+  "localOnlyConfirmEnable": "Zum Nur-Lokal-Modus wechseln? Die Haushalt-Synchronisierung wird deaktiviert.",
+  "localOnlyConfirmDisable": "Synchronisierung wieder aktivieren? Du kannst danach einem Haushalt beitreten."
 }

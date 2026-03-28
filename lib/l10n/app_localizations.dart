@@ -1153,6 +1153,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Move to new list'**
   String get moveToNewList;
+
+  /// No description provided for @localOnlyMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Local storage only'**
+  String get localOnlyMode;
+
+  /// No description provided for @localOnlyModeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep all data on this device. No sync, no household.'**
+  String get localOnlyModeDesc;
+
+  /// No description provided for @localOnlyWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Local-only mode is active. Sync and household features are disabled.'**
+  String get localOnlyWarning;
+
+  /// No description provided for @localOnlyConfirmEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to local-only mode? Household sync will be disabled.'**
+  String get localOnlyConfirmEnable;
+
+  /// No description provided for @localOnlyConfirmDisable.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-enable sync? You can rejoin a household afterwards.'**
+  String get localOnlyConfirmDisable;
 }
 
 class _AppLocalizationsDelegate

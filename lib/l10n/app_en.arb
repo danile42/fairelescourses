@@ -246,5 +246,10 @@
   },
   "moveToList": "Move to list",
   "copyToNewList": "Copy to new list",
-  "moveToNewList": "Move to new list"
+  "moveToNewList": "Move to new list",
+  "localOnlyMode": "Local storage only",
+  "localOnlyModeDesc": "Keep all data on this device. No sync, no household.",
+  "localOnlyWarning": "Local-only mode is active. Sync and household features are disabled.",
+  "localOnlyConfirmEnable": "Switch to local-only mode? Household sync will be disabled.",
+  "localOnlyConfirmDisable": "Re-enable sync? You can rejoin a household afterwards."
 }
