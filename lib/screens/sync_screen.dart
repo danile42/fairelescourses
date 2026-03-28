@@ -280,7 +280,65 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
               ),
               const SizedBox(height: 8),
             ],
+            // ── Home location ───────────────────────────────────────────────
+            Text(l.homeLocation, style: theme.textTheme.titleMedium),
+            const SizedBox(height: 8),
+            if (homeLoc != null) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.secondaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.home_outlined, size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(homeLoc.address,
+                          style: theme.textTheme.bodyMedium),
+                    ),
+                    TextButton(
+                      onPressed: _clearHomeLocation,
+                      child: Text(l.delete,
+                          style: TextStyle(color: theme.colorScheme.error)),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _homeCtrl,
+                    decoration: InputDecoration(
+                      hintText: l.homeLocationHint,
+                      border: const OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    onSubmitted: (_) => _settingHome ? null : _setHomeLocation(),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: _settingHome ? null : _setHomeLocation,
+                  child: _settingHome
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(l.setHomeLocation),
+                ),
+              ],
+            ),
             if (!localOnly) ...[
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Divider(),
+            ),
             if (hid != null) ...[
               Text(l.yourHouseholdId, style: theme.textTheme.labelLarge),
               const SizedBox(height: 8),
@@ -373,64 +431,6 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                 label: Text(l.joinHousehold),
                 onPressed: _joining ? null : _join,
               ),
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
-              child: Divider(),
-            ),
-            // ── Home location ───────────────────────────────────────────────
-            Text(l.homeLocation, style: theme.textTheme.titleMedium),
-            const SizedBox(height: 8),
-            if (homeLoc != null) ...[
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.secondaryContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.home_outlined, size: 18),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(homeLoc.address,
-                          style: theme.textTheme.bodyMedium),
-                    ),
-                    TextButton(
-                      onPressed: _clearHomeLocation,
-                      child: Text(l.delete,
-                          style: TextStyle(color: theme.colorScheme.error)),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _homeCtrl,
-                    decoration: InputDecoration(
-                      hintText: l.homeLocationHint,
-                      border: const OutlineInputBorder(),
-                      isDense: true,
-                    ),
-                    onSubmitted: (_) => _settingHome ? null : _setHomeLocation(),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _settingHome ? null : _setHomeLocation,
-                  child: _settingHome
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(l.setHomeLocation),
-                ),
-              ],
             ),
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
