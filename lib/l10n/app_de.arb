@@ -288,7 +288,7 @@
   "firebaseHelpFirestoreTitle": "2. Firestore aktivieren",
   "firebaseHelpFirestoreBody": "Öffne Firestore Database in der Konsole und erstelle eine Datenbank im Produktionsmodus.",
   "firebaseHelpAuthTitle": "3. Anonyme Authentifizierung",
-  "firebaseHelpAuthBody": "Aktiviere unter Authentifizierung → Anmeldemethode den Anbieter „Anonym". Die App nutzt ihn für den Datenbankzugriff.",
+  "firebaseHelpAuthBody": "Aktiviere unter Authentifizierung → Anmeldemethode den Anbieter \"Anonym\". Die App nutzt ihn für den Datenbankzugriff.",
   "firebaseHelpRulesTitle": "4. Sicherheitsregeln",
   "firebaseHelpRulesBody": "Erlaube authentifizierten Lese-/Schreibzugriff für alle Dokumente. Alle Daten werden clientseitig mit der Haushalt-ID verschlüsselt – der Server sieht nie Klartext.",
   "firebaseHelpCredsTitle": "5. Zugangsdaten",
