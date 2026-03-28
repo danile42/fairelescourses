@@ -142,9 +142,10 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
 
   // ────────────────────────────────────────────────────────────────────────
 
-  void _toggleItem(String item) {
+  void _toggleItem(String item, {int? forStore}) {
+    final si = forStore ?? _storeIndex;
     setState(() {
-      final set = _checkedPerStore[_storeIndex];
+      final set = _checkedPerStore[si];
       if (set.contains(item)) {
         set.remove(item);
       } else {
@@ -158,7 +159,8 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         .ignore();
   }
 
-  bool _isChecked(String item) => _checkedPerStore[_storeIndex].contains(item);
+  bool _isChecked(String item, {int? forStore}) =>
+      _checkedPerStore[forStore ?? _storeIndex].contains(item);
 
   bool _isDeferred(String item) =>
       _deferNextShop.contains(item) || _forNewList.contains(item);
@@ -405,9 +407,9 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
 
   // ── Item row builders ────────────────────────────────────────────────────
 
-  Widget _buildItemRow(String item, {bool available = true}) {
+  Widget _buildItemRow(String item, {bool available = true, int? forStore}) {
     final l = AppLocalizations.of(context)!;
-    final isChecked = _isChecked(item);
+    final isChecked = _isChecked(item, forStore: forStore);
     final isDeferredNext = _deferNextShop.contains(item);
     final isDeferredList = _forNewList.contains(item);
     final isDeferred = isDeferredNext || isDeferredList;
@@ -423,7 +425,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
               value: isChecked,
               onChanged: (isDeferred || isUnavailable)
                   ? null
-                  : (_) => _toggleItem(item),
+                  : (_) => _toggleItem(item, forStore: forStore),
               visualDensity: VisualDensity.compact,
             ),
           ),
@@ -686,7 +688,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
             onSelected: (_) => _finishTour(),
           ),
         ],
-        bottom: plan.storePlans.length > 1
+        bottom: plan.storePlans.length > 1 && _viewMode == _ViewMode.grid
             ? PreferredSize(
                 preferredSize: const Size.fromHeight(48),
                 child: _StoreTabs(
@@ -697,28 +699,53 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
               )
             : null,
       ),
-      body: Column(
+      body: Builder(builder: (context) {
+        // In list view use overall totals across all stores.
+        final listTotal = _viewMode == _ViewMode.list
+            ? widget.plan.storePlans
+                .fold(0, (s, sp) => s + sp.totalItems)
+            : total;
+        final listHandled = _viewMode == _ViewMode.list
+            ? () {
+                int c = 0;
+                for (int si = 0;
+                    si < widget.plan.storePlans.length;
+                    si++) {
+                  final checked = _checkedPerStore[si];
+                  for (final stop in widget.plan.storePlans[si].stops) {
+                    for (final item in stop.items) {
+                      if (checked.contains(item) ||
+                          _deferNextShop.contains(item) ||
+                          _forNewList.contains(item)) c++;
+                    }
+                  }
+                }
+                return c;
+              }()
+            : handled;
+        return Column(
         children: [
           LinearProgressIndicator(
-            value: total == 0 ? 1.0 : handled / total,
+            value: listTotal == 0 ? 1.0 : listHandled / listTotal,
             minHeight: 6,
             backgroundColor: Colors.grey.shade200,
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                Icon(Icons.store_outlined,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.primary),
-                const SizedBox(width: 6),
-                Text(storePlan.storeName,
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-                const Spacer(),
-                Text(l.progress(handled, total)),
-              ],
+          if (_viewMode == _ViewMode.grid)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Icon(Icons.store_outlined,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 6),
+                  Text(storePlan.storeName,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const Spacer(),
+                  Text(l.progress(handled, total)),
+                ],
+              ),
             ),
-          ),
           if (_viewMode == _ViewMode.grid) ...[
             MiniMap(
               storePlan: storePlan,
@@ -748,10 +775,11 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                   )
                 : _viewMode == _ViewMode.grid
                     ? _buildGridView(storePlan)
-                    : _buildListView(storePlan),
+                    : _buildListView(),
           ),
         ],
-      ),
+        ); // Column
+      }), // Builder
     );
   }
 
@@ -840,22 +868,50 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     );
   }
 
-  Widget _buildListView(StorePlan storePlan) {
+  Widget _buildListView() {
     final l = AppLocalizations.of(context)!;
-    final matchedItems =
-        storePlan.stops.expand((s) => s.items).toList();
-    final unmatchedItems = storePlan.unmatched.toList();
+    final theme = Theme.of(context);
+    final plans = widget.plan.storePlans;
+
+    // Collect all unmatched items (store-specific + global), deduplicated.
+    final allUnmatched = <String>{
+      ...widget.plan.globalUnmatched,
+      ...plans.expand((sp) => sp.unmatched),
+    }.toList();
 
     return ListView(
       children: [
         if (_carriedOverItems.isNotEmpty) _buildCarriedOverSection(context),
-        ...matchedItems.map(_buildItemRow),
-        if (unmatchedItems.isNotEmpty) ...[
+        for (var si = 0; si < plans.length; si++) ...[
+          // ── Shop sub-header ──────────────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 2),
             child: Row(
               children: [
-                const Icon(Icons.search_off, color: Colors.grey, size: 16),
+                Icon(Icons.store_outlined,
+                    size: 15, color: theme.colorScheme.primary),
+                const SizedBox(width: 6),
+                Text(plans[si].storeName,
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: theme.colorScheme.primary)),
+              ],
+            ),
+          ),
+          const Divider(height: 1, indent: 16, endIndent: 16),
+          // ── Items in navigation order ────────────────────────────────────
+          ...plans[si].stops.expand((stop) => stop.items).map(
+                (item) => _buildItemRow(item, forStore: si),
+              ),
+        ],
+        // ── Unmatched items ──────────────────────────────────────────────
+        if (allUnmatched.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 2),
+            child: Row(
+              children: [
+                const Icon(Icons.search_off, color: Colors.grey, size: 15),
                 const SizedBox(width: 6),
                 Text(l.unmatched,
                     style: const TextStyle(
@@ -865,10 +921,10 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
               ],
             ),
           ),
-          ...unmatchedItems.map(
+          const Divider(height: 1, indent: 16, endIndent: 16),
+          ...allUnmatched.map(
             (item) => Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               child: Row(
                 children: [
                   const SizedBox(width: 36),
