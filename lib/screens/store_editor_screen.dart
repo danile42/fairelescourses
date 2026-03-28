@@ -170,7 +170,10 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
   void _addFloor() {
     _floorData[_currentFloor].entrance = _entranceCtrl.text.trim().toUpperCase();
     _floorData[_currentFloor].exit = _exitCtrl.text.trim().toUpperCase();
-    final newFloor = _FloorEditData(rowCount: 5, colCount: 5, entrance: 'A1', exit: 'E5');
+    final prev = _floorData[_currentFloor];
+    final rows = prev.rowCount;
+    final cols = prev.colCount;
+    final newFloor = _FloorEditData(rowCount: rows, colCount: cols, entrance: 'A1', exit: 'A1');
     setState(() {
       _dirty = true;
       _floorData.add(newFloor);
