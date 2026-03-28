@@ -784,7 +784,6 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   }
 
   Widget _buildGridView(StorePlan storePlan) {
-    final l = AppLocalizations.of(context)!;
     final List<Object> items = [];
     int? lastFloor;
     for (final stop in storePlan.stops) {
@@ -808,14 +807,6 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
             .every((item) => _isChecked(item) || _isDeferred(item));
         final isCurrent =
             stop.cell == _currentCell && stop.floor == _currentFloorIndex;
-        String? floorLabel;
-        if (stop.floor > 0) {
-          final stores = ref.read(supermarketsProvider);
-          final s =
-              stores.where((s) => s.id == storePlan.storeId).firstOrNull;
-          final fname = s?.floorAt(stop.floor).name ?? '';
-          floorLabel = fname.isNotEmpty ? fname : l.floorIndex(stop.floor);
-        }
         return AnimatedOpacity(
           opacity: allStopDone ? 0.4 : 1.0,
           duration: const Duration(milliseconds: 300),
@@ -830,29 +821,6 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    margin: const EdgeInsets.only(top: 6, right: 8),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(stop.cell,
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12)),
-                        if (floorLabel != null)
-                          Text(floorLabel,
-                              style: const TextStyle(
-                                  color: Colors.white70, fontSize: 9)),
-                      ],
-                    ),
-                  ),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
