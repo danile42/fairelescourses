@@ -284,7 +284,7 @@
   "shopEditorHelpClose": "Verstanden",
   "firebaseHelpTitle": "Eigene Firebase-Einrichtung",
   "firebaseHelpProjectTitle": "1. Firebase-Projekt erstellen",
-  "firebaseHelpProjectBody": "Gehe zu console.firebase.google.com, erstelle ein neues Projekt und registriere eine Android-App mit dem Paketnamen dieser App.",
+  "firebaseHelpProjectBody": "Gehe zu console.firebase.google.com, erstelle ein neues Projekt und registriere eine Android-App mit dem Paketnamen com.fairelescourses.fairelescourses.",
   "firebaseHelpFirestoreTitle": "2. Firestore aktivieren",
   "firebaseHelpFirestoreBody": "Öffne Firestore Database in der Konsole und erstelle eine Datenbank im Produktionsmodus.",
   "firebaseHelpAuthTitle": "3. Anonyme Authentifizierung",

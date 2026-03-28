@@ -699,7 +699,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get firebaseHelpProjectBody =>
-      'Go to console.firebase.google.com, create a new project, and register an Android app with this app\'s package name.';
+      'Go to console.firebase.google.com, create a new project, and register an Android app with the package name com.fairelescourses.fairelescourses.';
 
   @override
   String get firebaseHelpFirestoreTitle => '2. Enable Firestore';

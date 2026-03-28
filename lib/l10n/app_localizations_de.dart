@@ -708,7 +708,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get firebaseHelpProjectBody =>
-      'Gehe zu console.firebase.google.com, erstelle ein neues Projekt und registriere eine Android-App mit dem Paketnamen dieser App.';
+      'Gehe zu console.firebase.google.com, erstelle ein neues Projekt und registriere eine Android-App mit dem Paketnamen com.fairelescourses.fairelescourses.';
 
   @override
   String get firebaseHelpFirestoreTitle => '2. Firestore aktivieren';

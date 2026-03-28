@@ -284,7 +284,7 @@
   "shopEditorHelpClose": "Got it",
   "firebaseHelpTitle": "Custom Firebase setup",
   "firebaseHelpProjectTitle": "1. Create a Firebase project",
-  "firebaseHelpProjectBody": "Go to console.firebase.google.com, create a new project, and register an Android app with this app's package name.",
+  "firebaseHelpProjectBody": "Go to console.firebase.google.com, create a new project, and register an Android app with the package name com.fairelescourses.fairelescourses.",
   "firebaseHelpFirestoreTitle": "2. Enable Firestore",
   "firebaseHelpFirestoreBody": "In the Firebase console, open Firestore Database and create a database in production mode.",
   "firebaseHelpAuthTitle": "3. Enable Anonymous Auth",
