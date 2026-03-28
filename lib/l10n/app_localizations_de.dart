@@ -568,4 +568,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get moveToList => 'In Liste verschieben';
+  String get copyToNewList => 'In neue Liste kopieren';
+  String get moveToNewList => 'In neue Liste verschieben';
 }

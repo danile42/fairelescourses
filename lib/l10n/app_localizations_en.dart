@@ -559,4 +559,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moveToList => 'Move to list';
+  String get copyToNewList => 'Copy to new list';
+  String get moveToNewList => 'Move to new list';
 }

@@ -247,5 +247,7 @@
       "n": { "type": "int" }
     }
   },
-  "moveToList": "In Liste verschieben"
+  "moveToList": "In Liste verschieben",
+  "copyToNewList": "In neue Liste kopieren",
+  "moveToNewList": "In neue Liste verschieben"
 }

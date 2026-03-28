@@ -249,6 +249,38 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     Navigator.pop(context, true); // true = tour finished, not just paused
   }
 
+  /// Creates a new list from [items], then navigates to edit it.
+  /// If [move] is true, the items are also removed from the source list.
+  void _createListFromItems(Iterable<String> items, {required bool move}) {
+    final newList = ShoppingList(
+      id: _uuid.v4(),
+      name: '',
+      preferredStoreIds: [],
+      items: items.map((n) => ShoppingItem(name: n)).toList(),
+    );
+    final notifier = ref.read(shoppingListsProvider.notifier);
+    notifier.add(newList);
+    if (move) {
+      final source = ref
+          .read(shoppingListsProvider)
+          .where((l) => l.id == widget.listId)
+          .firstOrNull;
+      if (source != null) {
+        final itemNames = items.toSet();
+        notifier.update(source.copyWith(
+          items: source.items
+              .where((i) => !itemNames.contains(i.name))
+              .toList(),
+        ));
+      }
+    }
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+          builder: (_) => ListEditorScreen(list: newList, isNew: false)),
+    );
+  }
+
   Future<void> _navigateForResolved() async {
     final shops = ref.read(supermarketsProvider);
     final tempList = ShoppingList(
@@ -694,6 +726,8 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                     forNewList: _forNewList,
                     carriedOverItems: _carriedOverItems,
                     checkedAtCurrentStore: _checkedPerStore[_storeIndex],
+                    onCreateList: (items, move) =>
+                        _createListFromItems(items, move: move),
                   )
                 : Builder(builder: (context) {
                     // Build flat list: insert a floor header before the first
@@ -913,6 +947,8 @@ class _DoneView extends ConsumerWidget {
   final Set<String> forNewList;
   final List<String> carriedOverItems;
   final Set<String> checkedAtCurrentStore;
+  // Copy/move unmatched items to a new list.
+  final void Function(Iterable<String> items, bool move) onCreateList;
 
   const _DoneView({
     required this.plan,
@@ -927,6 +963,7 @@ class _DoneView extends ConsumerWidget {
     required this.forNewList,
     required this.carriedOverItems,
     required this.checkedAtCurrentStore,
+    required this.onCreateList,
   });
 
   @override
@@ -1039,26 +1076,18 @@ class _DoneView extends ConsumerWidget {
                             ),
                             const SizedBox(width: 8),
                             OutlinedButton.icon(
-                              onPressed: () {
-                                final newList = ShoppingList(
-                                  id: _uuid.v4(),
-                                  name: '',
-                                  preferredStoreIds: [],
-                                  items: resolvedUnmatched
-                                      .map((n) => ShoppingItem(name: n))
-                                      .toList(),
-                                );
-                                ref
-                                    .read(shoppingListsProvider.notifier)
-                                    .add(newList);
-                                Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (_) => ListEditorScreen(
-                                            list: newList, isNew: false)));
-                              },
-                              icon: const Icon(Icons.list_alt, size: 16),
-                              label: Text(l.newList),
+                              onPressed: () =>
+                                  onCreateList(resolvedUnmatched, false),
+                              icon: const Icon(Icons.copy_outlined, size: 16),
+                              label: Text(l.copyToNewList),
+                            ),
+                            const SizedBox(width: 8),
+                            OutlinedButton.icon(
+                              onPressed: () =>
+                                  onCreateList(resolvedUnmatched, true),
+                              icon: const Icon(Icons.drive_file_move_outline,
+                                  size: 16),
+                              label: Text(l.moveToNewList),
                             ),
                           ],
                         ),
@@ -1109,27 +1138,24 @@ class _DoneView extends ConsumerWidget {
                               ),
                             )),
                         const SizedBox(height: 8),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            final newList = ShoppingList(
-                              id: _uuid.v4(),
-                              name: '',
-                              preferredStoreIds: [],
-                              items: stillUnmatched
-                                  .map((n) => ShoppingItem(name: n))
-                                  .toList(),
-                            );
-                            ref
-                                .read(shoppingListsProvider.notifier)
-                                .add(newList);
-                            Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => ListEditorScreen(
-                                        list: newList, isNew: false)));
-                          },
-                          icon: const Icon(Icons.list_alt, size: 16),
-                          label: Text(l.newList),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: () =>
+                                  onCreateList(stillUnmatched, false),
+                              icon: const Icon(Icons.copy_outlined, size: 16),
+                              label: Text(l.copyToNewList),
+                            ),
+                            OutlinedButton.icon(
+                              onPressed: () =>
+                                  onCreateList(stillUnmatched, true),
+                              icon: const Icon(Icons.drive_file_move_outline,
+                                  size: 16),
+                              label: Text(l.moveToNewList),
+                            ),
+                          ],
                         ),
                       ],
                     ),

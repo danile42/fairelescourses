@@ -1129,6 +1129,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Move to list'**
   String get moveToList;
+
+  /// No description provided for @copyToNewList.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy to new list'**
+  String get copyToNewList;
+
+  /// No description provided for @moveToNewList.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to new list'**
+  String get moveToNewList;
 }
 
 class _AppLocalizationsDelegate
