@@ -35,14 +35,14 @@ class HelpScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             _Section(
-              icon: Icons.navigation_outlined,
+              icon: Icons.play_arrow,
               title: l.helpNavTitle,
               body: l.helpNavBody,
               theme: theme,
             ),
             const SizedBox(height: 20),
             _Section(
-              icon: Icons.group_outlined,
+              icon: Icons.sync,
               title: l.helpSyncTitle,
               body: l.helpSyncBody,
               theme: theme,
