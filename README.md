@@ -4,10 +4,8 @@
 
 Fairelescourses lets you map out the layout of your local shops as a grid, assign goods to cells, and then plans the shortest route through all the cells that contain items from your shopping list — guiding you step by step, floor by floor, store by store.
 
-[![CI](https://github.com/your-username/fairelescourses/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/fairelescourses/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/your-username/fairelescourses/branch/main/graph/badge.svg)](https://codecov.io/gh/your-username/fairelescourses)
-
-> **Replace `your-username`** in the badge URLs above with your actual GitHub username after pushing.
+[![CI](https://github.com/danile42/fairelescourses/actions/workflows/ci.yml/badge.svg)](https://github.com/danile42/fairelescourses/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/danile42/fairelescourses/branch/main/graph/badge.svg)](https://codecov.io/gh/danile42/fairelescourses)
 
 ---
 
