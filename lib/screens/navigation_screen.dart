@@ -1142,7 +1142,7 @@ class _DoneView extends ConsumerWidget {
                           spacing: 8,
                           runSpacing: 4,
                           children: [
-                            ElevatedButton.icon(
+                            OutlinedButton.icon(
                               onPressed: () =>
                                   onCreateList(stillUnmatched, false),
                               icon: const Icon(Icons.copy_outlined, size: 16),
