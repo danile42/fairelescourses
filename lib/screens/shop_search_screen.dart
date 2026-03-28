@@ -796,6 +796,9 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       options: MapOptions(
         initialCenter: center,
         initialZoom: _lastLat != null ? 12.0 : 10.0,
+        interactionOptions: const InteractionOptions(
+          flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+        ),
       ),
       children: [
         TileLayer(
