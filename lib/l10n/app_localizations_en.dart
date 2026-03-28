@@ -652,66 +652,90 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shopEditorHelpTitle => 'How the shop editor works';
+
   @override
   String get shopEditorHelpGridTitle => 'The grid';
+
   @override
   String get shopEditorHelpGridBody =>
       'Draw the shop layout as a grid of cells. Use the + buttons to add rows and columns.';
+
   @override
   String get shopEditorHelpGoodsTitle => 'Assigning goods';
+
   @override
   String get shopEditorHelpGoodsBody =>
       'Tap a cell to assign which goods are found there. The app uses this to plan the shortest route through your list.';
+
   @override
   String get shopEditorHelpEntranceTitle => 'Entrance & exit';
+
   @override
   String get shopEditorHelpEntranceBody =>
       'Long-press a cell to set it as the entrance or exit. Navigation starts at the entrance and ends at the exit.';
+
   @override
   String get shopEditorHelpFloorsTitle => 'Multiple floors';
+
   @override
   String get shopEditorHelpFloorsBody =>
       'Add floors for shops with multiple levels. Each floor has its own grid, entrance, and exit.';
+
   @override
   String get shopEditorHelpSplitTitle => 'Splitting cells';
+
   @override
   String get shopEditorHelpSplitBody =>
-      'Double-tap a cell to split it into two halves — useful for aisles with a left and right side.';
+      'Double-tap a cell to split it into two halves \u2014 useful for aisles with a left and right side. Long-press a split cell to promote the division across the whole row or column.';
+
   @override
   String get shopEditorHelpClose => 'Got it';
 
   @override
   String get firebaseHelpTitle => 'Custom Firebase setup';
+
   @override
   String get firebaseHelpProjectTitle => '1. Create a Firebase project';
+
   @override
   String get firebaseHelpProjectBody =>
-      "Go to console.firebase.google.com, create a new project, and register an Android app with this app's package name.";
+      'Go to console.firebase.google.com, create a new project, and register an Android app with this app\'s package name.';
+
   @override
   String get firebaseHelpFirestoreTitle => '2. Enable Firestore';
+
   @override
   String get firebaseHelpFirestoreBody =>
       'In the Firebase console, open Firestore Database and create a database in production mode.';
+
   @override
   String get firebaseHelpAuthTitle => '3. Enable Anonymous Auth';
+
   @override
   String get firebaseHelpAuthBody =>
-      'Under Authentication \u2192 Sign-in method, enable the Anonymous provider. The app signs in anonymously to read and write data.';
+      'Under Authentication → Sign-in method, enable the Anonymous provider. The app signs in anonymously to read and write data.';
+
   @override
   String get firebaseHelpRulesTitle => '4. Security rules';
+
   @override
   String get firebaseHelpRulesBody =>
-      'Allow authenticated read/write for all documents. All data is encrypted client-side with the household ID \u2014 the server never sees plaintext.';
+      'Allow authenticated read/write for all documents. All data is encrypted client-side with the household ID — the server never sees plaintext.';
+
   @override
   String get firebaseHelpCredsTitle => '5. Your credentials';
+
   @override
   String get firebaseHelpCredsBody =>
-      'In Project settings \u2192 Your apps, download google-services.json and paste it here, or enter the values manually.';
+      'In Project settings → Your apps, download google-services.json and paste it here, or enter the values manually.';
+
   @override
   String get firebaseAdvancedWarningBody =>
       'Configuring a custom Firebase instance requires creating and managing your own Firebase project. The built-in instance works for most users.\n\nContinue?';
+
   @override
   String get firebaseAdvancedContinue => 'Continue';
+
   @override
   String get firebaseHelpClose => 'Got it';
 }

@@ -280,7 +280,7 @@
   "shopEditorHelpFloorsTitle": "Mehrere Etagen",
   "shopEditorHelpFloorsBody": "Füge Etagen für Märkte mit mehreren Ebenen hinzu. Jede Etage hat ein eigenes Raster, Eingang und Ausgang.",
   "shopEditorHelpSplitTitle": "Felder teilen",
-  "shopEditorHelpSplitBody": "Doppeltippen auf ein Feld teilt es in zwei Hälften – z. B. für Gänge mit linker und rechter Seite.",
+  "shopEditorHelpSplitBody": "Doppeltippen auf ein Feld teilt es in zwei Hälften – z. B. für Gänge mit linker und rechter Seite. Langes Tippen auf ein geteiltes Feld überträgt die Teilung auf die gesamte Reihe oder Spalte.",
   "shopEditorHelpClose": "Verstanden",
   "firebaseHelpTitle": "Eigene Firebase-Einrichtung",
   "firebaseHelpProjectTitle": "1. Firebase-Projekt erstellen",

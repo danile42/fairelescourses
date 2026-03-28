@@ -657,70 +657,94 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get helpDataLocalOnly =>
-      'Im Nur-Lokal-Modus verlässt nichts dein Ger\u00e4t.';
+      'Im Nur-Lokal-Modus verlässt nichts dein Gerät.';
 
   @override
   String get shopEditorHelpTitle => 'So funktioniert der Markt-Editor';
+
   @override
   String get shopEditorHelpGridTitle => 'Das Raster';
+
   @override
   String get shopEditorHelpGridBody =>
-      'Zeichne das Layout des Markts als Raster. Verwende die +-Schaltfl\u00e4chen, um Reihen und Spalten hinzuzuf\u00fcgen.';
+      'Zeichne das Layout des Markts als Raster. Verwende die +-Schaltflächen, um Reihen und Spalten hinzuzufügen.';
+
   @override
   String get shopEditorHelpGoodsTitle => 'Waren zuweisen';
+
   @override
   String get shopEditorHelpGoodsBody =>
-      'Tippe auf ein Feld, um Waren zuzuweisen. Die App plant den k\u00fcrzesten Weg durch alle passenden Felder.';
+      'Tippe auf ein Feld, um Waren zuzuweisen. Die App plant den kürzesten Weg durch alle passenden Felder.';
+
   @override
   String get shopEditorHelpEntranceTitle => 'Eingang & Ausgang';
+
   @override
   String get shopEditorHelpEntranceBody =>
       'Langes Tippen auf ein Feld setzt es als Eingang oder Ausgang. Die Navigation beginnt am Eingang und endet am Ausgang.';
+
   @override
   String get shopEditorHelpFloorsTitle => 'Mehrere Etagen';
+
   @override
   String get shopEditorHelpFloorsBody =>
-      'F\u00fcge Etagen f\u00fcr M\u00e4rkte mit mehreren Ebenen hinzu. Jede Etage hat ein eigenes Raster, Eingang und Ausgang.';
+      'Füge Etagen für Märkte mit mehreren Ebenen hinzu. Jede Etage hat ein eigenes Raster, Eingang und Ausgang.';
+
   @override
   String get shopEditorHelpSplitTitle => 'Felder teilen';
+
   @override
   String get shopEditorHelpSplitBody =>
-      'Doppeltippen auf ein Feld teilt es in zwei H\u00e4lften \u2013 z.\u00a0B. f\u00fcr G\u00e4nge mit linker und rechter Seite.';
+      'Doppeltippen auf ein Feld teilt es in zwei H\u00e4lften \u2013 z.\u00a0B. f\u00fcr G\u00e4nge mit linker und rechter Seite. Langes Tippen auf ein geteiltes Feld \u00fcbertr\u00e4gt die Teilung auf die gesamte Reihe oder Spalte.';
+
   @override
   String get shopEditorHelpClose => 'Verstanden';
 
   @override
   String get firebaseHelpTitle => 'Eigene Firebase-Einrichtung';
+
   @override
   String get firebaseHelpProjectTitle => '1. Firebase-Projekt erstellen';
+
   @override
   String get firebaseHelpProjectBody =>
       'Gehe zu console.firebase.google.com, erstelle ein neues Projekt und registriere eine Android-App mit dem Paketnamen dieser App.';
+
   @override
   String get firebaseHelpFirestoreTitle => '2. Firestore aktivieren';
+
   @override
   String get firebaseHelpFirestoreBody =>
-      '\u00d6ffne Firestore Database in der Konsole und erstelle eine Datenbank im Produktionsmodus.';
+      'Öffne Firestore Database in der Konsole und erstelle eine Datenbank im Produktionsmodus.';
+
   @override
   String get firebaseHelpAuthTitle => '3. Anonyme Authentifizierung';
+
   @override
   String get firebaseHelpAuthBody =>
-      'Aktiviere unter Authentifizierung \u2192 Anmeldemethode den Anbieter \u201eAnonym\u201c. Die App nutzt ihn f\u00fcr den Datenbankzugriff.';
+      'Aktiviere unter Authentifizierung → Anmeldemethode den Anbieter \"Anonym\". Die App nutzt ihn für den Datenbankzugriff.';
+
   @override
   String get firebaseHelpRulesTitle => '4. Sicherheitsregeln';
+
   @override
   String get firebaseHelpRulesBody =>
-      'Erlaube authentifizierten Lese-/Schreibzugriff f\u00fcr alle Dokumente. Alle Daten werden clientseitig mit der Haushalt-ID verschl\u00fcsselt \u2013 der Server sieht nie Klartext.';
+      'Erlaube authentifizierten Lese-/Schreibzugriff für alle Dokumente. Alle Daten werden clientseitig mit der Haushalt-ID verschlüsselt – der Server sieht nie Klartext.';
+
   @override
   String get firebaseHelpCredsTitle => '5. Zugangsdaten';
+
   @override
   String get firebaseHelpCredsBody =>
-      'Lade in Projekteinstellungen \u2192 Deine Apps die google-services.json herunter und f\u00fcge sie hier ein, oder trage die Felder manuell ein.';
+      'Lade in Projekteinstellungen → Deine Apps die google-services.json herunter und füge sie hier ein, oder trage die Felder manuell ein.';
+
   @override
   String get firebaseAdvancedWarningBody =>
-      'Die Konfiguration einer eigenen Firebase-Instanz ist ein fortgeschrittenes Feature. Du ben\u00f6tigst ein selbst verwaltetes Firebase-Projekt. Die eingebaute Instanz reicht f\u00fcr die meisten Nutzer aus.\n\nFortfahren?';
+      'Die Konfiguration einer eigenen Firebase-Instanz ist ein fortgeschrittenes Feature. Du benötigst ein selbst verwaltetes Firebase-Projekt. Die eingebaute Instanz reicht für die meisten Nutzer aus.\n\nFortfahren?';
+
   @override
   String get firebaseAdvancedContinue => 'Fortfahren';
+
   @override
   String get firebaseHelpClose => 'Verstanden';
 }

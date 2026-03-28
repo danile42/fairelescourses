@@ -280,7 +280,7 @@
   "shopEditorHelpFloorsTitle": "Multiple floors",
   "shopEditorHelpFloorsBody": "Add floors for shops with multiple levels. Each floor has its own grid, entrance, and exit.",
   "shopEditorHelpSplitTitle": "Splitting cells",
-  "shopEditorHelpSplitBody": "Double-tap a cell to split it into two halves — useful for aisles with a left and right side.",
+  "shopEditorHelpSplitBody": "Double-tap a cell to split it into two halves — useful for aisles with a left and right side. Long-press a split cell to promote the division across the whole row or column.",
   "shopEditorHelpClose": "Got it",
   "firebaseHelpTitle": "Custom Firebase setup",
   "firebaseHelpProjectTitle": "1. Create a Firebase project",
