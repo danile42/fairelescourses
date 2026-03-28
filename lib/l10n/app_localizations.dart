@@ -1154,6 +1154,12 @@ abstract class AppLocalizations {
   /// **'Move to new list'**
   String get moveToNewList;
 
+  /// No description provided for @rename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get rename;
+
   /// No description provided for @localOnlyMode.
   ///
   /// In en, this message translates to:

@@ -247,6 +247,7 @@
   "moveToList": "In Liste verschieben",
   "copyToNewList": "In neue Liste kopieren",
   "moveToNewList": "In neue Liste verschieben",
+  "rename": "Umbenennen",
   "localOnlyMode": "Nur lokaler Speicher",
   "localOnlyModeDesc": "Alle Daten bleiben auf diesem Gerät. Keine Synchronisierung, kein Haushalt.",
   "localOnlyWarning": "Nur-Lokal-Modus aktiv. Sync und Haushalt-Funktionen sind deaktiviert.",

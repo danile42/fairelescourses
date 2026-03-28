@@ -580,6 +580,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get moveToNewList => 'In neue Liste verschieben';
 
   @override
+  String get rename => 'Umbenennen';
+
+  @override
   String get localOnlyMode => 'Nur lokaler Speicher';
 
   @override

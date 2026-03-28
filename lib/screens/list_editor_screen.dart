@@ -10,7 +10,7 @@ import '../services/navigation_planner.dart';
 import 'navigation_screen.dart';
 
 enum _ExitAction { save, discard }
-enum _ItemAction { delete, move }
+enum _ItemAction { rename, delete, move }
 
 class ListEditorScreen extends ConsumerStatefulWidget {
   final ShoppingList list;
@@ -119,6 +119,79 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
     ref.read(shoppingListsProvider.notifier).update(
           target.copyWith(items: [...target.items, item]),
         );
+  }
+
+  Future<void> _editItem(int index, List<String> suggestions) async {
+    final item = _items[index];
+    final ctrl = TextEditingController(text: item.name);
+    String? pending = item.name;
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+        content: Autocomplete<String>(
+          initialValue: TextEditingValue(text: item.name),
+          optionsBuilder: (tv) {
+            if (tv.text.trim().isEmpty) return const [];
+            final q = tv.text.toLowerCase();
+            return suggestions.where((s) => s.toLowerCase().contains(q)).take(8);
+          },
+          onSelected: (value) {
+            pending = value;
+            Navigator.pop(dialogContext, value);
+          },
+          fieldViewBuilder: (ctx, autoCtrl, focusNode, onFieldSubmitted) {
+            ctrl.dispose(); // dispose our local ctrl; use the one Autocomplete creates
+            return TextField(
+              controller: autoCtrl,
+              focusNode: focusNode,
+              autofocus: true,
+              decoration: const InputDecoration(border: OutlineInputBorder()),
+              onChanged: (v) => pending = v,
+              onSubmitted: (_) => Navigator.pop(dialogContext, pending),
+              textInputAction: TextInputAction.done,
+            );
+          },
+          optionsViewBuilder: (ctx, onSelected, options) => Align(
+            alignment: Alignment.topLeft,
+            child: Material(
+              elevation: 4,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 200, maxWidth: 280),
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  shrinkWrap: true,
+                  children: options
+                      .map((o) => ListTile(
+                            dense: true,
+                            title: Text(o),
+                            onTap: () => onSelected(o),
+                          ))
+                      .toList(),
+                ),
+              ),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(AppLocalizations.of(dialogContext)!.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, pending),
+            child: Text(AppLocalizations.of(dialogContext)!.save),
+          ),
+        ],
+      ),
+    );
+    final trimmed = newName?.trim();
+    if (trimmed == null || trimmed.isEmpty || trimmed == item.name) return;
+    setState(() {
+      _dirty = true;
+      _items = [..._items];
+      _items[index] = _items[index].copyWith(name: trimmed);
+    });
   }
 
   void _toggleItem(int index) {
@@ -233,40 +306,47 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
                               ? const TextStyle(decoration: TextDecoration.lineThrough, color: Colors.grey)
                               : null,
                         ),
-                        trailing: otherLists
-                            ? PopupMenuButton<_ItemAction>(
-                                icon: const Icon(Icons.more_vert, size: 18),
-                                padding: EdgeInsets.zero,
-                                onSelected: (action) {
-                                  if (action == _ItemAction.delete) {
-                                    _removeItem(i);
-                                  } else {
-                                    _moveItemToList(i);
-                                  }
-                                },
-                                itemBuilder: (ctx) => [
-                                  PopupMenuItem(
-                                    value: _ItemAction.delete,
-                                    child: Row(children: [
-                                      const Icon(Icons.close, size: 16),
-                                      const SizedBox(width: 8),
-                                      Text(AppLocalizations.of(ctx)!.delete),
-                                    ]),
-                                  ),
-                                  PopupMenuItem(
-                                    value: _ItemAction.move,
-                                    child: Row(children: [
-                                      const Icon(Icons.drive_file_move_outline, size: 16),
-                                      const SizedBox(width: 8),
-                                      Text(AppLocalizations.of(ctx)!.moveToList),
-                                    ]),
-                                  ),
-                                ],
-                              )
-                            : IconButton(
-                                icon: const Icon(Icons.close, size: 18),
-                                onPressed: () => _removeItem(i),
+                        onTap: () => _editItem(i, suggestions),
+                        trailing: PopupMenuButton<_ItemAction>(
+                          icon: const Icon(Icons.more_vert, size: 18),
+                          padding: EdgeInsets.zero,
+                          onSelected: (action) {
+                            if (action == _ItemAction.rename) {
+                              _editItem(i, suggestions);
+                            } else if (action == _ItemAction.delete) {
+                              _removeItem(i);
+                            } else {
+                              _moveItemToList(i);
+                            }
+                          },
+                          itemBuilder: (ctx) => [
+                            PopupMenuItem(
+                              value: _ItemAction.rename,
+                              child: Row(children: [
+                                const Icon(Icons.edit_outlined, size: 16),
+                                const SizedBox(width: 8),
+                                Text(AppLocalizations.of(ctx)!.rename),
+                              ]),
+                            ),
+                            PopupMenuItem(
+                              value: _ItemAction.delete,
+                              child: Row(children: [
+                                const Icon(Icons.close, size: 16),
+                                const SizedBox(width: 8),
+                                Text(AppLocalizations.of(ctx)!.delete),
+                              ]),
+                            ),
+                            if (otherLists)
+                              PopupMenuItem(
+                                value: _ItemAction.move,
+                                child: Row(children: [
+                                  const Icon(Icons.drive_file_move_outline, size: 16),
+                                  const SizedBox(width: 8),
+                                  Text(AppLocalizations.of(ctx)!.moveToList),
+                                ]),
                               ),
+                          ],
+                        ),
                       );
                     },
                   ),

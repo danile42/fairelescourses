@@ -571,6 +571,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moveToNewList => 'Move to new list';
 
   @override
+  String get rename => 'Rename';
+
+  @override
   String get localOnlyMode => 'Local storage only';
 
   @override
