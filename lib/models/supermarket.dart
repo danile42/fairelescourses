@@ -160,10 +160,10 @@ class Supermarket extends HiveObject {
 
   /// Find which floor and cell contains [item]. Returns null if not found.
   ///
-  /// Uses a two-pass strategy so an exact match on any floor beats a broad
-  /// partial match on the ground floor:
+  /// Uses a three-pass strategy so more specific matches beat broader ones:
   ///   Pass 1 — exact (case-insensitive) match across all floors.
-  ///   Pass 2 — partial match across all floors (ground floor first).
+  ///   Pass 2 — all words of the item appear in the tag (ground floor first).
+  ///   Pass 3 — partial/substring match across all floors (ground floor first).
   (int floor, String cell)? findCellWithFloor(String item) {
     final q = item.toLowerCase().trim();
     final extra = additionalFloors;
@@ -192,7 +192,39 @@ class Supermarket extends HiveObject {
       }
     }
 
-    // ── Pass 2: partial match (ground floor first) ────────────────────────
+    // ── Pass 2: all-words match (ground floor first) ─────────────────────
+    // Every word of the query must appear somewhere in the tag.
+    final words = q.split(' ').where((w) => w.isNotEmpty).toList();
+    if (words.length > 1) {
+      for (final entry in cells.entries) {
+        for (final tag in entry.value) {
+          final t = tag.toLowerCase();
+          if (words.every((w) => t.contains(w))) return (0, entry.key);
+        }
+      }
+      for (final entry in subcells.entries) {
+        for (final tag in entry.value) {
+          final t = tag.toLowerCase();
+          if (words.every((w) => t.contains(w))) return (0, entry.key.split(':').first);
+        }
+      }
+      for (var fi = 0; fi < extra.length; fi++) {
+        for (final entry in extra[fi].cells.entries) {
+          for (final tag in entry.value) {
+            final t = tag.toLowerCase();
+            if (words.every((w) => t.contains(w))) return (fi + 1, entry.key);
+          }
+        }
+        for (final entry in extra[fi].subcells.entries) {
+          for (final tag in entry.value) {
+            final t = tag.toLowerCase();
+            if (words.every((w) => t.contains(w))) return (fi + 1, entry.key.split(':').first);
+          }
+        }
+      }
+    }
+
+    // ── Pass 3: partial match (ground floor first) ────────────────────────
     for (final entry in cells.entries) {
       for (final tag in entry.value) {
         final t = tag.toLowerCase();
