@@ -365,8 +365,8 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
           isHost: collaborative,
         ),
       ),
-    ).then((finished) {
-      if (!collaborative && mounted && finished == true) {
+    ).then((_) {
+      if (!collaborative && mounted) {
         Hive.box<String>('settings').delete(_singleNavKey);
         setState(() {});
       }
