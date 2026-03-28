@@ -577,6 +577,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get startNavigation => 'Start navigation';
 
   @override
+  String get viewGrid => 'Grid view';
+
+  @override
+  String get viewList => 'List view';
+
+  @override
   String get localOnlyMode => 'Local storage only';
 
   @override

@@ -1166,6 +1166,18 @@ abstract class AppLocalizations {
   /// **'Start navigation'**
   String get startNavigation;
 
+  /// No description provided for @viewGrid.
+  ///
+  /// In en, this message translates to:
+  /// **'Grid view'**
+  String get viewGrid;
+
+  /// No description provided for @viewList.
+  ///
+  /// In en, this message translates to:
+  /// **'List view'**
+  String get viewList;
+
   /// No description provided for @localOnlyMode.
   ///
   /// In en, this message translates to:

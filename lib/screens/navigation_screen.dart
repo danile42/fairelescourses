@@ -19,6 +19,8 @@ import 'store_editor_screen.dart';
 
 const _uuid = Uuid();
 
+enum _ViewMode { grid, list }
+
 class NavigationScreen extends ConsumerStatefulWidget {
   final NavigationPlan plan;
   final String listId;
@@ -40,6 +42,7 @@ class NavigationScreen extends ConsumerStatefulWidget {
 class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   late List<Set<String>> _checkedPerStore;
   int _storeIndex = 0;
+  _ViewMode _viewMode = _ViewMode.grid;
   late Set<String> _resolvedUnmatched;
   late Set<String> _navigatedUnmatched;
 
@@ -656,6 +659,18 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         foregroundColor: Colors.white,
         actions: [
           if (widget.isCollaborative) _CollaborativeBadge(),
+          IconButton(
+            icon: Icon(_viewMode == _ViewMode.grid
+                ? Icons.list
+                : Icons.grid_view),
+            tooltip: _viewMode == _ViewMode.grid
+                ? l.viewList
+                : l.viewGrid,
+            onPressed: () => setState(() => _viewMode =
+                _viewMode == _ViewMode.grid
+                    ? _ViewMode.list
+                    : _ViewMode.grid),
+          ),
           PopupMenuButton<String>(
             itemBuilder: (_) => [
               PopupMenuItem(
@@ -704,13 +719,15 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
               ],
             ),
           ),
-          MiniMap(
-            storePlan: storePlan,
-            currentCell: _currentCell,
-            checkedItems: _checkedPerStore[_storeIndex],
-            currentFloor: _currentFloorIndex,
-          ),
-          const Divider(height: 1),
+          if (_viewMode == _ViewMode.grid) ...[
+            MiniMap(
+              storePlan: storePlan,
+              currentCell: _currentCell,
+              checkedItems: _checkedPerStore[_storeIndex],
+              currentFloor: _currentFloorIndex,
+            ),
+            const Divider(height: 1),
+          ],
           Expanded(
             child: allDone
                 ? _DoneView(
@@ -729,113 +746,150 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                     onCreateList: (items, move) =>
                         _createListFromItems(items, move: move),
                   )
-                : Builder(builder: (context) {
-                    // Build flat list: insert a floor header before the first
-                    // stop of each floor beyond floor 0.
-                    final List<Object> items = [];
-                    int? lastFloor;
-                    for (final stop in storePlan.stops) {
-                      if (lastFloor == null || stop.floor != lastFloor) {
-                        if (stop.floor > 0) items.add(_FloorHeader(stop.floor));
-                        lastFloor = stop.floor;
-                      }
-                      items.add(stop);
-                    }
-                    return ListView.builder(
-                    itemCount: items.length +
-                        (_carriedOverItems.isNotEmpty ? 1 : 0),
-                    itemBuilder: (context, i) {
-                      if (_carriedOverItems.isNotEmpty) {
-                        if (i == 0) {
-                          return _buildCarriedOverSection(context);
-                        }
-                        i -= 1;
-                      }
-                      final entry = items[i];
-                      if (entry is _FloorHeader) {
-                        return _buildFloorHeader(entry.floor);
-                      }
-                      final stop = entry as NavigationStop;
-                      final allStopDone = stop.items
-                          .every((item) => _isChecked(item) || _isDeferred(item));
-                      final isCurrent = stop.cell == _currentCell &&
-                          stop.floor == _currentFloorIndex;
-                      // Look up floor label for additional floors.
-                      String? floorLabel;
-                      if (stop.floor > 0) {
-                        final stores = ref.read(supermarketsProvider);
-                        final s = stores
-                            .where((s) => s.id == storePlan.storeId)
-                            .firstOrNull;
-                        final fname = s?.floorAt(stop.floor).name ?? '';
-                        floorLabel = fname.isNotEmpty
-                            ? fname
-                            : l.floorIndex(stop.floor);
-                      }
-                      return AnimatedOpacity(
-                        opacity: allStopDone ? 0.4 : 1.0,
-                        duration: const Duration(milliseconds: 300),
-                        child: Card(
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
-                          color: isCurrent
-                              ? Theme.of(context)
-                                  .colorScheme
-                                  .primaryContainer
-                              : null,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  margin: const EdgeInsets.only(
-                                      top: 6, right: 8),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .primary,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(stop.cell,
-                                          style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 12)),
-                                      if (floorLabel != null)
-                                        Text(floorLabel,
-                                            style: const TextStyle(
-                                                color: Colors.white70,
-                                                fontSize: 9)),
-                                    ],
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: stop.items
-                                        .map(_buildItemRow)
-                                        .toList(),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                }),
+                : _viewMode == _ViewMode.grid
+                    ? _buildGridView(storePlan)
+                    : _buildListView(storePlan),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildGridView(StorePlan storePlan) {
+    final l = AppLocalizations.of(context)!;
+    final List<Object> items = [];
+    int? lastFloor;
+    for (final stop in storePlan.stops) {
+      if (lastFloor == null || stop.floor != lastFloor) {
+        if (stop.floor > 0) items.add(_FloorHeader(stop.floor));
+        lastFloor = stop.floor;
+      }
+      items.add(stop);
+    }
+    return ListView.builder(
+      itemCount: items.length + (_carriedOverItems.isNotEmpty ? 1 : 0),
+      itemBuilder: (context, i) {
+        if (_carriedOverItems.isNotEmpty) {
+          if (i == 0) return _buildCarriedOverSection(context);
+          i -= 1;
+        }
+        final entry = items[i];
+        if (entry is _FloorHeader) return _buildFloorHeader(entry.floor);
+        final stop = entry as NavigationStop;
+        final allStopDone = stop.items
+            .every((item) => _isChecked(item) || _isDeferred(item));
+        final isCurrent =
+            stop.cell == _currentCell && stop.floor == _currentFloorIndex;
+        String? floorLabel;
+        if (stop.floor > 0) {
+          final stores = ref.read(supermarketsProvider);
+          final s =
+              stores.where((s) => s.id == storePlan.storeId).firstOrNull;
+          final fname = s?.floorAt(stop.floor).name ?? '';
+          floorLabel = fname.isNotEmpty ? fname : l.floorIndex(stop.floor);
+        }
+        return AnimatedOpacity(
+          opacity: allStopDone ? 0.4 : 1.0,
+          duration: const Duration(milliseconds: 300),
+          child: Card(
+            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            color: isCurrent
+                ? Theme.of(context).colorScheme.primaryContainer
+                : null,
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 6, right: 8),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(stop.cell,
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12)),
+                        if (floorLabel != null)
+                          Text(floorLabel,
+                              style: const TextStyle(
+                                  color: Colors.white70, fontSize: 9)),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: stop.items.map(_buildItemRow).toList(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildListView(StorePlan storePlan) {
+    final l = AppLocalizations.of(context)!;
+    final matchedItems =
+        storePlan.stops.expand((s) => s.items).toList();
+    final unmatchedItems = storePlan.unmatched.toList();
+
+    return ListView(
+      children: [
+        if (_carriedOverItems.isNotEmpty) _buildCarriedOverSection(context),
+        ...matchedItems.map(_buildItemRow),
+        if (unmatchedItems.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            child: Row(
+              children: [
+                const Icon(Icons.search_off, color: Colors.grey, size: 16),
+                const SizedBox(width: 6),
+                Text(l.unmatched,
+                    style: const TextStyle(
+                        color: Colors.grey,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13)),
+              ],
+            ),
+          ),
+          ...unmatchedItems.map(
+            (item) => Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              child: Row(
+                children: [
+                  const SizedBox(width: 36),
+                  Expanded(
+                      child: Text(item,
+                          style: const TextStyle(
+                              color: Colors.grey, fontSize: 13))),
+                  TextButton.icon(
+                    onPressed: () => _showShopPicker(item),
+                    icon: const Icon(Icons.store_outlined, size: 14),
+                    label: Text(l.assignToShop,
+                        style: const TextStyle(fontSize: 12)),
+                    style: TextButton.styleFrom(
+                        visualDensity: VisualDensity.compact),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 
