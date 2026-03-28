@@ -251,5 +251,19 @@
   "localOnlyModeDesc": "Keep all data on this device. No sync, no household.",
   "localOnlyWarning": "Local-only mode is active. Sync and household features are disabled.",
   "localOnlyConfirmEnable": "Switch to local-only mode? Household sync will be disabled.",
-  "localOnlyConfirmDisable": "Re-enable sync? You can rejoin a household afterwards."
+  "localOnlyConfirmDisable": "Re-enable sync? You can rejoin a household afterwards.",
+  "helpTitle": "How Fairelescourses works",
+  "helpClose": "Get started",
+  "helpShopsTitle": "Shops",
+  "helpShopsBody": "Create a shop and draw its layout as a grid. Assign goods to cells so the app knows where to find each product.",
+  "helpListsTitle": "Shopping lists",
+  "helpListsBody": "Add items to a shopping list and optionally choose preferred shops. The app matches each item to a cell in your shops.",
+  "helpNavTitle": "Navigation",
+  "helpNavBody": "Tap the play button on a list to start navigation. The app plans the shortest route through all matching cells and guides you step by step.",
+  "helpSyncTitle": "Sync & households",
+  "helpSyncBody": "Join a household with other people to share shops and lists. All household data is encrypted with your household code before being stored in the cloud. Shopping lists and items are never readable by the server.",
+  "helpDataTitle": "What is stored where",
+  "helpDataLocal": "Shops and lists are always saved locally on your device (even without sync).",
+  "helpDataCloud": "When you join a household, shops and lists are also synced to Firebase — encrypted with your household ID as the key.",
+  "helpDataLocalOnly": "In local-only mode, nothing leaves your device."
 }

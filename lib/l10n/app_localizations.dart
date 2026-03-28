@@ -1183,6 +1183,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Re-enable sync? You can rejoin a household afterwards.'**
   String get localOnlyConfirmDisable;
+
+  /// No description provided for @helpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How Fairelescourses works'**
+  String get helpTitle;
+
+  /// No description provided for @helpClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get helpClose;
+
+  /// No description provided for @helpShopsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shops'**
+  String get helpShopsTitle;
+
+  /// No description provided for @helpShopsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a shop and draw its layout as a grid. Assign goods to cells so the app knows where to find each product.'**
+  String get helpShopsBody;
+
+  /// No description provided for @helpListsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping lists'**
+  String get helpListsTitle;
+
+  /// No description provided for @helpListsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add items to a shopping list and optionally choose preferred shops. The app matches each item to a cell in your shops.'**
+  String get helpListsBody;
+
+  /// No description provided for @helpNavTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigation'**
+  String get helpNavTitle;
+
+  /// No description provided for @helpNavBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the play button on a list to start navigation. The app plans the shortest route through all matching cells and guides you step by step.'**
+  String get helpNavBody;
+
+  /// No description provided for @helpSyncTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync & households'**
+  String get helpSyncTitle;
+
+  /// No description provided for @helpSyncBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Join a household with other people to share shops and lists. All household data is encrypted with your household code before being stored in the cloud. Shopping lists and items are never readable by the server.'**
+  String get helpSyncBody;
+
+  /// No description provided for @helpDataTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What is stored where'**
+  String get helpDataTitle;
+
+  /// No description provided for @helpDataLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Shops and lists are always saved locally on your device (even without sync).'**
+  String get helpDataLocal;
+
+  /// No description provided for @helpDataCloud.
+  ///
+  /// In en, this message translates to:
+  /// **'When you join a household, shops and lists are also synced to Firebase — encrypted with your household ID as the key.'**
+  String get helpDataCloud;
+
+  /// No description provided for @helpDataLocalOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'In local-only mode, nothing leaves your device.'**
+  String get helpDataLocalOnly;
 }
 
 class _AppLocalizationsDelegate

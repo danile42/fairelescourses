@@ -588,4 +588,53 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get localOnlyConfirmDisable =>
       'Re-enable sync? You can rejoin a household afterwards.';
+
+  @override
+  String get helpTitle => 'How Fairelescourses works';
+
+  @override
+  String get helpClose => 'Get started';
+
+  @override
+  String get helpShopsTitle => 'Shops';
+
+  @override
+  String get helpShopsBody =>
+      'Create a shop and draw its layout as a grid. Assign goods to cells so the app knows where to find each product.';
+
+  @override
+  String get helpListsTitle => 'Shopping lists';
+
+  @override
+  String get helpListsBody =>
+      'Add items to a shopping list and optionally choose preferred shops. The app matches each item to a cell in your shops.';
+
+  @override
+  String get helpNavTitle => 'Navigation';
+
+  @override
+  String get helpNavBody =>
+      'Tap the play button on a list to start navigation. The app plans the shortest route through all matching cells and guides you step by step.';
+
+  @override
+  String get helpSyncTitle => 'Sync & households';
+
+  @override
+  String get helpSyncBody =>
+      'Join a household with other people to share shops and lists. All household data is encrypted with your household code before being stored in the cloud. Shopping lists and items are never readable by the server.';
+
+  @override
+  String get helpDataTitle => 'What is stored where';
+
+  @override
+  String get helpDataLocal =>
+      'Shops and lists are always saved locally on your device (even without sync).';
+
+  @override
+  String get helpDataCloud =>
+      'When you join a household, shops and lists are also synced to Firebase — encrypted with your household ID as the key.';
+
+  @override
+  String get helpDataLocalOnly =>
+      'In local-only mode, nothing leaves your device.';
 }

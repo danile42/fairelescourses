@@ -597,4 +597,53 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get localOnlyConfirmDisable =>
       'Synchronisierung wieder aktivieren? Du kannst danach einem Haushalt beitreten.';
+
+  @override
+  String get helpTitle => 'So funktioniert Fairelescourses';
+
+  @override
+  String get helpClose => 'Los geht\'s';
+
+  @override
+  String get helpShopsTitle => 'Märkte';
+
+  @override
+  String get helpShopsBody =>
+      'Lege einen Markt an und zeichne sein Layout als Raster. Weise Waren den Feldern zu, damit die App weiß, wo jedes Produkt zu finden ist.';
+
+  @override
+  String get helpListsTitle => 'Einkaufslisten';
+
+  @override
+  String get helpListsBody =>
+      'Füge Artikel zu einer Einkaufsliste hinzu und wähle optional bevorzugte Märkte. Die App ordnet jeden Artikel einem Feld in deinen Märkten zu.';
+
+  @override
+  String get helpNavTitle => 'Navigation';
+
+  @override
+  String get helpNavBody =>
+      'Tippe auf den Play-Button einer Liste, um die Navigation zu starten. Die App plant den kürzesten Weg durch alle passenden Felder und führt dich Schritt für Schritt.';
+
+  @override
+  String get helpSyncTitle => 'Sync & Haushalte';
+
+  @override
+  String get helpSyncBody =>
+      'Tritt einem Haushalt mit anderen Personen bei, um Märkte und Listen zu teilen. Alle Haushaltsdaten werden mit deinem Haushaltscode verschlüsselt, bevor sie in der Cloud gespeichert werden. Einkaufslisten und Artikel sind für den Server nie lesbar.';
+
+  @override
+  String get helpDataTitle => 'Was wird wo gespeichert';
+
+  @override
+  String get helpDataLocal =>
+      'Märkte und Listen werden immer lokal auf deinem Gerät gespeichert (auch ohne Sync).';
+
+  @override
+  String get helpDataCloud =>
+      'Wenn du einem Haushalt beitrittst, werden Märkte und Listen auch mit Firebase synchronisiert – verschlüsselt mit deiner Haushalt-ID als Schlüssel.';
+
+  @override
+  String get helpDataLocalOnly =>
+      'Im Nur-Lokal-Modus verlässt nichts dein Gerät.';
 }

@@ -10,6 +10,7 @@ import '../providers/household_provider.dart';
 import '../providers/nav_session_provider.dart';
 import '../providers/shopping_list_provider.dart';
 import '../providers/supermarket_provider.dart';
+import 'help_screen.dart';
 import 'list_editor_screen.dart';
 import 'store_editor_screen.dart';
 import 'navigation_screen.dart';
@@ -28,6 +29,31 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  static const _introKey = 'introSeen';
+
+  @override
+  void initState() {
+    super.initState();
+    final seen = Hive.box<String>('settings').get(_introKey) == 'true';
+    if (!seen) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        Hive.box<String>('settings').put(_introKey, 'true');
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const HelpScreen()),
+        );
+      });
+    }
+  }
+
+  void _openHelp() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const HelpScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
@@ -46,6 +72,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           backgroundColor: Theme.of(context).colorScheme.primary,
           foregroundColor: Colors.white,
           actions: [
+            IconButton(
+              icon: const Icon(Icons.help_outline),
+              tooltip: l.helpTitle,
+              onPressed: _openHelp,
+            ),
             IconButton(
               icon: const Icon(Icons.search),
               tooltip: l.searchShops,
