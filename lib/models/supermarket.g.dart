@@ -35,13 +35,14 @@ class SupermarketAdapter extends TypeAdapter<Supermarket> {
           : null,
       osmCategory: fields[12] as String?,
       floorsRaw: (fields[14] as List?)?.toList(),
+      groundFloorName: fields[15] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Supermarket obj) {
     writer
-      ..writeByte(14)
+      ..writeByte(15)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -69,7 +70,9 @@ class SupermarketAdapter extends TypeAdapter<Supermarket> {
       ..writeByte(12)
       ..write(obj.osmCategory)
       ..writeByte(14)
-      ..write(obj.floorsRaw);
+      ..write(obj.floorsRaw)
+      ..writeByte(15)
+      ..write(obj.groundFloorName);
   }
 
   @override

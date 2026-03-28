@@ -96,6 +96,7 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
     // Build floor data from existing store or defaults.
     _floorData = [
       _FloorEditData(
+        name: s?.groundFloorName ?? '',
         rowCount: s != null ? s.rows.length.clamp(1, _maxDim) : 5,
         colCount: s != null ? s.cols.length.clamp(1, _maxDim) : 5,
         entrance: s?.entrance ?? 'A1',
@@ -127,7 +128,7 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
     _entranceCtrl = TextEditingController(text: _floorData[0].entrance);
     _exitCtrl     = TextEditingController(text: _floorData[0].exit);
     _addressCtrl  = TextEditingController(text: s?.address ?? p?.address ?? '');
-    _floorNameCtrl = TextEditingController(text: '');
+    _floorNameCtrl = TextEditingController(text: _floorData[0].name);
 
     _nameCtrl.addListener(() => setState(() => _dirty = true));
     _entranceCtrl.addListener(() => setState(() => _dirty = true));
@@ -239,6 +240,156 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
     });
   }
 
+  Future<void> _removeRowAt(int rowIndex) async {
+    if (_rowCount <= 1) return;
+    final l = AppLocalizations.of(context)!;
+    final oldRows = _makeRows(_rowCount);
+    final rowLabel = oldRows[rowIndex];
+    final currentCols = _cols;
+
+    final affectedItems = <String>[
+      for (final col in currentCols)
+        ...(_cells['$rowLabel$col'] ?? []),
+      for (final col in currentCols)
+        for (final key
+            in _subcells.keys.where((k) => k.startsWith('$rowLabel$col:')))
+          ...(_subcells[key] ?? []),
+    ];
+
+    if (affectedItems.isNotEmpty) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(l.deleteConfirm('${l.gridRows} $rowLabel')),
+          content: Text(affectedItems.join(', ')),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l.cancel)),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(l.delete)),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+    }
+
+    final newRows = _makeRows(_rowCount - 1);
+
+    String remapRowInCell(String cellId) {
+      if (cellId.isEmpty) return cellId;
+      final row = cellId[0];
+      final colPart = cellId.substring(1);
+      final idx = oldRows.indexOf(row);
+      if (idx < 0 || idx == rowIndex) return '${newRows.first}${currentCols.first}';
+      if (idx > rowIndex) return '${newRows[idx - 1]}$colPart';
+      return cellId;
+    }
+
+    setState(() {
+      _dirty = true;
+      for (final col in currentCols) {
+        final cellId = '$rowLabel$col';
+        _cells.remove(cellId);
+        for (final key in _subcells.keys.where((k) => k.startsWith('$cellId:')).toList()) {
+          _subcells.remove(key);
+        }
+      }
+      for (var i = rowIndex + 1; i < oldRows.length; i++) {
+        final oldRow = oldRows[i];
+        final newRow = newRows[i - 1];
+        for (final col in currentCols) {
+          final oldId = '$oldRow$col';
+          final newId = '$newRow$col';
+          if (_cells.containsKey(oldId)) _cells[newId] = _cells.remove(oldId)!;
+          for (final key in _subcells.keys.where((k) => k.startsWith('$oldId:')).toList()) {
+            final suffix = key.substring(oldId.length);
+            _subcells['$newId$suffix'] = _subcells.remove(key)!;
+          }
+        }
+      }
+      _entranceCtrl.text = remapRowInCell(_entranceCtrl.text);
+      _exitCtrl.text = remapRowInCell(_exitCtrl.text);
+      _rowCount--;
+    });
+  }
+
+  Future<void> _removeColAt(int colIndex) async {
+    if (_colCount <= 1) return;
+    final l = AppLocalizations.of(context)!;
+    final oldCols = _makeCols(_colCount);
+    final colLabel = oldCols[colIndex];
+    final currentRows = _rows;
+
+    final affectedItems = <String>[
+      for (final row in currentRows)
+        ...(_cells['$row$colLabel'] ?? []),
+      for (final row in currentRows)
+        for (final key
+            in _subcells.keys.where((k) => k.startsWith('$row$colLabel:')))
+          ...(_subcells[key] ?? []),
+    ];
+
+    if (affectedItems.isNotEmpty) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(l.deleteConfirm('${l.gridCols} $colLabel')),
+          content: Text(affectedItems.join(', ')),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l.cancel)),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(l.delete)),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+    }
+
+    final newCols = _makeCols(_colCount - 1);
+
+    String remapColInCell(String cellId) {
+      if (cellId.isEmpty) return cellId;
+      final row = cellId[0];
+      final col = cellId.substring(1);
+      final idx = oldCols.indexOf(col);
+      if (idx < 0 || idx == colIndex) return '${currentRows.first}${newCols.first}';
+      if (idx > colIndex) return '$row${newCols[idx - 1]}';
+      return cellId;
+    }
+
+    setState(() {
+      _dirty = true;
+      for (final row in currentRows) {
+        final cellId = '$row$colLabel';
+        _cells.remove(cellId);
+        for (final key in _subcells.keys.where((k) => k.startsWith('$cellId:')).toList()) {
+          _subcells.remove(key);
+        }
+      }
+      for (var i = colIndex + 1; i < oldCols.length; i++) {
+        final oldCol = oldCols[i];
+        final newCol = newCols[i - 1];
+        for (final row in currentRows) {
+          final oldId = '$row$oldCol';
+          final newId = '$row$newCol';
+          if (_cells.containsKey(oldId)) _cells[newId] = _cells.remove(oldId)!;
+          for (final key in _subcells.keys.where((k) => k.startsWith('$oldId:')).toList()) {
+            final suffix = key.substring(oldId.length);
+            _subcells['$newId$suffix'] = _subcells.remove(key)!;
+          }
+        }
+      }
+      _entranceCtrl.text = remapColInCell(_entranceCtrl.text);
+      _exitCtrl.text = remapColInCell(_exitCtrl.text);
+      _colCount--;
+    });
+  }
+
   Future<void> _save() async {
     final l = AppLocalizations.of(context)!;
     if (_nameCtrl.text.trim().isEmpty) {
@@ -288,6 +439,7 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       lat: lat,
       lng: lng,
       osmCategory: widget.existing?.osmCategory ?? widget.prefill?.osmCategory,
+      groundFloorName: floor0.name.isEmpty ? null : floor0.name,
     );
     if (_floorData.length > 1) {
       store.additionalFloors = _floorData.sublist(1).map((f) => ShopFloor(
@@ -810,45 +962,20 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
               onSwitch: _switchFloor,
               onAdd: _addFloor,
               onRemove: _currentFloor > 0 ? _removeCurrentFloor : null,
-              groundLabel: l.groundFloor,
-              floorLabel: (n) => _floorData[n].name.isNotEmpty
-                  ? _floorData[n].name
-                  : l.floorIndex(n),
+              floorLabel: (n) {
+                final name = _floorData[n].name;
+                if (name.isNotEmpty) return name;
+                return n == 0 ? l.groundFloor : l.floorIndex(n);
+              },
             ),
-            if (_currentFloor > 0) ...[
-              const SizedBox(height: 8),
-              TextField(
-                controller: _floorNameCtrl,
-                decoration: InputDecoration(
-                  labelText: l.floorName,
-                  border: const OutlineInputBorder(),
-                  isDense: true,
-                ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _floorNameCtrl,
+              decoration: InputDecoration(
+                labelText: l.floorName,
+                border: const OutlineInputBorder(),
+                isDense: true,
               ),
-            ],
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _DimensionCounter(
-                    label: l.gridRows,
-                    value: _rowCount,
-                    suffix: '(${rows.first}–${rows.last})',
-                    max: _maxDim,
-                    onChanged: _changeRows,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _DimensionCounter(
-                    label: l.gridCols,
-                    value: _colCount,
-                    suffix: '(1–$_colCount)',
-                    max: _maxDim,
-                    onChanged: _changeCols,
-                  ),
-                ),
-              ],
             ),
             const SizedBox(height: 12),
             Row(
@@ -939,6 +1066,10 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
               onSubcellTap:
                   _tapMode == _TapMode.normal ? _editSubcell : null,
               onSplitCellLongPress: _splitCellOptions,
+              onAddRow: _rowCount < _maxDim ? () => _changeRows(1) : null,
+              onAddCol: _colCount < _maxDim ? () => _changeCols(1) : null,
+              onRowLongPress: _removeRowAt,
+              onColLongPress: _removeColAt,
             ),
           ],
         ),
@@ -1483,7 +1614,6 @@ class _FloorTabBar extends StatelessWidget {
   final void Function(int) onSwitch;
   final VoidCallback onAdd;
   final VoidCallback? onRemove;
-  final String groundLabel;
   final String Function(int) floorLabel;
 
   const _FloorTabBar({
@@ -1492,7 +1622,6 @@ class _FloorTabBar extends StatelessWidget {
     required this.onSwitch,
     required this.onAdd,
     this.onRemove,
-    required this.groundLabel,
     required this.floorLabel,
   });
 
@@ -1510,7 +1639,7 @@ class _FloorTabBar extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(right: 6),
                     child: ChoiceChip(
-                      label: Text(i == 0 ? groundLabel : floorLabel(i)),
+                      label: Text(floorLabel(i)),
                       selected: currentFloor == i,
                       onSelected: (_) => onSwitch(i),
                       visualDensity: VisualDensity.compact,

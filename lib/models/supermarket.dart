@@ -58,6 +58,11 @@ class Supermarket extends HiveObject {
   @HiveField(14)
   List<dynamic>? floorsRaw;
 
+  /// Optional display name for the ground floor (e.g. "Erdgeschoss" or custom).
+  /// Null means the UI falls back to the locale-default "Ground floor" label.
+  @HiveField(15)
+  String? groundFloorName;
+
   /// Firebase Auth UID of the creator. Not persisted to Hive — populated
   /// from Firestore metadata so the UI can gate edit/delete controls.
   String? ownerUid;
@@ -77,6 +82,7 @@ class Supermarket extends HiveObject {
     this.ownerUid,
     this.osmCategory,
     this.floorsRaw,
+    this.groundFloorName,
     Map<String, List<String>>? subcells,
   }) : subcells = subcells ?? {};
 
@@ -125,7 +131,7 @@ class Supermarket extends HiveObject {
   ShopFloor floorAt(int index) {
     if (index == 0) {
       return ShopFloor(
-        name: '',
+        name: groundFloorName ?? '',
         rows: rows,
         cols: cols,
         entrance: entrance,
@@ -249,6 +255,7 @@ class Supermarket extends HiveObject {
         if (osmCategory != null) 'osmCategory': osmCategory,
         if (floorsRaw != null && floorsRaw!.isNotEmpty)
           'floors': additionalFloors.map((f) => f.toMap()).toList(),
+        if (groundFloorName != null) 'groundFloorName': groundFloorName,
       };
 
   factory Supermarket.fromMap(Map<String, dynamic> m) => Supermarket(
@@ -272,6 +279,7 @@ class Supermarket extends HiveObject {
             : null,
         osmCategory: m['osmCategory'] as String?,
         floorsRaw: m['floors'] != null ? (m['floors'] as List).toList() : null,
+        groundFloorName: m['groundFloorName'] as String?,
       );
 
   Supermarket copyWith({
@@ -288,6 +296,7 @@ class Supermarket extends HiveObject {
     Object? parentId = _sentinel,
     Object? osmCategory = _sentinel,
     Object? floorsRaw = _sentinel,
+    Object? groundFloorName = _sentinel,
   }) =>
       Supermarket(
         id: id,
@@ -304,6 +313,7 @@ class Supermarket extends HiveObject {
         parentId: parentId == _sentinel ? this.parentId : parentId as String?,
         osmCategory: osmCategory == _sentinel ? this.osmCategory : osmCategory as String?,
         floorsRaw: floorsRaw == _sentinel ? this.floorsRaw : floorsRaw as List<dynamic>?,
+        groundFloorName: groundFloorName == _sentinel ? this.groundFloorName : groundFloorName as String?,
       );
 }
 

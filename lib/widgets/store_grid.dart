@@ -13,6 +13,11 @@ class StoreGrid extends StatelessWidget {
   final void Function(String cellId)? onSplitCellLongPress;
   final String? highlightCell;
   final Set<String>? dimmedCells;
+  // Editor border controls — null in read-only (navigation) contexts.
+  final void Function(int rowIndex)? onRowLongPress;
+  final void Function(int colIndex)? onColLongPress;
+  final VoidCallback? onAddRow;
+  final VoidCallback? onAddCol;
 
   const StoreGrid({
     super.key,
@@ -28,52 +33,99 @@ class StoreGrid extends StatelessWidget {
     this.onSplitCellLongPress,
     this.highlightCell,
     this.dimmedCells,
+    this.onRowLongPress,
+    this.onColLongPress,
+    this.onAddRow,
+    this.onAddCol,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cellSize = _cellSize(cols.length);
+    final labelW = cellSize * 0.6;
+    final headerStyle = TextStyle(
+        fontWeight: FontWeight.bold,
+        fontSize: 11,
+        color: theme.colorScheme.primary);
+    final canRemoveRow = onRowLongPress != null && rows.length > 1;
+    final canRemoveCol = onColLongPress != null && cols.length > 1;
+
+    Widget colHeader(int colIdx, String c) {
+      final content = SizedBox(
+        width: cellSize,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(c, style: headerStyle),
+              if (canRemoveCol)
+                GestureDetector(
+                  onTap: () => onColLongPress!(colIdx),
+                  child: Icon(Icons.remove_circle_outline,
+                      size: 10, color: theme.colorScheme.error.withAlpha(180)),
+                ),
+            ],
+          ),
+        ),
+      );
+      return content;
+    }
+
+    Widget rowHeader(int rowIdx, String row) {
+      return SizedBox(
+        width: labelW,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(row, style: headerStyle),
+              if (canRemoveRow)
+                GestureDetector(
+                  onTap: () => onRowLongPress!(rowIdx),
+                  child: Icon(Icons.remove_circle_outline,
+                      size: 10, color: theme.colorScheme.error.withAlpha(180)),
+                ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Column headers
+          // Column headers + optional add-col button
           Row(
             children: [
-              SizedBox(width: cellSize * 0.6), // row label space
-              ...cols.map((c) => SizedBox(
-                    width: cellSize,
-                    child: Center(
-                      child: Text(c,
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 11,
-                              color: theme.colorScheme.primary)),
-                    ),
-                  )),
-            ],
-          ),
-          ...rows.map((row) {
-            return Row(
-              children: [
+              SizedBox(width: labelW),
+              ...cols.asMap().entries.map((e) => colHeader(e.key, e.value)),
+              if (onAddCol != null)
                 SizedBox(
-                  width: cellSize * 0.6,
+                  width: labelW,
                   child: Center(
-                    child: Text(row,
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                            color: theme.colorScheme.primary)),
+                    child: InkWell(
+                      onTap: onAddCol,
+                      borderRadius: BorderRadius.circular(10),
+                      child: Icon(Icons.add_circle_outline,
+                          size: 16, color: theme.colorScheme.primary),
+                    ),
                   ),
                 ),
+            ],
+          ),
+          ...rows.asMap().entries.map((e) {
+            final rowIdx = e.key;
+            final row = e.value;
+            return Row(
+              children: [
+                rowHeader(rowIdx, row),
                 ...cols.map((col) {
                   final cellId = '$row$col';
                   final isSplit =
                       subcells.keys.any((k) => k.startsWith('$cellId:'));
-
                   if (isSplit) {
                     return _buildSplitCell(context, cellId, cellSize);
                   }
@@ -82,6 +134,25 @@ class StoreGrid extends StatelessWidget {
               ],
             );
           }),
+          // Add-row button row
+          if (onAddRow != null)
+            Row(
+              children: [
+                SizedBox(width: labelW),
+                SizedBox(
+                  width: cellSize * cols.length,
+                  height: 24,
+                  child: Center(
+                    child: InkWell(
+                      onTap: onAddRow,
+                      borderRadius: BorderRadius.circular(10),
+                      child: Icon(Icons.add_circle_outline,
+                          size: 16, color: theme.colorScheme.primary),
+                    ),
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
     );
