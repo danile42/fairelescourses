@@ -30,6 +30,7 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
   late List<ShoppingItem> _items;
   late List<String> _preferredStoreIds;
   bool _dirty = false;
+  bool _pendingItemText = false;
 
   @override
   void initState() {
@@ -255,7 +256,7 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
       ..sort();
 
     return PopScope(
-      canPop: !_dirty,
+      canPop: !_dirty && !_pendingItemText,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
         final navigator = Navigator.of(context);
@@ -378,7 +379,13 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
                     },
                   ),
           ),
-          _AddItemBar(suggestions: suggestions, onAdd: _addItem, label: l.addItem, hint: l.itemHint),
+          _AddItemBar(
+            suggestions: suggestions,
+            onAdd: _addItem,
+            label: l.addItem,
+            hint: l.itemHint,
+            onPendingChanged: (hasPending) => setState(() => _pendingItemText = hasPending),
+          ),
           if (_items.isNotEmpty)
             Builder(builder: (context) {
               final hid = ref.watch(householdProvider);
@@ -461,12 +468,14 @@ class _AddItemBar extends StatefulWidget {
   final void Function(String name) onAdd;
   final String label;
   final String hint;
+  final ValueChanged<bool>? onPendingChanged;
 
   const _AddItemBar({
     required this.suggestions,
     required this.onAdd,
     required this.label,
     required this.hint,
+    this.onPendingChanged,
   });
 
   @override
@@ -483,7 +492,10 @@ class _AddItemBarState extends State<_AddItemBar> {
     // Autocomplete fills the field with the selected text on selection,
     // so clear it on the next frame.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _autoCtrl?.clear();
+      if (mounted) {
+        _autoCtrl?.clear();
+        widget.onPendingChanged?.call(false);
+      }
     });
   }
 
@@ -502,7 +514,12 @@ class _AddItemBarState extends State<_AddItemBar> {
           },
           onSelected: (value) => _submit(value),
           fieldViewBuilder: (context, ctrl, focusNode, onFieldSubmitted) {
-            _autoCtrl = ctrl;
+            if (_autoCtrl != ctrl) {
+              _autoCtrl = ctrl;
+              ctrl.addListener(() {
+                widget.onPendingChanged?.call(ctrl.text.trim().isNotEmpty);
+              });
+            }
             return Row(
               children: [
                 Expanded(
