@@ -257,29 +257,6 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Local-only toggle ────────────────────────────────────────────
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(l.localOnlyMode,
-                  style: theme.textTheme.titleMedium),
-              subtitle: Text(l.localOnlyModeDesc),
-              value: localOnly,
-              onChanged: _toggleLocalOnly,
-            ),
-            if (localOnly) ...[
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.tertiaryContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(l.localOnlyWarning,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onTertiaryContainer)),
-              ),
-              const SizedBox(height: 8),
-            ],
             // ── Home location ───────────────────────────────────────────────
             Text(l.homeLocation, style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
@@ -334,11 +311,34 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                 ),
               ],
             ),
-            if (!localOnly) ...[
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
               child: Divider(),
             ),
+            // ── Local-only toggle ────────────────────────────────────────────
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(l.localOnlyMode,
+                  style: theme.textTheme.titleMedium),
+              subtitle: Text(l.localOnlyModeDesc),
+              value: localOnly,
+              onChanged: _toggleLocalOnly,
+            ),
+            if (localOnly) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.tertiaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(l.localOnlyWarning,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onTertiaryContainer)),
+              ),
+              const SizedBox(height: 8),
+            ],
+            if (!localOnly) ...[
             if (hid != null) ...[
               Text(l.yourHouseholdId, style: theme.textTheme.labelLarge),
               const SizedBox(height: 8),
