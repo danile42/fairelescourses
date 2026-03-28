@@ -56,14 +56,11 @@
   "preferredShops": "Bevorzugte Märkte (optional)",
   "noItemsInList": "Noch keine Artikel. Tippe auf +.",
   "planReady": "Plan bereit",
-  "editCell": "Feld {cell} bearbeiten",
-  "@editCell": {
-    "placeholders": {
-      "cell": { "type": "String" }
-    }
-  },
+  "editCell": "Feld bearbeiten",
   "gridRows": "Reihen",
   "gridCols": "Spalten",
+  "deleteRow": "Reihe löschen?",
+  "deleteCol": "Spalte löschen?",
   "editGrid": "Raster bearbeiten",
   "setEntrance": "Als Eingang setzen",
   "setExit": "Als Ausgang setzen",

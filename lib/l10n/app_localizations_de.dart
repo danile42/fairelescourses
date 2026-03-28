@@ -123,15 +123,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get planReady => 'Plan bereit';
 
   @override
-  String editCell(String cell) {
-    return 'Feld $cell bearbeiten';
-  }
+  String get editCell => 'Feld bearbeiten';
 
   @override
   String get gridRows => 'Reihen';
 
   @override
   String get gridCols => 'Spalten';
+
+  @override
+  String get deleteRow => 'Reihe löschen?';
+
+  @override
+  String get deleteCol => 'Spalte löschen?';
 
   @override
   String get editGrid => 'Raster bearbeiten';
@@ -568,6 +572,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get moveToList => 'In Liste verschieben';
+
+  @override
   String get copyToNewList => 'In neue Liste kopieren';
+
+  @override
   String get moveToNewList => 'In neue Liste verschieben';
 }

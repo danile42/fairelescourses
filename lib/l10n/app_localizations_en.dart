@@ -12,10 +12,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Fairelescourses';
 
   @override
-  String get homeTitle => 'Shopping Lists';
+  String get homeTitle => 'Shopping lists';
 
   @override
-  String get newList => 'New List';
+  String get newList => 'New list';
 
   @override
   String get noLists => 'No shopping lists yet.\nTap + to create one.';
@@ -27,10 +27,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shops => 'Shops';
 
   @override
-  String get newShop => 'New Shop';
+  String get newShop => 'New shop';
 
   @override
-  String get editShop => 'Edit Shop';
+  String get editShop => 'Edit shop';
 
   @override
   String get shopName => 'Shop name';
@@ -85,7 +85,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get itemHint => 'e.g. Milk';
 
   @override
-  String get generatePlan => 'Generate Plan';
+  String get generatePlan => 'Generate plan';
 
   @override
   String get navigationTitle => 'Navigation';
@@ -122,9 +122,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planReady => 'Plan ready';
 
   @override
-  String editCell(String cell) {
-    return 'Edit cell $cell';
-  }
+  String get editCell => 'Edit cell';
 
   @override
   String get gridRows => 'Rows';
@@ -133,13 +131,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gridCols => 'Columns';
 
   @override
-  String get editGrid => 'Edit Grid';
+  String get deleteRow => 'Delete row?';
 
   @override
-  String get setEntrance => 'Set as entrance';
+  String get deleteCol => 'Delete column?';
 
   @override
-  String get setExit => 'Set as exit';
+  String get editGrid => 'Edit grid';
+
+  @override
+  String get setEntrance => 'Set entrance';
+
+  @override
+  String get setExit => 'Set exit';
 
   @override
   String get allItemsChecked => 'All items collected!';
@@ -148,10 +152,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nextShop => 'Next shop';
 
   @override
-  String get listEditor => 'Edit List';
+  String get listEditor => 'Edit list';
 
   @override
-  String get shopEditor => 'Edit Shop';
+  String get shopEditor => 'Edit shop';
 
   @override
   String moreGoods(int n) {
@@ -435,7 +439,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get firebaseInstanceProjectId => 'Project ID';
 
   @override
-  String get firebaseInstanceApiKey => 'API Key';
+  String get firebaseInstanceApiKey => 'API key';
 
   @override
   String get firebaseInstanceAppId => 'App ID';
@@ -444,7 +448,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get firebaseInstanceSenderId => 'Sender ID';
 
   @override
-  String get firebaseInstanceBucket => 'Storage Bucket';
+  String get firebaseInstanceBucket => 'Storage bucket';
 
   @override
   String get firebaseInstancePasteJson => 'Paste google-services.json instead';
@@ -559,6 +563,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moveToList => 'Move to list';
+
+  @override
   String get copyToNewList => 'Copy to new list';
+
+  @override
   String get moveToNewList => 'Move to new list';
 }

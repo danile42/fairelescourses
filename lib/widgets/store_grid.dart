@@ -9,6 +9,7 @@ class StoreGrid extends StatelessWidget {
   final String exit;
   final void Function(String cellId) onCellTap;
   final void Function(String cellId)? onCellDoubleTap;
+  final void Function(String cellId)? onCellLongPress;
   final void Function(String subcellKey)? onSubcellTap;
   final void Function(String cellId)? onSplitCellLongPress;
   final String? highlightCell;
@@ -29,6 +30,7 @@ class StoreGrid extends StatelessWidget {
     required this.onCellTap,
     this.subcells = const {},
     this.onCellDoubleTap,
+    this.onCellLongPress,
     this.onSubcellTap,
     this.onSplitCellLongPress,
     this.highlightCell,
@@ -44,50 +46,41 @@ class StoreGrid extends StatelessWidget {
     final theme = Theme.of(context);
     final cellSize = _cellSize(cols.length);
     final labelW = cellSize * 0.6;
-    final headerStyle = TextStyle(
-        fontWeight: FontWeight.bold,
-        fontSize: 11,
-        color: theme.colorScheme.primary);
     final canRemoveRow = onRowLongPress != null && rows.length > 1;
     final canRemoveCol = onColLongPress != null && cols.length > 1;
 
-    Widget colHeader(int colIdx, String c) {
-      final content = SizedBox(
+    Widget colHeader(int colIdx) {
+      return SizedBox(
         width: cellSize,
         child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(c, style: headerStyle),
-              if (canRemoveCol)
-                GestureDetector(
+          child: canRemoveCol
+              ? GestureDetector(
                   onTap: () => onColLongPress!(colIdx),
-                  child: Icon(Icons.remove_circle_outline,
-                      size: 10, color: theme.colorScheme.error.withAlpha(180)),
-                ),
-            ],
-          ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Icon(Icons.remove_circle_outline,
+                        size: 18, color: theme.colorScheme.error.withAlpha(180)),
+                  ),
+                )
+              : const SizedBox.shrink(),
         ),
       );
-      return content;
     }
 
-    Widget rowHeader(int rowIdx, String row) {
+    Widget rowHeader(int rowIdx) {
       return SizedBox(
         width: labelW,
         child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(row, style: headerStyle),
-              if (canRemoveRow)
-                GestureDetector(
+          child: canRemoveRow
+              ? GestureDetector(
                   onTap: () => onRowLongPress!(rowIdx),
-                  child: Icon(Icons.remove_circle_outline,
-                      size: 10, color: theme.colorScheme.error.withAlpha(180)),
-                ),
-            ],
-          ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: Icon(Icons.remove_circle_outline,
+                        size: 18, color: theme.colorScheme.error.withAlpha(180)),
+                  ),
+                )
+              : const SizedBox.shrink(),
         ),
       );
     }
@@ -101,7 +94,7 @@ class StoreGrid extends StatelessWidget {
           Row(
             children: [
               SizedBox(width: labelW),
-              ...cols.asMap().entries.map((e) => colHeader(e.key, e.value)),
+              ...cols.asMap().entries.map((e) => colHeader(e.key)),
               if (onAddCol != null)
                 SizedBox(
                   width: labelW,
@@ -121,7 +114,7 @@ class StoreGrid extends StatelessWidget {
             final row = e.value;
             return Row(
               children: [
-                rowHeader(rowIdx, row),
+                rowHeader(rowIdx),
                 ...cols.map((col) {
                   final cellId = '$row$col';
                   final isSplit =
@@ -174,9 +167,11 @@ class StoreGrid extends StatelessWidget {
       onTap: () => onCellTap(cellId),
       onDoubleTap:
           onCellDoubleTap != null ? () => onCellDoubleTap!(cellId) : null,
-      onLongPress: goods.length > visibleCount
-          ? () => _showAllGoods(context, cellId, goods)
-          : null,
+      onLongPress: onCellLongPress != null
+          ? () => onCellLongPress!(cellId)
+          : goods.length > visibleCount
+              ? () => _showAllGoods(context, cellId, goods)
+              : null,
       child: Container(
         width: cellSize,
         height: cellSize,
@@ -195,7 +190,7 @@ class StoreGrid extends StatelessWidget {
             color: isHighlight
                 ? theme.colorScheme.primary
                 : Colors.grey.shade300,
-            width: isHighlight ? 2 : 1,
+            width: isHighlight ? 3 : 1,
           ),
           borderRadius: BorderRadius.circular(4),
         ),
@@ -313,7 +308,7 @@ class StoreGrid extends StatelessWidget {
               color: isHighlight
                   ? theme.colorScheme.primary
                   : theme.colorScheme.primary.withAlpha(128),
-              width: isHighlight ? 2 : 1,
+              width: isHighlight ? 3 : 1,
             ),
             borderRadius: BorderRadius.circular(4),
           ),

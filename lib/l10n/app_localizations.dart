@@ -107,13 +107,13 @@ abstract class AppLocalizations {
   /// No description provided for @homeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Shopping Lists'**
+  /// **'Shopping lists'**
   String get homeTitle;
 
   /// No description provided for @newList.
   ///
   /// In en, this message translates to:
-  /// **'New List'**
+  /// **'New list'**
   String get newList;
 
   /// No description provided for @noLists.
@@ -137,13 +137,13 @@ abstract class AppLocalizations {
   /// No description provided for @newShop.
   ///
   /// In en, this message translates to:
-  /// **'New Shop'**
+  /// **'New shop'**
   String get newShop;
 
   /// No description provided for @editShop.
   ///
   /// In en, this message translates to:
-  /// **'Edit Shop'**
+  /// **'Edit shop'**
   String get editShop;
 
   /// No description provided for @shopName.
@@ -245,7 +245,7 @@ abstract class AppLocalizations {
   /// No description provided for @generatePlan.
   ///
   /// In en, this message translates to:
-  /// **'Generate Plan'**
+  /// **'Generate plan'**
   String get generatePlan;
 
   /// No description provided for @navigationTitle.
@@ -311,8 +311,8 @@ abstract class AppLocalizations {
   /// No description provided for @editCell.
   ///
   /// In en, this message translates to:
-  /// **'Edit cell {cell}'**
-  String editCell(String cell);
+  /// **'Edit cell'**
+  String get editCell;
 
   /// No description provided for @gridRows.
   ///
@@ -326,22 +326,34 @@ abstract class AppLocalizations {
   /// **'Columns'**
   String get gridCols;
 
+  /// No description provided for @deleteRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete row?'**
+  String get deleteRow;
+
+  /// No description provided for @deleteCol.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete column?'**
+  String get deleteCol;
+
   /// No description provided for @editGrid.
   ///
   /// In en, this message translates to:
-  /// **'Edit Grid'**
+  /// **'Edit grid'**
   String get editGrid;
 
   /// No description provided for @setEntrance.
   ///
   /// In en, this message translates to:
-  /// **'Set as entrance'**
+  /// **'Set entrance'**
   String get setEntrance;
 
   /// No description provided for @setExit.
   ///
   /// In en, this message translates to:
-  /// **'Set as exit'**
+  /// **'Set exit'**
   String get setExit;
 
   /// No description provided for @allItemsChecked.
@@ -359,13 +371,13 @@ abstract class AppLocalizations {
   /// No description provided for @listEditor.
   ///
   /// In en, this message translates to:
-  /// **'Edit List'**
+  /// **'Edit list'**
   String get listEditor;
 
   /// No description provided for @shopEditor.
   ///
   /// In en, this message translates to:
-  /// **'Edit Shop'**
+  /// **'Edit shop'**
   String get shopEditor;
 
   /// No description provided for @moreGoods.
@@ -899,7 +911,7 @@ abstract class AppLocalizations {
   /// No description provided for @firebaseInstanceApiKey.
   ///
   /// In en, this message translates to:
-  /// **'API Key'**
+  /// **'API key'**
   String get firebaseInstanceApiKey;
 
   /// No description provided for @firebaseInstanceAppId.
@@ -917,7 +929,7 @@ abstract class AppLocalizations {
   /// No description provided for @firebaseInstanceBucket.
   ///
   /// In en, this message translates to:
-  /// **'Storage Bucket'**
+  /// **'Storage bucket'**
   String get firebaseInstanceBucket;
 
   /// No description provided for @firebaseInstancePasteJson.

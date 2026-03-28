@@ -12,7 +12,6 @@ import '../widgets/store_grid.dart';
 
 enum _ExitAction { save, discard }
 
-enum _TapMode { normal, setEntrance, setExit }
 
 const _uuid = Uuid();
 const _maxDim = 26;
@@ -75,7 +74,7 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
   int _currentFloor = 0;
   bool _dirty = false;
   bool _geocoding = false;
-  _TapMode _tapMode = _TapMode.normal;
+  String? _highlightCell;
 
   // Proxy getters/setters — all grid-editing methods work unchanged.
   int get _rowCount => _floorData[_currentFloor].rowCount;
@@ -164,7 +163,6 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       _entranceCtrl.text = _floorData[newIndex].entrance;
       _exitCtrl.text = _floorData[newIndex].exit;
       _floorNameCtrl.text = _floorData[newIndex].name;
-      _tapMode = _TapMode.normal;
     });
   }
 
@@ -182,7 +180,6 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       _entranceCtrl.text = newFloor.entrance;
       _exitCtrl.text = newFloor.exit;
       _floorNameCtrl.text = '';
-      _tapMode = _TapMode.normal;
     });
   }
 
@@ -196,7 +193,6 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       _entranceCtrl.text = _floorData[prevFloor].entrance;
       _exitCtrl.text = _floorData[prevFloor].exit;
       _floorNameCtrl.text = _floorData[prevFloor].name;
-      _tapMode = _TapMode.normal;
     });
   }
 
@@ -260,7 +256,7 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: Text(l.deleteConfirm('${l.gridRows} $rowLabel')),
+          title: Text(l.deleteRow),
           content: Text(affectedItems.join(', ')),
           actions: [
             TextButton(
@@ -335,7 +331,7 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: Text(l.deleteConfirm('${l.gridCols} $colLabel')),
+          title: Text(l.deleteCol),
           content: Text(affectedItems.join(', ')),
           actions: [
             TextButton(
@@ -599,35 +595,56 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
     );
   }
 
-  void _onCellTap(String cellId) {
-    if (_tapMode == _TapMode.setEntrance) {
-      setState(() {
+  void _onCellTap(String cellId) => _editCell(cellId);
+
+  void _onCellLongPress(String cellId) async {
+    final l = AppLocalizations.of(context)!;
+    final action = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        children: [
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Row(children: [
+              const Icon(Icons.login, color: Colors.green, size: 20),
+              const SizedBox(width: 12),
+              Text(l.setEntrance),
+            ]),
+          ),
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Row(children: [
+              const Icon(Icons.logout, color: Colors.red, size: 20),
+              const SizedBox(width: 12),
+              Text(l.setExit),
+            ]),
+          ),
+        ],
+      ),
+    );
+    if (action == null || !mounted) return;
+    setState(() {
+      _dirty = true;
+      if (action) {
         _entranceCtrl.text = cellId;
-        _dirty = true;
-        _tapMode = _TapMode.normal;
-      });
-      return;
-    }
-    if (_tapMode == _TapMode.setExit) {
-      setState(() {
+      } else {
         _exitCtrl.text = cellId;
-        _dirty = true;
-        _tapMode = _TapMode.normal;
-      });
-      return;
-    }
-    _editCell(cellId);
+      }
+    });
   }
 
   void _editCell(String cellId) async {
     final l = AppLocalizations.of(context)!;
+    setState(() => _highlightCell = cellId);
     final result = await _showGoodsEditDialog(
-      title: l.editCell(cellId),
+      title: l.editCell,
       initialText: _cellInitialText(_cells[cellId] ?? []),
       suggestions: _allListItemNames(),
     );
-    if (result != null && mounted) {
-      setState(() {
+    if (!mounted) return;
+    setState(() {
+      _highlightCell = null;
+      if (result != null) {
         _dirty = true;
         final goods = result.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
         if (goods.isEmpty) {
@@ -635,8 +652,8 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
         } else {
           _cells[cellId] = goods;
         }
-      });
-    }
+      }
+    });
   }
 
   void _editSubcell(String subcellKey) async {
@@ -648,13 +665,16 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
     final halfLabel = axis == 'col'
         ? (isFirst ? l.splitLeft : l.splitRight)
         : (isFirst ? l.splitTop : l.splitBottom);
+    setState(() => _highlightCell = cellId);
     final result = await _showGoodsEditDialog(
-      title: '${l.editCell(cellId)} – $halfLabel',
+      title: '${l.editCell} – $halfLabel',
       initialText: _cellInitialText(_subcells[subcellKey] ?? []),
       suggestions: _allListItemNames(),
     );
-    if (result != null && mounted) {
-      setState(() {
+    if (!mounted) return;
+    setState(() {
+      _highlightCell = null;
+      if (result != null) {
         _dirty = true;
         final goods = result.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
         if (goods.isEmpty) {
@@ -662,8 +682,8 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
         } else {
           _subcells[subcellKey] = goods;
         }
-      });
-    }
+      }
+    });
   }
 
   /// Opens the split dialog for [cellId]: choose axis, then distribute items.
@@ -990,81 +1010,6 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _EntranceExitCard(
-                    icon: Icons.login,
-                    label: l.setEntrance,
-                    cellId: _entranceCtrl.text.trim().toUpperCase(),
-                    color: Colors.green,
-                    active: _tapMode == _TapMode.setEntrance,
-                    onTap: () => setState(() => _tapMode =
-                        _tapMode == _TapMode.setEntrance
-                            ? _TapMode.normal
-                            : _TapMode.setEntrance),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _EntranceExitCard(
-                    icon: Icons.logout,
-                    label: l.setExit,
-                    cellId: _exitCtrl.text.trim().toUpperCase(),
-                    color: Colors.red,
-                    active: _tapMode == _TapMode.setExit,
-                    onTap: () => setState(() => _tapMode =
-                        _tapMode == _TapMode.setExit
-                            ? _TapMode.normal
-                            : _TapMode.setExit),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            if (_tapMode != _TapMode.normal)
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: _tapMode == _TapMode.setEntrance
-                      ? Colors.green.shade50
-                      : Colors.red.shade50,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.touch_app_outlined,
-                        size: 16,
-                        color: _tapMode == _TapMode.setEntrance
-                            ? Colors.green.shade700
-                            : Colors.red.shade700),
-                    const SizedBox(width: 8),
-                    Text(
-                      _tapMode == _TapMode.setEntrance
-                          ? l.setEntrance
-                          : l.setExit,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: _tapMode == _TapMode.setEntrance
-                            ? Colors.green.shade700
-                            : Colors.red.shade700,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '↓',
-                      style: TextStyle(
-                        color: _tapMode == _TapMode.setEntrance
-                            ? Colors.green.shade700
-                            : Colors.red.shade700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             StoreGrid(
               rows: rows,
               cols: cols,
@@ -1072,11 +1017,11 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
               subcells: _subcells,
               entrance: _entranceCtrl.text.trim().toUpperCase(),
               exit: _exitCtrl.text.trim().toUpperCase(),
+              highlightCell: _highlightCell,
               onCellTap: _onCellTap,
-              onCellDoubleTap:
-                  _tapMode == _TapMode.normal ? _startSplit : null,
-              onSubcellTap:
-                  _tapMode == _TapMode.normal ? _editSubcell : null,
+              onCellLongPress: _onCellLongPress,
+              onCellDoubleTap: _startSplit,
+              onSubcellTap: _editSubcell,
               onSplitCellLongPress: _splitCellOptions,
               onAddRow: _rowCount < _maxDim ? () => _changeRows(1) : null,
               onAddCol: _colCount < _maxDim ? () => _changeCols(1) : null,
@@ -1676,72 +1621,6 @@ class _FloorTabBar extends StatelessWidget {
           onPressed: onAdd,
         ),
       ],
-    );
-  }
-}
-
-class _EntranceExitCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String cellId;
-  final Color color;
-  final bool active;
-  final VoidCallback onTap;
-
-  const _EntranceExitCard({
-    required this.icon,
-    required this.label,
-    required this.cellId,
-    required this.color,
-    required this.active,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: active ? color : theme.colorScheme.outlineVariant,
-            width: active ? 2 : 1,
-          ),
-          borderRadius: BorderRadius.circular(8),
-          color: active ? color.withAlpha(25) : null,
-        ),
-        child: Row(
-          children: [
-            Icon(icon,
-                size: 20,
-                color: active ? color : theme.colorScheme.onSurfaceVariant),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(label,
-                      style: theme.textTheme.labelSmall
-                          ?.copyWith(color: active ? color : null)),
-                  Text(cellId,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: active
-                              ? color
-                              : theme.colorScheme.onSurface)),
-                ],
-              ),
-            ),
-            if (active)
-              Icon(Icons.touch_app_outlined, size: 16, color: color),
-          ],
-        ),
-      ),
     );
   }
 }
