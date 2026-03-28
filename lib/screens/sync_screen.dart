@@ -12,6 +12,7 @@ import '../providers/supermarket_provider.dart';
 import '../providers/shopping_list_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../services/nominatim_service.dart';
+import 'help_screen.dart';
 
 class SyncScreen extends ConsumerStatefulWidget {
   const SyncScreen({super.key});
@@ -130,7 +131,26 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
         .showSnackBar(SnackBar(content: Text(l.copiedToClipboard)));
   }
 
-  void _startEditingFirebase() {
+  Future<void> _startEditingFirebase() async {
+    final l = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        icon: const Icon(Icons.warning_amber_rounded, size: 32),
+        content: Text(l.firebaseAdvancedWarningBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l.firebaseAdvancedContinue),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
     final saved = loadSavedFirebaseCredentials();
     if (saved != null) {
       _projectIdCtrl.text = saved.projectId;
@@ -435,6 +455,14 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                 Expanded(
                   child: Text(l.firebaseInstanceTitle,
                       style: theme.textTheme.titleMedium),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.help_outline, size: 20),
+                  tooltip: l.firebaseHelpTitle,
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const FirebaseHelpScreen()),
+                  ),
                 ),
                 if (!_editingFirebase)
                   TextButton(

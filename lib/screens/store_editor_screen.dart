@@ -9,6 +9,7 @@ import '../providers/supermarket_provider.dart';
 import '../providers/shopping_list_provider.dart';
 import '../services/nominatim_service.dart';
 import '../widgets/store_grid.dart';
+import 'help_screen.dart';
 
 enum _ExitAction { save, discard }
 
@@ -956,6 +957,15 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            color: Colors.white,
+            tooltip: l.shopEditorHelpTitle,
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ShopEditorHelpScreen()),
+            ),
+          ),
           if (_geocoding)
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),

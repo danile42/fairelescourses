@@ -1291,6 +1291,34 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'In local-only mode, nothing leaves your device.'**
   String get helpDataLocalOnly;
+
+  String get shopEditorHelpTitle;
+  String get shopEditorHelpGridTitle;
+  String get shopEditorHelpGridBody;
+  String get shopEditorHelpGoodsTitle;
+  String get shopEditorHelpGoodsBody;
+  String get shopEditorHelpEntranceTitle;
+  String get shopEditorHelpEntranceBody;
+  String get shopEditorHelpFloorsTitle;
+  String get shopEditorHelpFloorsBody;
+  String get shopEditorHelpSplitTitle;
+  String get shopEditorHelpSplitBody;
+  String get shopEditorHelpClose;
+
+  String get firebaseHelpTitle;
+  String get firebaseHelpProjectTitle;
+  String get firebaseHelpProjectBody;
+  String get firebaseHelpFirestoreTitle;
+  String get firebaseHelpFirestoreBody;
+  String get firebaseHelpAuthTitle;
+  String get firebaseHelpAuthBody;
+  String get firebaseHelpRulesTitle;
+  String get firebaseHelpRulesBody;
+  String get firebaseHelpCredsTitle;
+  String get firebaseHelpCredsBody;
+  String get firebaseAdvancedWarningBody;
+  String get firebaseAdvancedContinue;
+  String get firebaseHelpClose;
 }
 
 class _AppLocalizationsDelegate
