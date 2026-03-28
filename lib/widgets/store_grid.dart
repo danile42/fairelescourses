@@ -90,11 +90,60 @@ class StoreGrid extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Column headers + optional add-col button
+          // Column remove-icon headers
           Row(
             children: [
               SizedBox(width: labelW),
               ...cols.asMap().entries.map((e) => colHeader(e.key)),
+            ],
+          ),
+          // Grid body + add-col button on the right, vertically centred
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ...rows.asMap().entries.map((e) {
+                    final rowIdx = e.key;
+                    final row = e.value;
+                    return Row(
+                      children: [
+                        rowHeader(rowIdx),
+                        ...cols.map((col) {
+                          final cellId = '$row$col';
+                          final isSplit = subcells.keys
+                              .any((k) => k.startsWith('$cellId:'));
+                          if (isSplit) {
+                            return _buildSplitCell(context, cellId, cellSize);
+                          }
+                          return _buildNormalCell(context, cellId, cellSize);
+                        }),
+                      ],
+                    );
+                  }),
+                  // Add-row button
+                  if (onAddRow != null)
+                    Row(
+                      children: [
+                        SizedBox(width: labelW),
+                        SizedBox(
+                          width: cellSize * cols.length,
+                          height: 24,
+                          child: Center(
+                            child: InkWell(
+                              onTap: onAddRow,
+                              borderRadius: BorderRadius.circular(10),
+                              child: Icon(Icons.add_circle_outline,
+                                  size: 16, color: theme.colorScheme.primary),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+              // Add-col button — centred vertically beside the grid rows
               if (onAddCol != null)
                 SizedBox(
                   width: labelW,
@@ -109,43 +158,6 @@ class StoreGrid extends StatelessWidget {
                 ),
             ],
           ),
-          ...rows.asMap().entries.map((e) {
-            final rowIdx = e.key;
-            final row = e.value;
-            return Row(
-              children: [
-                rowHeader(rowIdx),
-                ...cols.map((col) {
-                  final cellId = '$row$col';
-                  final isSplit =
-                      subcells.keys.any((k) => k.startsWith('$cellId:'));
-                  if (isSplit) {
-                    return _buildSplitCell(context, cellId, cellSize);
-                  }
-                  return _buildNormalCell(context, cellId, cellSize);
-                }),
-              ],
-            );
-          }),
-          // Add-row button row
-          if (onAddRow != null)
-            Row(
-              children: [
-                SizedBox(width: labelW),
-                SizedBox(
-                  width: cellSize * cols.length,
-                  height: 24,
-                  child: Center(
-                    child: InkWell(
-                      onTap: onAddRow,
-                      borderRadius: BorderRadius.circular(10),
-                      child: Icon(Icons.add_circle_outline,
-                          size: 16, color: theme.colorScheme.primary),
-                    ),
-                  ),
-                ),
-              ],
-            ),
         ],
       ),
     );
