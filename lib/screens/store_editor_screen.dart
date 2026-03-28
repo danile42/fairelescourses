@@ -479,6 +479,18 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
     );
   }
 
+  /// Returns the initial text for a cell goods dialog: existing goods with
+  /// any focusItems appended (unless already present).
+  String _cellInitialText(List<String> existing) {
+    if (widget.focusItems.isEmpty) return existing.join(', ');
+    final existingLower = existing.map((e) => e.toLowerCase()).toSet();
+    final toAdd = widget.focusItems
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty && !existingLower.contains(s.toLowerCase()))
+        .toList();
+    return [...existing, ...toAdd].join(', ');
+  }
+
   List<String> _allListItemNames() {
     final focus = widget.focusItems.map((s) => s.trim()).where((s) => s.isNotEmpty).toSet();
     final lists = ref.read(shoppingListsProvider);
@@ -611,7 +623,7 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
     final l = AppLocalizations.of(context)!;
     final result = await _showGoodsEditDialog(
       title: l.editCell(cellId),
-      initialText: (_cells[cellId] ?? []).join(', '),
+      initialText: _cellInitialText(_cells[cellId] ?? []),
       suggestions: _allListItemNames(),
     );
     if (result != null && mounted) {
@@ -638,7 +650,7 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
         : (isFirst ? l.splitTop : l.splitBottom);
     final result = await _showGoodsEditDialog(
       title: '${l.editCell(cellId)} – $halfLabel',
-      initialText: (_subcells[subcellKey] ?? []).join(', '),
+      initialText: _cellInitialText(_subcells[subcellKey] ?? []),
       suggestions: _allListItemNames(),
     );
     if (result != null && mounted) {
