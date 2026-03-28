@@ -1123,6 +1123,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{n} floors'**
   String nFloors(int n);
+
+  /// No description provided for @moveToList.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to list'**
+  String get moveToList;
 }
 
 class _AppLocalizationsDelegate

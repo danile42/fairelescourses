@@ -565,4 +565,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String nFloors(int n) {
     return '$n Etagen';
   }
+
+  @override
+  String get moveToList => 'In Liste verschieben';
 }

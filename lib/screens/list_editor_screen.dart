@@ -10,6 +10,7 @@ import '../services/navigation_planner.dart';
 import 'navigation_screen.dart';
 
 enum _ExitAction { save, discard }
+enum _ItemAction { delete, move }
 
 class ListEditorScreen extends ConsumerStatefulWidget {
   final ShoppingList list;
@@ -88,6 +89,36 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
       _dirty = true;
       _items = [..._items]..removeAt(index);
     });
+  }
+
+  Future<void> _moveItemToList(int index) async {
+    final l = AppLocalizations.of(context)!;
+    final allLists = ref.read(shoppingListsProvider);
+    final targets = allLists.where((lst) => lst.id != widget.list.id).toList();
+    if (targets.isEmpty) return;
+
+    final target = await showDialog<ShoppingList>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: Text(l.moveToList),
+        children: targets
+            .map((lst) => SimpleDialogOption(
+                  onPressed: () => Navigator.pop(ctx, lst),
+                  child: Text(lst.name),
+                ))
+            .toList(),
+      ),
+    );
+    if (target == null || !mounted) return;
+
+    final item = _items[index];
+    setState(() {
+      _dirty = true;
+      _items = [..._items]..removeAt(index);
+    });
+    ref.read(shoppingListsProvider.notifier).update(
+          target.copyWith(items: [...target.items, item]),
+        );
   }
 
   void _toggleItem(int index) {
@@ -186,6 +217,10 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
                     },
                     itemBuilder: (context, i) {
                       final item = _items[i];
+                      final otherLists = ref
+                          .read(shoppingListsProvider)
+                          .where((lst) => lst.id != widget.list.id)
+                          .isNotEmpty;
                       return ListTile(
                         key: ValueKey(i),
                         leading: Checkbox(
@@ -198,10 +233,40 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
                               ? const TextStyle(decoration: TextDecoration.lineThrough, color: Colors.grey)
                               : null,
                         ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.close, size: 18),
-                          onPressed: () => _removeItem(i),
-                        ),
+                        trailing: otherLists
+                            ? PopupMenuButton<_ItemAction>(
+                                icon: const Icon(Icons.more_vert, size: 18),
+                                padding: EdgeInsets.zero,
+                                onSelected: (action) {
+                                  if (action == _ItemAction.delete) {
+                                    _removeItem(i);
+                                  } else {
+                                    _moveItemToList(i);
+                                  }
+                                },
+                                itemBuilder: (ctx) => [
+                                  PopupMenuItem(
+                                    value: _ItemAction.delete,
+                                    child: Row(children: [
+                                      const Icon(Icons.close, size: 16),
+                                      const SizedBox(width: 8),
+                                      Text(AppLocalizations.of(ctx)!.delete),
+                                    ]),
+                                  ),
+                                  PopupMenuItem(
+                                    value: _ItemAction.move,
+                                    child: Row(children: [
+                                      const Icon(Icons.drive_file_move_outline, size: 16),
+                                      const SizedBox(width: 8),
+                                      Text(AppLocalizations.of(ctx)!.moveToList),
+                                    ]),
+                                  ),
+                                ],
+                              )
+                            : IconButton(
+                                icon: const Icon(Icons.close, size: 18),
+                                onPressed: () => _removeItem(i),
+                              ),
                       );
                     },
                   ),

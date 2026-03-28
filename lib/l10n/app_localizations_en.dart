@@ -556,4 +556,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String nFloors(int n) {
     return '$n floors';
   }
+
+  @override
+  String get moveToList => 'Move to list';
 }

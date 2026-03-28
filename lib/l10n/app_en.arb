@@ -246,5 +246,6 @@
     "placeholders": {
       "n": { "type": "int" }
     }
-  }
+  },
+  "moveToList": "Move to list"
 }
