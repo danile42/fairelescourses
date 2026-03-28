@@ -583,6 +583,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get rename => 'Umbenennen';
 
   @override
+  String get startNavigation => 'Navigation starten';
+
+  @override
   String get localOnlyMode => 'Nur lokaler Speicher';
 
   @override

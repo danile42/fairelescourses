@@ -248,6 +248,7 @@
   "copyToNewList": "Copy to new list",
   "moveToNewList": "Move to new list",
   "rename": "Rename",
+  "startNavigation": "Start navigation",
   "localOnlyMode": "Local storage only",
   "localOnlyModeDesc": "Keep all data on this device. No sync, no household.",
   "localOnlyWarning": "Local-only mode is active. Sync and household features are disabled.",

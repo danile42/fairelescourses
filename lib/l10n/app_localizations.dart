@@ -1160,6 +1160,12 @@ abstract class AppLocalizations {
   /// **'Rename'**
   String get rename;
 
+  /// No description provided for @startNavigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Start navigation'**
+  String get startNavigation;
+
   /// No description provided for @localOnlyMode.
   ///
   /// In en, this message translates to:

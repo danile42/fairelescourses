@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fairelescourses/l10n/app_localizations.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import '../models/shopping_list.dart';
 import '../models/supermarket.dart';
+import '../providers/household_provider.dart';
+import '../providers/nav_session_provider.dart';
 import '../providers/shopping_list_provider.dart';
 import '../providers/supermarket_provider.dart';
 import '../services/navigation_planner.dart';
@@ -202,17 +205,41 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
     });
   }
 
-  void _generatePlan(BuildContext context) {
+  static const _singleNavKey = 'singleNavActive';
+
+  bool get _navModeSeen =>
+      Hive.box<String>('settings').get('navModeSeen') == 'true';
+
+  bool get _singleNavActive =>
+      Hive.box<String>('settings').get(_singleNavKey) == 'true';
+
+  void _startNav({required bool collaborative}) {
     final stores = ref.read(supermarketsProvider);
     final list = widget.list.copyWith(
       items: _items,
       preferredStoreIds: _preferredStoreIds,
     );
     final plan = NavigationPlanner.plan(list, stores);
+    if (!collaborative) {
+      Hive.box<String>('settings').put(_singleNavKey, 'true');
+      setState(() {});
+    }
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => NavigationScreen(plan: plan, listId: widget.list.id)),
-    );
+      MaterialPageRoute(
+        builder: (_) => NavigationScreen(
+          plan: plan,
+          listId: widget.list.id,
+          isCollaborative: collaborative,
+          isHost: collaborative,
+        ),
+      ),
+    ).then((finished) {
+      if (!collaborative && mounted && finished == true) {
+        Hive.box<String>('settings').delete(_singleNavKey);
+        setState(() {});
+      }
+    });
   }
 
   @override
@@ -353,19 +380,77 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
           ),
           _AddItemBar(suggestions: suggestions, onAdd: _addItem, label: l.addItem, hint: l.itemHint),
           if (_items.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => _generatePlan(context),
-                  icon: const Icon(Icons.map_outlined),
-                  label: Text(l.generatePlan),
-                ),
-              ),
-            ),
+            Builder(builder: (context) {
+              final hid = ref.watch(householdProvider);
+              final showTwo = hid != null && _navModeSeen;
+              final hasActiveCollab =
+                  ref.watch(navSessionProvider).asData?.value != null;
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                child: showTwo
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon: const _NavIcon(Icons.person_outline),
+                            tooltip: l.navModeSingle,
+                            onPressed: hasActiveCollab
+                                ? null
+                                : () => _startNav(collaborative: false),
+                          ),
+                          IconButton(
+                            icon: const _NavIcon(Icons.group_outlined),
+                            tooltip: l.navModeCollaborative,
+                            onPressed: hasActiveCollab || _singleNavActive
+                                ? null
+                                : () => _startNav(collaborative: true),
+                          ),
+                        ],
+                      )
+                    : SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: hasActiveCollab
+                              ? null
+                              : () => _startNav(collaborative: false),
+                          icon: const Icon(Icons.play_arrow),
+                          label: Text(l.startNavigation),
+                        ),
+                      ),
+              );
+            }),
         ],
       ),
+      ),
+    );
+  }
+}
+
+class _NavIcon extends StatelessWidget {
+  final IconData base;
+  const _NavIcon(this.base);
+
+  @override
+  Widget build(BuildContext context) {
+    final color = IconTheme.of(context).color;
+    return SizedBox(
+      width: 26,
+      height: 26,
+      child: Stack(
+        children: [
+          Icon(base, size: 22, color: color),
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.play_arrow, size: 13, color: color),
+            ),
+          ),
+        ],
       ),
     );
   }
