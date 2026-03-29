@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:fairelescourses/l10n/app_localizations.dart';
@@ -108,6 +109,8 @@ void main() {
 
   setUp(() async {
     await clearHive();
+    // Prevent HomeScreen from pushing the intro HelpScreen on first run.
+    await Hive.box<String>('settings').put('introSeen', 'true');
   });
 
   group('HomeScreen list tab', () {
