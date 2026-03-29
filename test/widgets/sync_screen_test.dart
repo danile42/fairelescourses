@@ -51,7 +51,8 @@ Widget _wrap({bool hasHousehold = false}) {
   return ProviderScope(
     overrides: [
       householdProvider.overrideWith(
-        () => hasHousehold ? _KnownHouseholdNotifier() : _NullHouseholdNotifier(),
+        () =>
+            hasHousehold ? _KnownHouseholdNotifier() : _NullHouseholdNotifier(),
       ),
       supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
       shoppingListsProvider.overrideWith(() => _FakeListsNotifier()),
@@ -91,16 +92,18 @@ void main() {
       expect(find.text('Home location'), findsOneWidget);
     });
 
-    testWidgets('shows create and join household buttons when no household',
-        (tester) async {
+    testWidgets('shows create and join household buttons when no household', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap());
       await tester.pumpAndSettle();
       expect(find.text('Create new household'), findsOneWidget);
       expect(find.text('Join household'), findsWidgets);
     });
 
-    testWidgets('shows household ID and leave button when in a household',
-        (tester) async {
+    testWidgets('shows household ID and leave button when in a household', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap(hasHousehold: true));
       await tester.pumpAndSettle();
       expect(find.text('Your household ID'), findsOneWidget);
@@ -205,10 +208,7 @@ void main() {
       await tester.tap(find.text('Leave household'));
       await tester.pumpAndSettle();
 
-      expect(
-        find.textContaining('Stop syncing and leave'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('Stop syncing and leave'), findsOneWidget);
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
     });
@@ -217,7 +217,10 @@ void main() {
       await tester.pumpWidget(_wrap());
       await tester.pumpAndSettle();
 
-      final joinField = find.widgetWithText(TextField, 'Enter 6-character code');
+      final joinField = find.widgetWithText(
+        TextField,
+        'Enter 6-character code',
+      );
       await tester.tap(joinField);
       await tester.enterText(joinField, 'BAD');
       await tester.pump();

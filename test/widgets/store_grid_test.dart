@@ -5,8 +5,9 @@ import 'package:fairelescourses/widgets/store_grid.dart';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
-Widget _wrap(Widget child) =>
-    MaterialApp(home: Scaffold(body: SingleChildScrollView(child: child)));
+Widget _wrap(Widget child) => MaterialApp(
+  home: Scaffold(body: SingleChildScrollView(child: child)),
+);
 
 StoreGrid _grid({
   List<String> rows = const ['A', 'B', 'C'],
@@ -62,8 +63,9 @@ void main() {
       expect(find.byIcon(Icons.logout), findsOneWidget);
     });
 
-    testWidgets('same cell for entrance and exit shows only one icon',
-        (tester) async {
+    testWidgets('same cell for entrance and exit shows only one icon', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _wrap(_grid(rows: ['A'], cols: ['1'], entrance: 'A1', exit: 'A1')),
       );
@@ -133,16 +135,17 @@ void main() {
       await tester.pump();
       expect(tapped, 'A2');
     });
-
   });
 
   group('StoreGrid – editor controls', () {
-    testWidgets('add-row button (Icons.add_circle_outline) shown when onAddRow set',
-        (tester) async {
-      await tester.pumpWidget(_wrap(_grid(onAddRow: () {})));
-      await tester.pump();
-      expect(find.byIcon(Icons.add_circle_outline), findsWidgets);
-    });
+    testWidgets(
+      'add-row button (Icons.add_circle_outline) shown when onAddRow set',
+      (tester) async {
+        await tester.pumpWidget(_wrap(_grid(onAddRow: () {})));
+        await tester.pump();
+        expect(find.byIcon(Icons.add_circle_outline), findsWidgets);
+      },
+    );
 
     testWidgets('add-col button shown when onAddCol set', (tester) async {
       await tester.pumpWidget(_wrap(_grid(onAddCol: () {})));
@@ -168,9 +171,9 @@ void main() {
       expect(called, isTrue);
     });
 
-    testWidgets(
-        'row-remove icon shown when onRowLongPress set and rows > 1',
-        (tester) async {
+    testWidgets('row-remove icon shown when onRowLongPress set and rows > 1', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _wrap(
           _grid(
@@ -186,9 +189,9 @@ void main() {
       expect(find.byIcon(Icons.remove_circle_outline), findsWidgets);
     });
 
-    testWidgets(
-        'col-remove icon shown when onColLongPress set and cols > 1',
-        (tester) async {
+    testWidgets('col-remove icon shown when onColLongPress set and cols > 1', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _wrap(
           _grid(
@@ -205,40 +208,42 @@ void main() {
     });
 
     testWidgets(
-        'row-remove icon NOT shown when only one row even if onRowLongPress set',
-        (tester) async {
-      await tester.pumpWidget(
-        _wrap(
-          _grid(
-            rows: ['A'],
-            cols: ['1', '2'],
-            entrance: 'A1',
-            exit: 'A2',
-            onRowLongPress: (_) {},
+      'row-remove icon NOT shown when only one row even if onRowLongPress set',
+      (tester) async {
+        await tester.pumpWidget(
+          _wrap(
+            _grid(
+              rows: ['A'],
+              cols: ['1', '2'],
+              entrance: 'A1',
+              exit: 'A2',
+              onRowLongPress: (_) {},
+            ),
           ),
-        ),
-      );
-      await tester.pump();
-      expect(find.byIcon(Icons.remove_circle_outline), findsNothing);
-    });
+        );
+        await tester.pump();
+        expect(find.byIcon(Icons.remove_circle_outline), findsNothing);
+      },
+    );
 
     testWidgets(
-        'col-remove icon NOT shown when only one col even if onColLongPress set',
-        (tester) async {
-      await tester.pumpWidget(
-        _wrap(
-          _grid(
-            rows: ['A', 'B'],
-            cols: ['1'],
-            entrance: 'A1',
-            exit: 'B1',
-            onColLongPress: (_) {},
+      'col-remove icon NOT shown when only one col even if onColLongPress set',
+      (tester) async {
+        await tester.pumpWidget(
+          _wrap(
+            _grid(
+              rows: ['A', 'B'],
+              cols: ['1'],
+              entrance: 'A1',
+              exit: 'B1',
+              onColLongPress: (_) {},
+            ),
           ),
-        ),
-      );
-      await tester.pump();
-      expect(find.byIcon(Icons.remove_circle_outline), findsNothing);
-    });
+        );
+        await tester.pump();
+        expect(find.byIcon(Icons.remove_circle_outline), findsNothing);
+      },
+    );
   });
 
   group('StoreGrid – highlight and dimming', () {
@@ -283,12 +288,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         _wrap(
-          _grid(
-            rows: ['A', 'B'],
-            cols: ['1', '2'],
-            entrance: 'A1',
-            exit: 'B2',
-          ),
+          _grid(rows: ['A', 'B'], cols: ['1', '2'], entrance: 'A1', exit: 'B2'),
         ),
       );
       await tester.pump();

@@ -89,7 +89,15 @@ void main() {
 
   setUpAll(() async {
     registerFallbackValue(
-      Supermarket(id: '', name: '', rows: [], cols: [], entrance: '', exit: '', cells: {}),
+      Supermarket(
+        id: '',
+        name: '',
+        rows: [],
+        cols: [],
+        entrance: '',
+        exit: '',
+        cells: {},
+      ),
     );
     hiveDir = await setUpHive();
   });
@@ -131,15 +139,17 @@ void main() {
       expect(find.byIcon(Icons.add), findsOneWidget);
     });
 
-    testWidgets('cancel asks for confirmation when no changes made (no dialog)',
-        (tester) async {
-      await tester.pumpWidget(_wrap(const StoreEditorScreen()));
-      await tester.pumpAndSettle();
-      // Tapping back when no changes should pop without dialog.
-      final NavigatorState navigator = tester.state(find.byType(Navigator));
-      navigator.pop();
-      await tester.pumpAndSettle();
-    });
+    testWidgets(
+      'cancel asks for confirmation when no changes made (no dialog)',
+      (tester) async {
+        await tester.pumpWidget(_wrap(const StoreEditorScreen()));
+        await tester.pumpAndSettle();
+        // Tapping back when no changes should pop without dialog.
+        final NavigatorState navigator = tester.state(find.byType(Navigator));
+        navigator.pop();
+        await tester.pumpAndSettle();
+      },
+    );
   });
 
   group('StoreEditorScreen – editing an existing store', () {
@@ -345,9 +355,7 @@ void main() {
       expect(find.byIcon(Icons.delete_outline), findsOneWidget);
     });
 
-    testWidgets('tapping remove-floor removes the extra floor', (
-      tester,
-    ) async {
+    testWidgets('tapping remove-floor removes the extra floor', (tester) async {
       await tester.pumpWidget(_wrap(const StoreEditorScreen()));
       await tester.pumpAndSettle();
 

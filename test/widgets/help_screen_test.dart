@@ -27,7 +27,9 @@ void main() {
     });
 
     testWidgets('renders in German without error', (tester) async {
-      await tester.pumpWidget(_app(const HelpScreen(), locale: const Locale('de')));
+      await tester.pumpWidget(
+        _app(const HelpScreen(), locale: const Locale('de')),
+      );
       await tester.pumpAndSettle();
       expect(find.text('So funktioniert Fairelescourses'), findsOneWidget);
       expect(find.text('Los geht\'s'), findsOneWidget);
@@ -41,9 +43,9 @@ void main() {
           home: Builder(
             builder: (ctx) => Scaffold(
               body: TextButton(
-                onPressed: () => Navigator.of(ctx).push(
-                  MaterialPageRoute(builder: (_) => const HelpScreen()),
-                ),
+                onPressed: () => Navigator.of(
+                  ctx,
+                ).push(MaterialPageRoute(builder: (_) => const HelpScreen())),
                 child: const Text('Open'),
               ),
             ),

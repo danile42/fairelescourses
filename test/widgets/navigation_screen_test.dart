@@ -38,7 +38,9 @@ class _FakeListsNotifier extends ShoppingListNotifier {
     state = [
       for (final l in state)
         if (l.id == listId)
-          l.copyWith(items: l.items.map((i) => i.copyWith(checked: false)).toList())
+          l.copyWith(
+            items: l.items.map((i) => i.copyWith(checked: false)).toList(),
+          )
         else
           l,
     ];
@@ -601,9 +603,8 @@ void main() {
                     builder: (_) => ProviderScope(
                       overrides: [
                         shoppingListsProvider.overrideWith(
-                          () => _FakeListsNotifier(
-                            [ShoppingItem(name: 'Milk')],
-                          ),
+                          () =>
+                              _FakeListsNotifier([ShoppingItem(name: 'Milk')]),
                         ),
                         supermarketsProvider.overrideWith(
                           () => _FakeStoresNotifier(),
@@ -643,7 +644,9 @@ void main() {
         StorePlan(
           storeId: 's1',
           storeName: 'TestMart',
-          stops: [NavigationStop(cell: 'A1', items: ['Milk'])],
+          stops: [
+            NavigationStop(cell: 'A1', items: ['Milk']),
+          ],
           unmatched: [],
         ),
       ],

@@ -73,9 +73,7 @@ Widget _wrap(ShoppingList list, {bool isNew = false, NavSession? session}) {
   return ProviderScope(
     overrides: [
       householdProvider.overrideWith(() => _NullHouseholdNotifier()),
-      shoppingListsProvider.overrideWith(
-        () => _FakeListsNotifier([list]),
-      ),
+      shoppingListsProvider.overrideWith(() => _FakeListsNotifier([list])),
       supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
       navSessionProvider.overrideWith((ref) => Stream.value(session)),
       firestoreSyncProvider.overrideWith((ref) {}),
