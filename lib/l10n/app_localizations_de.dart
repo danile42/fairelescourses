@@ -695,7 +695,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get shopEditorHelpSplitBody =>
-      'Doppeltippen auf ein Feld teilt es in zwei H\u00e4lften \u2013 z.\u00a0B. f\u00fcr G\u00e4nge mit linker und rechter Seite. Langes Tippen auf ein geteiltes Feld \u00fcbertr\u00e4gt die Teilung auf die gesamte Reihe oder Spalte.';
+      'Doppeltippen auf ein Feld teilt es in zwei Hälften – z. B. für Gänge mit linker und rechter Seite. Langes Tippen auf ein geteiltes Feld überträgt die Teilung auf die gesamte Reihe oder Spalte.';
 
   @override
   String get shopEditorHelpClose => 'Verstanden';

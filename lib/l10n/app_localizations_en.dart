@@ -686,7 +686,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shopEditorHelpSplitBody =>
-      'Double-tap a cell to split it into two halves \u2014 useful for aisles with a left and right side. Long-press a split cell to promote the division across the whole row or column.';
+      'Double-tap a cell to split it into two halves — useful for aisles with a left and right side. Long-press a split cell to promote the division across the whole row or column.';
 
   @override
   String get shopEditorHelpClose => 'Got it';

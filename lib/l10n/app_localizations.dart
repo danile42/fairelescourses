@@ -1355,7 +1355,7 @@ abstract class AppLocalizations {
   /// No description provided for @shopEditorHelpSplitBody.
   ///
   /// In en, this message translates to:
-  /// **'Double-tap a cell to split it into two halves — useful for aisles with a left and right side.'**
+  /// **'Double-tap a cell to split it into two halves — useful for aisles with a left and right side. Long-press a split cell to promote the division across the whole row or column.'**
   String get shopEditorHelpSplitBody;
 
   /// No description provided for @shopEditorHelpClose.
@@ -1379,7 +1379,7 @@ abstract class AppLocalizations {
   /// No description provided for @firebaseHelpProjectBody.
   ///
   /// In en, this message translates to:
-  /// **'Go to console.firebase.google.com, create a new project, and register an Android app with this app\'s package name.'**
+  /// **'Go to console.firebase.google.com, create a new project, and register an Android app with the package name com.fairelescourses.fairelescourses.'**
   String get firebaseHelpProjectBody;
 
   /// No description provided for @firebaseHelpFirestoreTitle.
