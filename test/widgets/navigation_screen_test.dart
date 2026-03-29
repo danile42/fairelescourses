@@ -25,6 +25,24 @@ class _FakeListsNotifier extends ShoppingListNotifier {
       items: _items,
     ),
   ];
+
+  @override
+  Future<void> add(ShoppingList l) async => state = [...state, l];
+
+  @override
+  Future<void> update(ShoppingList l) async =>
+      state = [for (final e in state) e.id == l.id ? l : e];
+
+  @override
+  Future<void> uncheckAll(String listId) async {
+    state = [
+      for (final l in state)
+        if (l.id == listId)
+          l.copyWith(items: l.items.map((i) => i.copyWith(checked: false)).toList())
+        else
+          l,
+    ];
+  }
 }
 
 class _FakeStoresNotifier extends SupermarketNotifier {
@@ -502,6 +520,228 @@ void main() {
 
       // Both carried-over 'Milk' (unavailable) and regular 'Bread' show schedule.
       expect(find.byIcon(Icons.schedule), findsNWidgets(2));
+    });
+  });
+
+  // ── Checkbox toggles ──────────────────────────────────────────────────────
+
+  group('NavigationScreen – checkbox interactions', () {
+    testWidgets('tapping checkbox marks item checked', (tester) async {
+      await tester.pumpWidget(_wrap(_singleStorePlan(['Milk', 'Bread'])));
+      await tester.pumpAndSettle();
+
+      final checkboxes = find.byType(Checkbox);
+      await tester.tap(checkboxes.first);
+      await tester.pumpAndSettle();
+
+      final checkbox = tester.widget<Checkbox>(checkboxes.first);
+      expect(checkbox.value, isTrue);
+    });
+
+    testWidgets('tapping checked checkbox unchecks it', (tester) async {
+      // Use two items so the screen doesn't immediately go to _DoneView.
+      await tester.pumpWidget(
+        _wrap(
+          _singleStorePlan(['Milk', 'Bread']),
+          listItems: [
+            ShoppingItem(name: 'Milk', checked: true),
+            ShoppingItem(name: 'Bread'),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // The first checkbox should be for 'Milk' (already checked = true).
+      final checkboxes = find.byType(Checkbox);
+      final milkCheckbox = tester.widget<Checkbox>(checkboxes.first);
+      expect(milkCheckbox.value, isTrue);
+
+      // Tap it to uncheck.
+      await tester.tap(checkboxes.first);
+      await tester.pumpAndSettle();
+
+      final afterToggle = tester.widget<Checkbox>(find.byType(Checkbox).first);
+      expect(afterToggle.value, isFalse);
+    });
+
+    testWidgets('checking all items triggers done view', (tester) async {
+      await tester.pumpWidget(_wrap(_singleStorePlan(['Milk'])));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
+    });
+  });
+
+  // ── Cancel tour popup ─────────────────────────────────────────────────────
+
+  group('NavigationScreen – cancel tour', () {
+    testWidgets('popup menu shows cancel-tour option', (tester) async {
+      await tester.pumpWidget(_wrap(_singleStorePlan(['Milk'])));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Cancel tour'), findsOneWidget);
+    });
+
+    testWidgets('selecting cancel tour pops the screen', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Builder(
+            builder: (ctx) => Scaffold(
+              body: TextButton(
+                onPressed: () => Navigator.of(ctx).push(
+                  MaterialPageRoute(
+                    builder: (_) => ProviderScope(
+                      overrides: [
+                        shoppingListsProvider.overrideWith(
+                          () => _FakeListsNotifier(
+                            [ShoppingItem(name: 'Milk')],
+                          ),
+                        ),
+                        supermarketsProvider.overrideWith(
+                          () => _FakeStoresNotifier(),
+                        ),
+                      ],
+                      child: NavigationScreen(
+                        plan: _singleStorePlan(['Milk']),
+                        listId: _listId,
+                      ),
+                    ),
+                  ),
+                ),
+                child: const Text('Open'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel tour'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Open'), findsOneWidget);
+    });
+  });
+
+  // ── Unmatched items ───────────────────────────────────────────────────────
+
+  group('NavigationScreen – unmatched items', () {
+    NavigationPlan _planWithUnmatched() => NavigationPlan(
+      storePlans: [
+        StorePlan(
+          storeId: 's1',
+          storeName: 'TestMart',
+          stops: [NavigationStop(cell: 'A1', items: ['Milk'])],
+          unmatched: [],
+        ),
+      ],
+      globalUnmatched: ['Cheese', 'Butter'],
+    );
+
+    testWidgets('list view shows unmatched section', (tester) async {
+      await tester.pumpWidget(_wrap(_planWithUnmatched()));
+      await tester.pumpAndSettle();
+
+      // Switch to list view to see unmatched section.
+      await tester.tap(find.byIcon(Icons.list));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Not found'), findsWidgets);
+    });
+
+    testWidgets('done view with unmatched shows warning section', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap(_planWithUnmatched()));
+      await tester.pumpAndSettle();
+
+      // Check the only matched item to reach done view.
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pumpAndSettle();
+
+      // Done view should appear.
+      expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
+      // Unmatched section in done view (orange warning).
+      expect(find.byIcon(Icons.warning_amber_outlined), findsOneWidget);
+    });
+
+    testWidgets('finish button appears in done view at last store', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap(_singleStorePlan(['Milk'])));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Finish'), findsOneWidget);
+    });
+  });
+
+  // ── German locale ─────────────────────────────────────────────────────────
+
+  group('NavigationScreen – German locale', () {
+    testWidgets('renders in German without error', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            shoppingListsProvider.overrideWith(
+              () => _FakeListsNotifier([ShoppingItem(name: 'Milch')]),
+            ),
+            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+          ],
+          child: MaterialApp(
+            locale: const Locale('de'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: NavigationScreen(
+              plan: _singleStorePlan(['Milch']),
+              listId: _listId,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Navigation'), findsOneWidget);
+    });
+  });
+
+  // ── View mode toggle ──────────────────────────────────────────────────────
+
+  group('NavigationScreen – view mode', () {
+    testWidgets('tapping view toggle switches to list view', (tester) async {
+      await tester.pumpWidget(_wrap(_singleStorePlan(['Milk', 'Bread'])));
+      await tester.pumpAndSettle();
+
+      // Initial mode is grid — icon shows Icons.list to switch to list view.
+      await tester.tap(find.byIcon(Icons.list));
+      await tester.pumpAndSettle();
+
+      // After switching, icon shows Icons.grid_view to switch back.
+      expect(find.byIcon(Icons.grid_view), findsOneWidget);
+    });
+
+    testWidgets('items are still visible in list view', (tester) async {
+      await tester.pumpWidget(_wrap(_singleStorePlan(['Milk', 'Bread'])));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.list));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Milk'), findsOneWidget);
+      expect(find.text('Bread'), findsOneWidget);
     });
   });
 }

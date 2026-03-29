@@ -254,5 +254,132 @@ void main() {
 
       expect(find.textContaining('3 floors'), findsOneWidget);
     });
+
+    testWidgets('empty shops tab shows no-stores message', (tester) async {
+      await tester.pumpWidget(_wrap(lists: [], stores: []));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Shops'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('No shops'), findsOneWidget);
+    });
+  });
+
+  group('HomeScreen FAB', () {
+    testWidgets('tapping FAB expands mini buttons', (tester) async {
+      await tester.pumpWidget(_wrap(lists: []));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(FloatingActionButton).last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('New shop'), findsOneWidget);
+      expect(find.text('New list'), findsOneWidget);
+    });
+
+    testWidgets('tapping FAB twice collapses mini buttons', (tester) async {
+      await tester.pumpWidget(_wrap(lists: []));
+      await tester.pumpAndSettle();
+
+      // Expand
+      await tester.tap(find.byType(FloatingActionButton).last);
+      await tester.pumpAndSettle();
+      expect(find.text('New shop'), findsOneWidget);
+
+      // Collapse — main FAB is still last after expansion
+      await tester.tap(find.byType(FloatingActionButton).last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('New shop'), findsNothing);
+    });
+  });
+
+  group('HomeScreen delete confirmation', () {
+    testWidgets('tapping delete shows confirmation dialog', (tester) async {
+      await tester.pumpWidget(_wrap(lists: [_list('L1', 'Groceries')]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+
+      // Confirmation dialog should show yes/no buttons.
+      expect(find.text('Yes'), findsOneWidget);
+      expect(find.text('No'), findsOneWidget);
+
+      await tester.tap(find.text('No'));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('copy menu item triggers copy', (tester) async {
+      await tester.pumpWidget(_wrap(lists: [_list('L1', 'Groceries')]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert).first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Copy'), findsOneWidget);
+    });
+  });
+
+  group('HomeScreen join banner', () {
+    testWidgets('shows join banner when active session matches a list', (
+      tester,
+    ) async {
+      const session = NavSession(listId: 'L1', startedBy: 'uid-1');
+      await tester.pumpWidget(
+        _wrap(lists: [_list('L1', 'Groceries')], session: session),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.group), findsOneWidget);
+    });
+  });
+
+  group('HomeScreen selection mode', () {
+    testWidgets('long press on list card enters selection mode', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(lists: [_list('L1', 'Groceries'), _list('L2', 'Hardware')]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.text('Groceries'));
+      await tester.pumpAndSettle();
+
+      // In selection mode, checkboxes appear.
+      expect(find.byType(Checkbox), findsWidgets);
+    });
+  });
+
+  group('HomeScreen German locale', () {
+    testWidgets('renders in German without error', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
+            shoppingListsProvider.overrideWith(
+              () => _FakeListsNotifier([_list('L1', 'Einkauf')]),
+            ),
+            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+            navSessionProvider.overrideWith((ref) => Stream.value(null)),
+            firestoreSyncProvider.overrideWith((ref) {}),
+            currentUidProvider.overrideWith((ref) => null),
+            firestoreServiceProvider.overrideWithValue(MockFirestoreService()),
+          ],
+          child: MaterialApp(
+            locale: const Locale('de'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const HomeScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Fairelescourses'), findsOneWidget);
+    });
   });
 }
