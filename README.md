@@ -158,4 +158,4 @@ This project was built incrementally over many sessions: each prompt added a fea
 
 ## Licence
 
-MIT
+[Apache 2.0](LICENSE)
