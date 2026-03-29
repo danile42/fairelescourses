@@ -117,3 +117,9 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 48. Set the project's licence to Apache 2.0.
 
 49. Add the latest prompts (including this one) to the prompts file.
+
+50. Commit the latest changes. Then, add tests until you reach 50 per cent code coverage.
+
+51. Commit the current state.
+
+52. Add the latest prompts that are not already in prompts.md to that file (including this one). Then commit.
