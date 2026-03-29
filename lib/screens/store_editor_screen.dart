@@ -13,7 +13,6 @@ import 'help_screen.dart';
 
 enum _ExitAction { save, discard }
 
-
 const _uuid = Uuid();
 const _maxDim = 26;
 
@@ -23,7 +22,13 @@ List<String> _makeRows(int n) =>
 List<String> _makeCols(int n) =>
     List.generate(n, (i) => '${i + 1}'); // 1, 2, 3 …
 
-typedef ShopPrefill = ({String name, String? address, double? lat, double? lng, String? osmCategory});
+typedef ShopPrefill = ({
+  String name,
+  String? address,
+  double? lat,
+  double? lng,
+  String? osmCategory,
+});
 
 /// Holds the editable state for one floor in the store editor.
 class _FloorEditData {
@@ -43,8 +48,8 @@ class _FloorEditData {
     required this.exit,
     Map<String, List<String>>? cells,
     Map<String, List<String>>? subcells,
-  })  : cells = cells ?? {},
-        subcells = subcells ?? {};
+  }) : cells = cells ?? {},
+       subcells = subcells ?? {};
 }
 
 class StoreEditorScreen extends ConsumerStatefulWidget {
@@ -58,8 +63,12 @@ class StoreEditorScreen extends ConsumerStatefulWidget {
   /// regardless of what the user is currently typing.
   final List<String> focusItems;
 
-  const StoreEditorScreen(
-      {super.key, this.existing, this.prefill, this.focusItems = const []});
+  const StoreEditorScreen({
+    super.key,
+    this.existing,
+    this.prefill,
+    this.focusItems = const [],
+  });
 
   @override
   ConsumerState<StoreEditorScreen> createState() => _StoreEditorScreenState();
@@ -83,9 +92,11 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
   int get _colCount => _floorData[_currentFloor].colCount;
   set _colCount(int v) => _floorData[_currentFloor].colCount = v;
   Map<String, List<String>> get _cells => _floorData[_currentFloor].cells;
-  set _cells(Map<String, List<String>> v) => _floorData[_currentFloor].cells = v;
+  set _cells(Map<String, List<String>> v) =>
+      _floorData[_currentFloor].cells = v;
   Map<String, List<String>> get _subcells => _floorData[_currentFloor].subcells;
-  set _subcells(Map<String, List<String>> v) => _floorData[_currentFloor].subcells = v;
+  set _subcells(Map<String, List<String>> v) =>
+      _floorData[_currentFloor].subcells = v;
 
   @override
   void initState() {
@@ -103,31 +114,37 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
         exit: s?.exit ?? 'E5',
         cells: s != null
             ? Map<String, List<String>>.from(
-                s.cells.map((k, v) => MapEntry(k, List<String>.from(v))))
+                s.cells.map((k, v) => MapEntry(k, List<String>.from(v))),
+              )
             : {},
         subcells: s != null
             ? Map<String, List<String>>.from(
-                s.subcells.map((k, v) => MapEntry(k, List<String>.from(v))))
+                s.subcells.map((k, v) => MapEntry(k, List<String>.from(v))),
+              )
             : {},
       ),
       if (s != null)
-        ...s.additionalFloors.map((f) => _FloorEditData(
-              name: f.name,
-              rowCount: f.rows.length.clamp(1, _maxDim),
-              colCount: f.cols.length.clamp(1, _maxDim),
-              entrance: f.entrance,
-              exit: f.exit,
-              cells: Map<String, List<String>>.from(
-                  f.cells.map((k, v) => MapEntry(k, List<String>.from(v)))),
-              subcells: Map<String, List<String>>.from(
-                  f.subcells.map((k, v) => MapEntry(k, List<String>.from(v)))),
-            )),
+        ...s.additionalFloors.map(
+          (f) => _FloorEditData(
+            name: f.name,
+            rowCount: f.rows.length.clamp(1, _maxDim),
+            colCount: f.cols.length.clamp(1, _maxDim),
+            entrance: f.entrance,
+            exit: f.exit,
+            cells: Map<String, List<String>>.from(
+              f.cells.map((k, v) => MapEntry(k, List<String>.from(v))),
+            ),
+            subcells: Map<String, List<String>>.from(
+              f.subcells.map((k, v) => MapEntry(k, List<String>.from(v))),
+            ),
+          ),
+        ),
     ];
 
-    _nameCtrl    = TextEditingController(text: s?.name ?? p?.name ?? '');
+    _nameCtrl = TextEditingController(text: s?.name ?? p?.name ?? '');
     _entranceCtrl = TextEditingController(text: _floorData[0].entrance);
-    _exitCtrl     = TextEditingController(text: _floorData[0].exit);
-    _addressCtrl  = TextEditingController(text: s?.address ?? p?.address ?? '');
+    _exitCtrl = TextEditingController(text: _floorData[0].exit);
+    _addressCtrl = TextEditingController(text: s?.address ?? p?.address ?? '');
     _floorNameCtrl = TextEditingController(text: _floorData[0].name);
 
     _nameCtrl.addListener(() => setState(() => _dirty = true));
@@ -157,7 +174,9 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
 
   void _switchFloor(int newIndex) {
     // Persist current controller values before switching.
-    _floorData[_currentFloor].entrance = _entranceCtrl.text.trim().toUpperCase();
+    _floorData[_currentFloor].entrance = _entranceCtrl.text
+        .trim()
+        .toUpperCase();
     _floorData[_currentFloor].exit = _exitCtrl.text.trim().toUpperCase();
     setState(() {
       _currentFloor = newIndex;
@@ -168,12 +187,19 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
   }
 
   void _addFloor() {
-    _floorData[_currentFloor].entrance = _entranceCtrl.text.trim().toUpperCase();
+    _floorData[_currentFloor].entrance = _entranceCtrl.text
+        .trim()
+        .toUpperCase();
     _floorData[_currentFloor].exit = _exitCtrl.text.trim().toUpperCase();
     final prev = _floorData[_currentFloor];
     final rows = prev.rowCount;
     final cols = prev.colCount;
-    final newFloor = _FloorEditData(rowCount: rows, colCount: cols, entrance: 'A1', exit: 'A1');
+    final newFloor = _FloorEditData(
+      rowCount: rows,
+      colCount: cols,
+      entrance: 'A1',
+      exit: 'A1',
+    );
     setState(() {
       _dirty = true;
       _floorData.add(newFloor);
@@ -203,11 +229,10 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
   void _pruneAfterResize() {
     final validCells = {
       for (final r in _rows)
-        for (final c in _cols) '$r$c'
+        for (final c in _cols) '$r$c',
     };
     _cells.removeWhere((k, _) => !validCells.contains(k));
-    _subcells
-        .removeWhere((k, _) => !validCells.contains(k.split(':').first));
+    _subcells.removeWhere((k, _) => !validCells.contains(k.split(':').first));
 
     if (!validCells.contains(_entranceCtrl.text.toUpperCase())) {
       _entranceCtrl.text = '${_rows.first}${_cols.first}';
@@ -245,11 +270,11 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
     final currentCols = _cols;
 
     final affectedItems = <String>[
+      for (final col in currentCols) ...(_cells['$rowLabel$col'] ?? []),
       for (final col in currentCols)
-        ...(_cells['$rowLabel$col'] ?? []),
-      for (final col in currentCols)
-        for (final key
-            in _subcells.keys.where((k) => k.startsWith('$rowLabel$col:')))
+        for (final key in _subcells.keys.where(
+          (k) => k.startsWith('$rowLabel$col:'),
+        ))
           ...(_subcells[key] ?? []),
     ];
 
@@ -261,11 +286,13 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
           content: Text(affectedItems.join(', ')),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: Text(l.cancel)),
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l.cancel),
+            ),
             TextButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: Text(l.delete)),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l.delete),
+            ),
           ],
         ),
       );
@@ -279,7 +306,8 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       final row = cellId[0];
       final colPart = cellId.substring(1);
       final idx = oldRows.indexOf(row);
-      if (idx < 0 || idx == rowIndex) return '${newRows.first}${currentCols.first}';
+      if (idx < 0 || idx == rowIndex)
+        return '${newRows.first}${currentCols.first}';
       if (idx > rowIndex) return '${newRows[idx - 1]}$colPart';
       return cellId;
     }
@@ -289,7 +317,8 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       for (final col in currentCols) {
         final cellId = '$rowLabel$col';
         _cells.remove(cellId);
-        for (final key in _subcells.keys.where((k) => k.startsWith('$cellId:')).toList()) {
+        for (final key
+            in _subcells.keys.where((k) => k.startsWith('$cellId:')).toList()) {
           _subcells.remove(key);
         }
       }
@@ -300,7 +329,10 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
           final oldId = '$oldRow$col';
           final newId = '$newRow$col';
           if (_cells.containsKey(oldId)) _cells[newId] = _cells.remove(oldId)!;
-          for (final key in _subcells.keys.where((k) => k.startsWith('$oldId:')).toList()) {
+          for (final key
+              in _subcells.keys
+                  .where((k) => k.startsWith('$oldId:'))
+                  .toList()) {
             final suffix = key.substring(oldId.length);
             _subcells['$newId$suffix'] = _subcells.remove(key)!;
           }
@@ -320,11 +352,11 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
     final currentRows = _rows;
 
     final affectedItems = <String>[
+      for (final row in currentRows) ...(_cells['$row$colLabel'] ?? []),
       for (final row in currentRows)
-        ...(_cells['$row$colLabel'] ?? []),
-      for (final row in currentRows)
-        for (final key
-            in _subcells.keys.where((k) => k.startsWith('$row$colLabel:')))
+        for (final key in _subcells.keys.where(
+          (k) => k.startsWith('$row$colLabel:'),
+        ))
           ...(_subcells[key] ?? []),
     ];
 
@@ -336,11 +368,13 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
           content: Text(affectedItems.join(', ')),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: Text(l.cancel)),
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l.cancel),
+            ),
             TextButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: Text(l.delete)),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l.delete),
+            ),
           ],
         ),
       );
@@ -354,7 +388,8 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       final row = cellId[0];
       final col = cellId.substring(1);
       final idx = oldCols.indexOf(col);
-      if (idx < 0 || idx == colIndex) return '${currentRows.first}${newCols.first}';
+      if (idx < 0 || idx == colIndex)
+        return '${currentRows.first}${newCols.first}';
       if (idx > colIndex) return '$row${newCols[idx - 1]}';
       return cellId;
     }
@@ -364,7 +399,8 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       for (final row in currentRows) {
         final cellId = '$row$colLabel';
         _cells.remove(cellId);
-        for (final key in _subcells.keys.where((k) => k.startsWith('$cellId:')).toList()) {
+        for (final key
+            in _subcells.keys.where((k) => k.startsWith('$cellId:')).toList()) {
           _subcells.remove(key);
         }
       }
@@ -375,7 +411,10 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
           final oldId = '$row$oldCol';
           final newId = '$row$newCol';
           if (_cells.containsKey(oldId)) _cells[newId] = _cells.remove(oldId)!;
-          for (final key in _subcells.keys.where((k) => k.startsWith('$oldId:')).toList()) {
+          for (final key
+              in _subcells.keys
+                  .where((k) => k.startsWith('$oldId:'))
+                  .toList()) {
             final suffix = key.substring(oldId.length);
             _subcells['$newId$suffix'] = _subcells.remove(key)!;
           }
@@ -390,12 +429,16 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
   Future<void> _save() async {
     final l = AppLocalizations.of(context)!;
     if (_nameCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.shopName)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l.shopName)));
       return;
     }
 
     // Persist current controller values into floor data before saving.
-    _floorData[_currentFloor].entrance = _entranceCtrl.text.trim().toUpperCase();
+    _floorData[_currentFloor].entrance = _entranceCtrl.text
+        .trim()
+        .toUpperCase();
     _floorData[_currentFloor].exit = _exitCtrl.text.trim().toUpperCase();
 
     double? lat = widget.existing?.lat ?? widget.prefill?.lat;
@@ -403,8 +446,11 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
     final addressText = _addressCtrl.text.trim();
 
     final prefillAddress = widget.prefill?.address;
-    final alreadyGeocoded = lat != null && lng != null &&
-        (addressText == widget.existing?.address || addressText == prefillAddress);
+    final alreadyGeocoded =
+        lat != null &&
+        lng != null &&
+        (addressText == widget.existing?.address ||
+            addressText == prefillAddress);
     if (addressText.isNotEmpty && !alreadyGeocoded) {
       setState(() => _geocoding = true);
       final coords = await NominatimService.geocode(addressText);
@@ -414,8 +460,9 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
         lat = coords.lat;
         lng = coords.lng;
       } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l.geocodeFailed)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l.geocodeFailed)));
       }
     } else if (addressText.isEmpty) {
       lat = null;
@@ -439,15 +486,20 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       groundFloorName: floor0.name.isEmpty ? null : floor0.name,
     );
     if (_floorData.length > 1) {
-      store.additionalFloors = _floorData.sublist(1).map((f) => ShopFloor(
-            name: f.name,
-            rows: _makeRows(f.rowCount),
-            cols: _makeCols(f.colCount),
-            entrance: f.entrance,
-            exit: f.exit,
-            cells: f.cells,
-            subcells: f.subcells,
-          )).toList();
+      store.additionalFloors = _floorData
+          .sublist(1)
+          .map(
+            (f) => ShopFloor(
+              name: f.name,
+              rows: _makeRows(f.rowCount),
+              cols: _makeCols(f.colCount),
+              entrance: f.entrance,
+              exit: f.exit,
+              cells: f.cells,
+              subcells: f.subcells,
+            ),
+          )
+          .toList();
     }
     final notifier = ref.read(supermarketsProvider.notifier);
     if (widget.existing != null) {
@@ -468,9 +520,18 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       builder: (dialogContext) => AlertDialog(
         content: Text(l.unsavedChanges),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(l.keepEditing)),
-          TextButton(onPressed: () => Navigator.pop(dialogContext, _ExitAction.discard), child: Text(l.discardChanges)),
-          TextButton(onPressed: () => Navigator.pop(dialogContext, _ExitAction.save), child: Text(l.save)),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(l.keepEditing),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, _ExitAction.discard),
+            child: Text(l.discardChanges),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, _ExitAction.save),
+            child: Text(l.save),
+          ),
         ],
       ),
     );
@@ -489,15 +550,19 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
   }
 
   List<String> _allListItemNames() {
-    final focus = widget.focusItems.map((s) => s.trim()).where((s) => s.isNotEmpty).toSet();
+    final focus = widget.focusItems
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toSet();
     final lists = ref.read(shoppingListsProvider);
-    final rest = lists
-        .expand((list) => list.items)
-        .map((item) => item.name.trim())
-        .where((name) => name.isNotEmpty && !focus.contains(name))
-        .toSet()
-        .toList()
-      ..sort();
+    final rest =
+        lists
+            .expand((list) => list.items)
+            .map((item) => item.name.trim())
+            .where((name) => name.isNotEmpty && !focus.contains(name))
+            .toSet()
+            .toList()
+          ..sort();
     return [...focus, ...rest];
   }
 
@@ -531,15 +596,17 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
               partial.isEmpty || entered.contains(partial.toLowerCase());
           final filtered = showPinned
               ? pinned
-                  .where((s) => !entered.contains(s.toLowerCase()))
-                  .take(8)
-                  .toList()
+                    .where((s) => !entered.contains(s.toLowerCase()))
+                    .take(8)
+                    .toList()
               : suggestions
-                  .where((s) =>
-                      s.toLowerCase().contains(partial.toLowerCase()) &&
-                      !entered.contains(s.toLowerCase()))
-                  .take(8)
-                  .toList();
+                    .where(
+                      (s) =>
+                          s.toLowerCase().contains(partial.toLowerCase()) &&
+                          !entered.contains(s.toLowerCase()),
+                    )
+                    .take(8)
+                    .toList();
 
           return AlertDialog(
             title: Text(title),
@@ -560,23 +627,26 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
                     spacing: 4,
                     runSpacing: 4,
                     children: filtered
-                        .map((s) => ActionChip(
-                              label: Text(s),
-                              visualDensity: VisualDensity.compact,
-                              onPressed: () {
-                                final lc = ctrl.text.lastIndexOf(',');
-                                final prefix = lc >= 0
-                                    ? '${ctrl.text.substring(0, lc + 1)} '
-                                    : '';
-                                final newText = '$prefix$s, ';
-                                ctrl.value = TextEditingValue(
-                                  text: newText,
-                                  selection: TextSelection.collapsed(
-                                      offset: newText.length),
-                                );
-                                setDialogState(() {});
-                              },
-                            ))
+                        .map(
+                          (s) => ActionChip(
+                            label: Text(s),
+                            visualDensity: VisualDensity.compact,
+                            onPressed: () {
+                              final lc = ctrl.text.lastIndexOf(',');
+                              final prefix = lc >= 0
+                                  ? '${ctrl.text.substring(0, lc + 1)} '
+                                  : '';
+                              final newText = '$prefix$s, ';
+                              ctrl.value = TextEditingValue(
+                                text: newText,
+                                selection: TextSelection.collapsed(
+                                  offset: newText.length,
+                                ),
+                              );
+                              setDialogState(() {});
+                            },
+                          ),
+                        )
                         .toList(),
                   ),
                 ],
@@ -584,11 +654,13 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
             ),
             actions: [
               TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: Text(l.cancel)),
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text(l.cancel),
+              ),
               TextButton(
-                  onPressed: () => Navigator.pop(dialogContext, ctrl.text),
-                  child: Text(l.ok)),
+                onPressed: () => Navigator.pop(dialogContext, ctrl.text),
+                child: Text(l.ok),
+              ),
             ],
           );
         },
@@ -606,19 +678,23 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
         children: [
           SimpleDialogOption(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Row(children: [
-              const Icon(Icons.login, color: Colors.green, size: 20),
-              const SizedBox(width: 12),
-              Text(l.setEntrance),
-            ]),
+            child: Row(
+              children: [
+                const Icon(Icons.login, color: Colors.green, size: 20),
+                const SizedBox(width: 12),
+                Text(l.setEntrance),
+              ],
+            ),
           ),
           SimpleDialogOption(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Row(children: [
-              const Icon(Icons.logout, color: Colors.red, size: 20),
-              const SizedBox(width: 12),
-              Text(l.setExit),
-            ]),
+            child: Row(
+              children: [
+                const Icon(Icons.logout, color: Colors.red, size: 20),
+                const SizedBox(width: 12),
+                Text(l.setExit),
+              ],
+            ),
           ),
         ],
       ),
@@ -647,7 +723,11 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       _highlightCell = null;
       if (result != null) {
         _dirty = true;
-        final goods = result.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+        final goods = result
+            .split(',')
+            .map((s) => s.trim())
+            .where((s) => s.isNotEmpty)
+            .toList();
         if (goods.isEmpty) {
           _cells.remove(cellId);
         } else {
@@ -677,7 +757,11 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       _highlightCell = null;
       if (result != null) {
         _dirty = true;
-        final goods = result.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+        final goods = result
+            .split(',')
+            .map((s) => s.trim())
+            .where((s) => s.isNotEmpty)
+            .toList();
         if (goods.isEmpty) {
           _subcells.remove(subcellKey);
         } else {
@@ -738,8 +822,7 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
   /// Shows promote / revert options for a split cell.
   void _splitCellOptions(String cellId) async {
     final l = AppLocalizations.of(context)!;
-    final axisKey =
-        _subcells.keys.firstWhere((k) => k.startsWith('$cellId:'));
+    final axisKey = _subcells.keys.firstWhere((k) => k.startsWith('$cellId:'));
     final axis = axisKey.split(':')[1];
     final items0 = List<String>.from(_subcells['$cellId:$axis:0'] ?? []);
     final items1 = List<String>.from(_subcells['$cellId:$axis:1'] ?? []);
@@ -763,8 +846,7 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
 
   /// Commits the draft split: inserts a real row or column, migrates items.
   void _promoteSplit(String cellId) {
-    final axisKey =
-        _subcells.keys.firstWhere((k) => k.startsWith('$cellId:'));
+    final axisKey = _subcells.keys.firstWhere((k) => k.startsWith('$cellId:'));
     final axis = axisKey.split(':')[1];
     final key0 = '$cellId:$axis:0';
     final key1 = '$cellId:$axis:1';
@@ -799,8 +881,14 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
         final newCols = _makeCols(_colCount);
 
         _cells = _remapKeys(_cells, rows, cols, newCols, colIdx, isCol: true);
-        _subcells =
-            _remapSubcellKeys(_subcells, rows, cols, newCols, colIdx, isCol: true);
+        _subcells = _remapSubcellKeys(
+          _subcells,
+          rows,
+          cols,
+          newCols,
+          colIdx,
+          isCol: true,
+        );
 
         final newColLabel = newCols[colIdx + 1];
         if (items0.isNotEmpty) _cells[cellId] = items0;
@@ -812,8 +900,14 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
         final newRows = _makeRows(_rowCount);
 
         _cells = _remapKeys(_cells, rows, cols, newRows, rowIdx, isCol: false);
-        _subcells =
-            _remapSubcellKeys(_subcells, rows, cols, newRows, rowIdx, isCol: false);
+        _subcells = _remapSubcellKeys(
+          _subcells,
+          rows,
+          cols,
+          newRows,
+          rowIdx,
+          isCol: false,
+        );
 
         final newRowLabel = newRows[rowIdx + 1];
         if (items0.isNotEmpty) _cells[cellId] = items0;
@@ -836,7 +930,8 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
     final result = <String, List<String>>{};
     for (final entry in map.entries) {
       final cellRow = rows.firstWhere(
-        (r) => entry.key.startsWith(r) &&
+        (r) =>
+            entry.key.startsWith(r) &&
             cols.contains(entry.key.substring(r.length)),
         orElse: () => '',
       );
@@ -869,8 +964,7 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       final subParts = entry.key.split(':');
       final base = subParts[0];
       final cellRow = rows.firstWhere(
-        (r) =>
-            base.startsWith(r) && cols.contains(base.substring(r.length)),
+        (r) => base.startsWith(r) && cols.contains(base.substring(r.length)),
         orElse: () => '',
       );
       if (cellRow.isEmpty) continue;
@@ -900,7 +994,8 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       for (var i = insertedAfterIdx + 1; i < oldLabels.length; i++) {
         final old = oldLabels[i];
         if (isCol && val.endsWith(old)) {
-          ctrl.text = '${val.substring(0, val.length - old.length)}${newLabels[i + 1]}';
+          ctrl.text =
+              '${val.substring(0, val.length - old.length)}${newLabels[i + 1]}';
           return;
         } else if (!isCol && val.startsWith(old)) {
           ctrl.text = '${newLabels[i + 1]}${val.substring(old.length)}';
@@ -915,12 +1010,8 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
 
   /// Reverts a draft split: merges both halves back into the main cell.
   void _revertSplit(String cellId) {
-    final keys = _subcells.keys
-        .where((k) => k.startsWith('$cellId:'))
-        .toList();
-    final allItems = <String>[
-      for (final key in keys) ...?_subcells[key],
-    ];
+    final keys = _subcells.keys.where((k) => k.startsWith('$cellId:')).toList();
+    final allItems = <String>[for (final key in keys) ...?_subcells[key]];
     setState(() {
       _dirty = true;
       for (final key in keys) {
@@ -952,95 +1043,107 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
         }
       },
       child: Scaffold(
-      appBar: AppBar(
-        title: Text(widget.existing == null ? l.newShop : l.editShop),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.help_outline),
-            color: Colors.white,
-            tooltip: l.shopEditorHelpTitle,
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ShopEditorHelpScreen()),
-            ),
-          ),
-          if (_geocoding)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-              ),
-            )
-          else
-            TextButton(
-              onPressed: () => _save(),
-              child: Text(l.save, style: const TextStyle(color: Colors.white)),
-            ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: _nameCtrl,
-              decoration: InputDecoration(labelText: l.shopName, border: const OutlineInputBorder()),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _addressCtrl,
-              decoration: InputDecoration(labelText: l.shopAddress, border: const OutlineInputBorder()),
-            ),
-            const SizedBox(height: 16),
-            // ── Floor tabs ─────────────────────────────────────────────────
-            _FloorTabBar(
-              floorData: _floorData,
-              currentFloor: _currentFloor,
-              onSwitch: _switchFloor,
-              onAdd: _addFloor,
-              onRemove: _currentFloor > 0 ? _removeCurrentFloor : null,
-              floorLabel: (n) {
-                final name = _floorData[n].name;
-                if (name.isNotEmpty) return name;
-                return n == 0 ? l.groundFloor : l.floorIndex(n);
-              },
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _floorNameCtrl,
-              decoration: InputDecoration(
-                labelText: l.floorName,
-                border: const OutlineInputBorder(),
-                isDense: true,
+        appBar: AppBar(
+          title: Text(widget.existing == null ? l.newShop : l.editShop),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          foregroundColor: Colors.white,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.help_outline),
+              color: Colors.white,
+              tooltip: l.shopEditorHelpTitle,
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ShopEditorHelpScreen()),
               ),
             ),
-            const SizedBox(height: 12),
-            StoreGrid(
-              rows: rows,
-              cols: cols,
-              cells: _cells,
-              subcells: _subcells,
-              entrance: _entranceCtrl.text.trim().toUpperCase(),
-              exit: _exitCtrl.text.trim().toUpperCase(),
-              highlightCell: _highlightCell,
-              onCellTap: _onCellTap,
-              onCellLongPress: _onCellLongPress,
-              onCellDoubleTap: _startSplit,
-              onSubcellTap: _editSubcell,
-              onSplitCellLongPress: _splitCellOptions,
-              onAddRow: _rowCount < _maxDim ? () => _changeRows(1) : null,
-              onAddCol: _colCount < _maxDim ? () => _changeCols(1) : null,
-              onRowLongPress: _removeRowAt,
-              onColLongPress: _removeColAt,
-            ),
+            if (_geocoding)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                ),
+              )
+            else
+              TextButton(
+                onPressed: () => _save(),
+                child: Text(
+                  l.save,
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
           ],
         ),
-      ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: _nameCtrl,
+                decoration: InputDecoration(
+                  labelText: l.shopName,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _addressCtrl,
+                decoration: InputDecoration(
+                  labelText: l.shopAddress,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // ── Floor tabs ─────────────────────────────────────────────────
+              _FloorTabBar(
+                floorData: _floorData,
+                currentFloor: _currentFloor,
+                onSwitch: _switchFloor,
+                onAdd: _addFloor,
+                onRemove: _currentFloor > 0 ? _removeCurrentFloor : null,
+                floorLabel: (n) {
+                  final name = _floorData[n].name;
+                  if (name.isNotEmpty) return name;
+                  return n == 0 ? l.groundFloor : l.floorIndex(n);
+                },
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _floorNameCtrl,
+                decoration: InputDecoration(
+                  labelText: l.floorName,
+                  border: const OutlineInputBorder(),
+                  isDense: true,
+                ),
+              ),
+              const SizedBox(height: 12),
+              StoreGrid(
+                rows: rows,
+                cols: cols,
+                cells: _cells,
+                subcells: _subcells,
+                entrance: _entranceCtrl.text.trim().toUpperCase(),
+                exit: _exitCtrl.text.trim().toUpperCase(),
+                highlightCell: _highlightCell,
+                onCellTap: _onCellTap,
+                onCellLongPress: _onCellLongPress,
+                onCellDoubleTap: _startSplit,
+                onSubcellTap: _editSubcell,
+                onSplitCellLongPress: _splitCellOptions,
+                onAddRow: _rowCount < _maxDim ? () => _changeRows(1) : null,
+                onAddCol: _colCount < _maxDim ? () => _changeCols(1) : null,
+                onRowLongPress: _removeRowAt,
+                onColLongPress: _removeColAt,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1079,7 +1182,9 @@ class _AxisDialog extends StatelessWidget {
       ),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(context), child: Text(l.cancel)),
+          onPressed: () => Navigator.pop(context),
+          child: Text(l.cancel),
+        ),
       ],
     );
   }
@@ -1116,15 +1221,21 @@ class _AxisCard extends StatelessWidget {
           children: [
             visual,
             const SizedBox(height: 8),
-            Text(label,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 2),
-            Text(sublabel,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.labelSmall
-                    ?.copyWith(color: theme.colorScheme.outline)),
+            Text(
+              sublabel,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.outline,
+              ),
+            ),
           ],
         ),
       ),
@@ -1147,31 +1258,32 @@ class _SplitVisual extends StatelessWidget {
     final divider = theme.colorScheme.outline;
 
     Widget half(Color color, {BorderRadius? radius}) => Expanded(
-          child: Container(
-            decoration: BoxDecoration(color: color, borderRadius: radius),
-          ),
-        );
+      child: Container(
+        decoration: BoxDecoration(color: color, borderRadius: radius),
+      ),
+    );
 
     const r = Radius.circular(4);
     final body = axis == 'col'
-        ? Row(children: [
-            half(c0, radius: const BorderRadius.horizontal(left: r)),
-            Container(width: 1.5, color: divider),
-            half(c1, radius: const BorderRadius.horizontal(right: r)),
-          ])
-        : Column(children: [
-            half(c0, radius: const BorderRadius.vertical(top: r)),
-            Container(height: 1.5, color: divider),
-            half(c1, radius: const BorderRadius.vertical(bottom: r)),
-          ]);
+        ? Row(
+            children: [
+              half(c0, radius: const BorderRadius.horizontal(left: r)),
+              Container(width: 1.5, color: divider),
+              half(c1, radius: const BorderRadius.horizontal(right: r)),
+            ],
+          )
+        : Column(
+            children: [
+              half(c0, radius: const BorderRadius.vertical(top: r)),
+              Container(height: 1.5, color: divider),
+              half(c1, radius: const BorderRadius.vertical(bottom: r)),
+            ],
+          );
 
     return SizedBox(
       width: 72,
       height: 48,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(4),
-        child: body,
-      ),
+      child: ClipRRect(borderRadius: BorderRadius.circular(4), child: body),
     );
   }
 }
@@ -1184,8 +1296,11 @@ class _ItemAssignDialog extends StatefulWidget {
   final AppLocalizations l;
   final List<String> items;
   final String axis; // "col" or "row"
-  const _ItemAssignDialog(
-      {required this.l, required this.items, required this.axis});
+  const _ItemAssignDialog({
+    required this.l,
+    required this.items,
+    required this.axis,
+  });
 
   @override
   State<_ItemAssignDialog> createState() => _ItemAssignDialogState();
@@ -1214,7 +1329,11 @@ class _ItemAssignDialogState extends State<_ItemAssignDialog> {
     final items1 = widget.items.where((i) => _assignments[i] == 1).toList();
 
     Widget panelContent(
-        String label, Color color, List<String> panelItems, int half) {
+      String label,
+      Color color,
+      List<String> panelItems,
+      int half,
+    ) {
       final moveIcon = isCol
           ? (half == 0 ? Icons.arrow_forward : Icons.arrow_back)
           : (half == 0 ? Icons.arrow_downward : Icons.arrow_upward);
@@ -1230,27 +1349,35 @@ class _ItemAssignDialogState extends State<_ItemAssignDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(label,
-                style: theme.textTheme.labelSmall
-                    ?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              label,
+              style: theme.textTheme.labelSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 6),
             if (panelItems.isEmpty)
-              Text('—',
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: theme.colorScheme.outline))
+              Text(
+                '—',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.outline,
+                ),
+              )
             else
               Wrap(
                 spacing: 4,
                 runSpacing: 4,
                 children: panelItems
-                    .map((item) => ActionChip(
-                          label: Text(item),
-                          labelStyle: theme.textTheme.bodySmall,
-                          avatar: Icon(moveIcon, size: 12),
-                          visualDensity: VisualDensity.compact,
-                          onPressed: () =>
-                              setState(() => _assignments[item] = 1 - half),
-                        ))
+                    .map(
+                      (item) => ActionChip(
+                        label: Text(item),
+                        labelStyle: theme.textTheme.bodySmall,
+                        avatar: Icon(moveIcon, size: 12),
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () =>
+                            setState(() => _assignments[item] = 1 - half),
+                      ),
+                    )
                     .toList(),
               ),
           ],
@@ -1282,10 +1409,13 @@ class _ItemAssignDialogState extends State<_ItemAssignDialog> {
       content: panels,
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(context), child: Text(l.cancel)),
+          onPressed: () => Navigator.pop(context),
+          child: Text(l.cancel),
+        ),
         TextButton(
-            onPressed: () => Navigator.pop(context, _assignments),
-            child: Text(l.ok)),
+          onPressed: () => Navigator.pop(context, _assignments),
+          child: Text(l.ok),
+        ),
       ],
     );
   }
@@ -1344,8 +1474,7 @@ class _SplitOptionsDialog extends StatelessWidget {
                   label: l.promoteSplit,
                   description: l.promoteSplitDesc,
                   color: theme.colorScheme.primaryContainer,
-                  onTap: () =>
-                      Navigator.pop(context, _SplitAction.promote),
+                  onTap: () => Navigator.pop(context, _SplitAction.promote),
                 ),
               ),
               const SizedBox(width: 8),
@@ -1355,8 +1484,7 @@ class _SplitOptionsDialog extends StatelessWidget {
                   label: l.revertSplit,
                   description: l.revertSplitDesc,
                   color: theme.colorScheme.errorContainer,
-                  onTap: () =>
-                      Navigator.pop(context, _SplitAction.revert),
+                  onTap: () => Navigator.pop(context, _SplitAction.revert),
                 ),
               ),
             ],
@@ -1365,8 +1493,9 @@ class _SplitOptionsDialog extends StatelessWidget {
       ),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.cancel)),
+          onPressed: () => Navigator.pop(context),
+          child: Text(l.cancel),
+        ),
       ],
     );
   }
@@ -1397,8 +1526,12 @@ class _SplitPreview extends StatelessWidget {
     final theme = Theme.of(context);
     final divider = theme.colorScheme.outline;
 
-    Widget half(String label, List<String> items, Color color,
-        {BorderRadius? radius}) {
+    Widget half(
+      String label,
+      List<String> items,
+      Color color, {
+      BorderRadius? radius,
+    }) {
       return Container(
         decoration: BoxDecoration(color: color, borderRadius: radius),
         padding: const EdgeInsets.all(8),
@@ -1406,22 +1539,27 @@ class _SplitPreview extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(label,
-                style: theme.textTheme.labelSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onSurface)),
+            Text(
+              label,
+              style: theme.textTheme.labelSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
             const SizedBox(height: 4),
             if (items.isEmpty)
-              Text('—',
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: theme.colorScheme.outline))
+              Text(
+                '—',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.outline,
+                ),
+              )
             else
               Wrap(
                 spacing: 4,
                 runSpacing: 2,
                 children: items
-                    .map((item) => Text(item,
-                        style: theme.textTheme.bodySmall))
+                    .map((item) => Text(item, style: theme.textTheme.bodySmall))
                     .toList(),
               ),
           ],
@@ -1437,11 +1575,23 @@ class _SplitPreview extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(child: half(label0, items0, color0,
-                  radius: const BorderRadius.horizontal(left: r))),
+              Expanded(
+                child: half(
+                  label0,
+                  items0,
+                  color0,
+                  radius: const BorderRadius.horizontal(left: r),
+                ),
+              ),
               Container(width: 1.5, color: divider),
-              Expanded(child: half(label1, items1, color1,
-                  radius: const BorderRadius.horizontal(right: r))),
+              Expanded(
+                child: half(
+                  label1,
+                  items1,
+                  color1,
+                  radius: const BorderRadius.horizontal(right: r),
+                ),
+              ),
             ],
           ),
         ),
@@ -1452,11 +1602,19 @@ class _SplitPreview extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            half(label0, items0, color0,
-                radius: const BorderRadius.vertical(top: r)),
+            half(
+              label0,
+              items0,
+              color0,
+              radius: const BorderRadius.vertical(top: r),
+            ),
             Container(height: 1.5, color: divider),
-            half(label1, items1, color1,
-                radius: const BorderRadius.vertical(bottom: r)),
+            half(
+              label1,
+              items1,
+              color1,
+              radius: const BorderRadius.vertical(bottom: r),
+            ),
           ],
         ),
       );
@@ -1497,15 +1655,21 @@ class _SplitActionCard extends StatelessWidget {
           children: [
             Icon(icon, size: 28, color: theme.colorScheme.onSurface),
             const SizedBox(height: 6),
-            Text(label,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 2),
-            Text(description,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.labelSmall
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            Text(
+              description,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
           ],
         ),
       ),
@@ -1553,10 +1717,16 @@ class _DimensionCounter extends StatelessWidget {
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('$value',
-                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-              Text(suffix,
-                  style: theme.textTheme.labelSmall?.copyWith(color: Colors.grey)),
+              Text(
+                '$value',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                suffix,
+                style: theme.textTheme.labelSmall?.copyWith(color: Colors.grey),
+              ),
             ],
           ),
           IconButton(

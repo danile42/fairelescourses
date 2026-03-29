@@ -23,15 +23,19 @@ class SupermarketAdapter extends TypeAdapter<Supermarket> {
       cols: (fields[3] as List).cast<String>(),
       entrance: fields[4] as String,
       exit: fields[5] as String,
-      cells: (fields[6] as Map).map((dynamic k, dynamic v) =>
-          MapEntry(k as String, (v as List).cast<String>())),
+      cells: (fields[6] as Map).map(
+        (dynamic k, dynamic v) =>
+            MapEntry(k as String, (v as List).cast<String>()),
+      ),
       address: fields[7] as String?,
       lat: fields[8] as double?,
       lng: fields[9] as double?,
       parentId: fields[10] as String?,
       subcells: fields[11] != null
-          ? (fields[11] as Map).map((dynamic k, dynamic v) =>
-              MapEntry(k as String, (v as List).cast<String>()))
+          ? (fields[11] as Map).map(
+              (dynamic k, dynamic v) =>
+                  MapEntry(k as String, (v as List).cast<String>()),
+            )
           : null,
       osmCategory: fields[12] as String?,
       floorsRaw: (fields[14] as List?)?.toList(),

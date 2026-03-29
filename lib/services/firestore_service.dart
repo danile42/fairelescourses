@@ -23,8 +23,8 @@ class FirestoreService {
   final FirebaseAuth _auth;
 
   FirestoreService(FirebaseApp app)
-      : _db = FirebaseFirestore.instanceFor(app: app),
-        _auth = FirebaseAuth.instanceFor(app: app);
+    : _db = FirebaseFirestore.instanceFor(app: app),
+      _auth = FirebaseAuth.instanceFor(app: app);
 
   String? get currentUid => _auth.currentUser?.uid;
 
@@ -53,7 +53,8 @@ class FirestoreService {
     final iv = enc.IV(Uint8List.fromList(combined.sublist(0, 16)));
     final cipher = enc.Encrypted(Uint8List.fromList(combined.sublist(16)));
     final encrypter = enc.Encrypter(enc.AES(_key(hid), mode: enc.AESMode.cbc));
-    return jsonDecode(encrypter.decrypt(cipher, iv: iv)) as Map<String, dynamic>;
+    return jsonDecode(encrypter.decrypt(cipher, iv: iv))
+        as Map<String, dynamic>;
   }
 
   // ── Shops (top-level collection, unencrypted, multi-user) ─────────────────
@@ -101,7 +102,10 @@ class FirestoreService {
   }
 
   Future<List<ShopSearchResult>> searchNearby(
-      double lat, double lng, double radiusKm) async {
+    double lat,
+    double lng,
+    double radiusKm,
+  ) async {
     final latDelta = radiusKm / 111.0;
     final snap = await _shopsCol
         .where('lat', isGreaterThanOrEqualTo: lat - latDelta)
@@ -116,7 +120,9 @@ class FirestoreService {
       if (sLat == null || sLng == null) continue;
       final dist = _haversine(lat, lng, sLat, sLng);
       if (dist <= radiusKm) {
-        results.add(ShopSearchResult(shop: _shopFromDoc(doc), distanceKm: dist));
+        results.add(
+          ShopSearchResult(shop: _shopFromDoc(doc), distanceKm: dist),
+        );
       }
     }
     results.sort((a, b) => (a.distanceKm ?? 0).compareTo(b.distanceKm ?? 0));
@@ -127,7 +133,8 @@ class FirestoreService {
     const r = 6371.0;
     final dLat = _rad(lat2 - lat1);
     final dLng = _rad(lng2 - lng1);
-    final a = sin(dLat / 2) * sin(dLat / 2) +
+    final a =
+        sin(dLat / 2) * sin(dLat / 2) +
         cos(_rad(lat1)) * cos(_rad(lat2)) * sin(dLng / 2) * sin(dLng / 2);
     return r * 2 * atan2(sqrt(a), sqrt(1 - a));
   }
@@ -135,7 +142,8 @@ class FirestoreService {
   static double _rad(double deg) => deg * pi / 180;
 
   static Supermarket _shopFromDoc(
-      QueryDocumentSnapshot<Map<String, dynamic>> d) {
+    QueryDocumentSnapshot<Map<String, dynamic>> d,
+  ) {
     final shop = Supermarket.fromMap(d.data());
     shop.ownerUid = d.data()['ownerUid'] as String?;
     return shop;
@@ -143,25 +151,25 @@ class FirestoreService {
 
   Future<void> deleteShop(String hid, String id) => _shopsCol.doc(id).delete();
 
-  Stream<List<Supermarket>> shopsStream(String hid) =>
-      _shopsCol.where('householdHash', isEqualTo: _pathId(hid)).snapshots().map(
-        (snap) {
-          final uid = _auth.currentUser?.uid;
-          return snap.docs.map((d) {
-            final data = d.data();
-            final shop = Supermarket.fromMap(data);
-            shop.ownerUid = data['ownerUid'] as String?;
-            if (shop.ownerUid == uid &&
-                (data['nameLower'] == null || data['goodsList'] == null)) {
-              _shopsCol.doc(d.id).update({
-                'nameLower': shop.name.toLowerCase(),
-                'goodsList': _goodsList(shop),
-              }).ignore();
-            }
-            return shop;
-          }).toList();
-        },
-      );
+  Stream<List<Supermarket>> shopsStream(String hid) => _shopsCol
+      .where('householdHash', isEqualTo: _pathId(hid))
+      .snapshots()
+      .map((snap) {
+        final uid = _auth.currentUser?.uid;
+        return snap.docs.map((d) {
+          final data = d.data();
+          final shop = Supermarket.fromMap(data);
+          shop.ownerUid = data['ownerUid'] as String?;
+          if (shop.ownerUid == uid &&
+              (data['nameLower'] == null || data['goodsList'] == null)) {
+            _shopsCol.doc(d.id).update({
+              'nameLower': shop.name.toLowerCase(),
+              'goodsList': _goodsList(shop),
+            }).ignore();
+          }
+          return shop;
+        }).toList();
+      });
 
   // ── Lists (under hashed household path, encrypted) ────────────────────────
 
@@ -179,12 +187,11 @@ class FirestoreService {
   DocumentReference<Map<String, dynamic>> _navDoc(String hid) =>
       _db.collection('h').doc(_pathId(hid)).collection('nav').doc('current');
 
-  Future<void> upsertNavSession(String hid, String listId) =>
-      _navDoc(hid).set({
-        'listId': listId,
-        'startedBy': _auth.currentUser!.uid,
-        'startedAt': FieldValue.serverTimestamp(),
-      });
+  Future<void> upsertNavSession(String hid, String listId) => _navDoc(hid).set({
+    'listId': listId,
+    'startedBy': _auth.currentUser!.uid,
+    'startedAt': FieldValue.serverTimestamp(),
+  });
 
   Future<void> deleteNavSession(String hid) => _navDoc(hid).delete();
 
@@ -199,8 +206,12 @@ class FirestoreService {
       });
 
   Stream<List<ShoppingList>> listsStream(String hid) =>
-      _lists(hid).snapshots().map((snap) => snap.docs
-          .map((d) =>
-              ShoppingList.fromMap(_decrypt(hid, d.data()['d'] as String)))
-          .toList());
+      _lists(hid).snapshots().map(
+        (snap) => snap.docs
+            .map(
+              (d) =>
+                  ShoppingList.fromMap(_decrypt(hid, d.data()['d'] as String)),
+            )
+            .toList(),
+      );
 }

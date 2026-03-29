@@ -42,4 +42,6 @@ class HomeLocationNotifier extends Notifier<HomeLocation?> {
 }
 
 final homeLocationProvider =
-    NotifierProvider<HomeLocationNotifier, HomeLocation?>(HomeLocationNotifier.new);
+    NotifierProvider<HomeLocationNotifier, HomeLocation?>(
+      HomeLocationNotifier.new,
+    );

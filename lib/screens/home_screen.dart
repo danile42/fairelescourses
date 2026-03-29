@@ -152,7 +152,10 @@ class _HomeFabState extends ConsumerState<_HomeFab> {
             icon: Icons.store,
             onTap: () {
               setState(() => _expanded = false);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const StoreEditorScreen()));
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const StoreEditorScreen()),
+              );
             },
           ),
           const SizedBox(height: 8),
@@ -169,7 +172,9 @@ class _HomeFabState extends ConsumerState<_HomeFab> {
               );
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => ListEditorScreen(list: newList, isNew: true)),
+                MaterialPageRoute(
+                  builder: (_) => ListEditorScreen(list: newList, isNew: true),
+                ),
               );
             },
           ),
@@ -192,7 +197,11 @@ class _MiniButton extends StatelessWidget {
   final String label;
   final IconData icon;
   final VoidCallback onTap;
-  const _MiniButton({required this.label, required this.icon, required this.onTap});
+  const _MiniButton({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -249,7 +258,9 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
 
   Future<void> _showMergeDialog() async {
     final l = AppLocalizations.of(context)!;
-    final selected = widget.lists.where((l) => _selectedIds.contains(l.id)).toList();
+    final selected = widget.lists
+        .where((l) => _selectedIds.contains(l.id))
+        .toList();
     final targetId = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -258,15 +269,19 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(l.mergeTargetSubtitle,
-                style: Theme.of(ctx).textTheme.bodySmall),
+            Text(
+              l.mergeTargetSubtitle,
+              style: Theme.of(ctx).textTheme.bodySmall,
+            ),
             const SizedBox(height: 12),
-            ...selected.map((list) => ListTile(
-                  title: Text(list.name.isEmpty ? '—' : list.name),
-                  subtitle: Text('${list.items.length} items'),
-                  contentPadding: EdgeInsets.zero,
-                  onTap: () => Navigator.pop(ctx, list.id),
-                )),
+            ...selected.map(
+              (list) => ListTile(
+                title: Text(list.name.isEmpty ? '—' : list.name),
+                subtitle: Text('${list.items.length} items'),
+                contentPadding: EdgeInsets.zero,
+                onTap: () => Navigator.pop(ctx, list.id),
+              ),
+            ),
           ],
         ),
         actions: [
@@ -310,8 +325,10 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-            child: Text(l.navModeTitle,
-                style: Theme.of(ctx).textTheme.titleMedium),
+            child: Text(
+              l.navModeTitle,
+              style: Theme.of(ctx).textTheme.titleMedium,
+            ),
           ),
           ListTile(
             leading: const _NavIcon(Icons.person_outline),
@@ -380,8 +397,14 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
       builder: (dialogContext) => AlertDialog(
         title: Text(l.deleteConfirm(name)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(l.no)),
-          TextButton(onPressed: () => Navigator.pop(dialogContext, true), child: Text(l.yes)),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(l.no),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(l.yes),
+          ),
         ],
       ),
     );
@@ -408,9 +431,12 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
 
     if (lists.isEmpty) {
       return Center(
-          child: Text(l.noLists,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.grey)));
+        child: Text(
+          l.noLists,
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.grey),
+        ),
+      );
     }
 
     return Column(
@@ -423,7 +449,8 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
               final list = lists[i];
               final isSelected = _selectedIds.contains(list.id);
               final isSessionList = activeSession?.listId == list.id;
-              final inProgress = !_selecting &&
+              final inProgress =
+                  !_selecting &&
                   list.checkedCount > 0 &&
                   list.checkedCount < list.items.length;
               return Card(
@@ -434,101 +461,118 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                ListTile(
-                  leading: _selecting
-                      ? Checkbox(
-                          value: isSelected,
-                          onChanged: (_) => _toggleSelect(list.id),
-                        )
-                      : const Icon(Icons.shopping_cart_outlined),
-                  title: Text(list.name.isEmpty ? '—' : list.name),
-                  subtitle: Text('${list.checkedCount}/${list.items.length}'),
-                  trailing: _selecting
-                      ? null
-                      : Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (showTwoNavButtons) ...[
-                              IconButton(
-                                icon: const _NavIcon(Icons.person_outline),
-                                tooltip: l.navModeSingle,
-                                onPressed: hasActiveCollabSession
-                                    ? null
-                                    : () => _launchNavigation(list,
-                                        collaborative: false),
-                              ),
-                              IconButton(
-                                icon: const _NavIcon(Icons.group_outlined),
-                                tooltip: l.navModeCollaborative,
-                                onPressed: hasActiveCollabSession || _singleNavActive
-                                    ? null
-                                    : () => _launchNavigation(list,
-                                        collaborative: true),
-                              ),
-                            ] else
-                              IconButton(
-                                icon: const Icon(Icons.play_arrow),
-                                tooltip: l.generatePlan,
-                                onPressed: hasActiveCollabSession
-                                    ? null
-                                    : () => _startNavigation(list),
-                              ),
-                            PopupMenuButton<String>(
-                              itemBuilder: (_) => [
-                                PopupMenuItem(
-                                  value: 'copy',
-                                  child: ListTile(
-                                    leading: const Icon(Icons.content_copy),
-                                    title: Text(l.copyList),
-                                    contentPadding: EdgeInsets.zero,
-                                    dense: true,
+                    ListTile(
+                      leading: _selecting
+                          ? Checkbox(
+                              value: isSelected,
+                              onChanged: (_) => _toggleSelect(list.id),
+                            )
+                          : const Icon(Icons.shopping_cart_outlined),
+                      title: Text(list.name.isEmpty ? '—' : list.name),
+                      subtitle: Text(
+                        '${list.checkedCount}/${list.items.length}',
+                      ),
+                      trailing: _selecting
+                          ? null
+                          : Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (showTwoNavButtons) ...[
+                                  IconButton(
+                                    icon: const _NavIcon(Icons.person_outline),
+                                    tooltip: l.navModeSingle,
+                                    onPressed: hasActiveCollabSession
+                                        ? null
+                                        : () => _launchNavigation(
+                                            list,
+                                            collaborative: false,
+                                          ),
                                   ),
-                                ),
-                                PopupMenuItem(
-                                  value: 'delete',
-                                  enabled: !isSessionList,
-                                  child: ListTile(
-                                    leading: Icon(Icons.delete_outline,
-                                        color: isSessionList ? Colors.grey : null),
-                                    title: Text(l.delete,
-                                        style: isSessionList
-                                            ? const TextStyle(color: Colors.grey)
-                                            : null),
-                                    contentPadding: EdgeInsets.zero,
-                                    dense: true,
+                                  IconButton(
+                                    icon: const _NavIcon(Icons.group_outlined),
+                                    tooltip: l.navModeCollaborative,
+                                    onPressed:
+                                        hasActiveCollabSession ||
+                                            _singleNavActive
+                                        ? null
+                                        : () => _launchNavigation(
+                                            list,
+                                            collaborative: true,
+                                          ),
                                   ),
+                                ] else
+                                  IconButton(
+                                    icon: const Icon(Icons.play_arrow),
+                                    tooltip: l.generatePlan,
+                                    onPressed: hasActiveCollabSession
+                                        ? null
+                                        : () => _startNavigation(list),
+                                  ),
+                                PopupMenuButton<String>(
+                                  itemBuilder: (_) => [
+                                    PopupMenuItem(
+                                      value: 'copy',
+                                      child: ListTile(
+                                        leading: const Icon(Icons.content_copy),
+                                        title: Text(l.copyList),
+                                        contentPadding: EdgeInsets.zero,
+                                        dense: true,
+                                      ),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 'delete',
+                                      enabled: !isSessionList,
+                                      child: ListTile(
+                                        leading: Icon(
+                                          Icons.delete_outline,
+                                          color: isSessionList
+                                              ? Colors.grey
+                                              : null,
+                                        ),
+                                        title: Text(
+                                          l.delete,
+                                          style: isSessionList
+                                              ? const TextStyle(
+                                                  color: Colors.grey,
+                                                )
+                                              : null,
+                                        ),
+                                        contentPadding: EdgeInsets.zero,
+                                        dense: true,
+                                      ),
+                                    ),
+                                  ],
+                                  onSelected: (value) {
+                                    if (value == 'copy') {
+                                      ref
+                                          .read(shoppingListsProvider.notifier)
+                                          .copy(list.id)
+                                          .ignore();
+                                    } else if (value == 'delete') {
+                                      _confirmDelete(list.id, list.name);
+                                    }
+                                  },
                                 ),
                               ],
-                              onSelected: (value) {
-                                if (value == 'copy') {
-                                  ref
-                                      .read(shoppingListsProvider.notifier)
-                                      .copy(list.id)
-                                      .ignore();
-                                } else if (value == 'delete') {
-                                  _confirmDelete(list.id, list.name);
-                                }
-                              },
                             ),
-                          ],
-                        ),
-                  onTap: _selecting
-                      ? () => _toggleSelect(list.id)
-                      : () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
+                      onTap: _selecting
+                          ? () => _toggleSelect(list.id)
+                          : () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
                                 builder: (_) =>
-                                    ListEditorScreen(list: list, isNew: false)),
-                          ),
-                  onLongPress: _selecting
-                      ? null
-                      : () => _toggleSelect(list.id),
-                ),
-                if (inProgress)
-                  LinearProgressIndicator(
-                    value: list.checkedCount / list.items.length,
-                    minHeight: 3,
-                  ),
+                                    ListEditorScreen(list: list, isNew: false),
+                              ),
+                            ),
+                      onLongPress: _selecting
+                          ? null
+                          : () => _toggleSelect(list.id),
+                    ),
+                    if (inProgress)
+                      LinearProgressIndicator(
+                        value: list.checkedCount / list.items.length,
+                        minHeight: 3,
+                      ),
                   ],
                 ),
               );
@@ -555,8 +599,7 @@ class _JoinBanner extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
     final list = lists.where((e) => e.id == session.listId).firstOrNull;
-    final listName =
-        list == null ? '?' : (list.name.isEmpty ? '—' : list.name);
+    final listName = list == null ? '?' : (list.name.isEmpty ? '—' : list.name);
     final theme = Theme.of(context);
 
     return Material(
@@ -570,8 +613,9 @@ class _JoinBanner extends ConsumerWidget {
             Expanded(
               child: Text(
                 '$listName · ${l.navCollaborativeActive}',
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(fontWeight: FontWeight.w600),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -598,7 +642,8 @@ class _JoinBanner extends ConsumerWidget {
                       );
                     },
               style: FilledButton.styleFrom(
-                  visualDensity: VisualDensity.compact),
+                visualDensity: VisualDensity.compact,
+              ),
               child: Text(l.navJoin),
             ),
           ],
@@ -632,8 +677,9 @@ class _MergeBar extends StatelessWidget {
           children: [
             Text(
               l.mergeListsSelected(selectedCount),
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const Spacer(),
             TextButton(onPressed: onCancel, child: Text(l.cancel)),
@@ -658,7 +704,13 @@ class _StoresTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
     if (stores.isEmpty) {
-      return Center(child: Text(l.noShops, textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey)));
+      return Center(
+        child: Text(
+          l.noShops,
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.grey),
+        ),
+      );
     }
     final currentUid = ref.watch(currentUidProvider);
     return ListView.builder(
@@ -678,7 +730,9 @@ class _StoresTab extends ConsumerWidget {
             subtitle: Text(() {
               final grid = '${store.rows.length}×${store.cols.length}';
               final floorCount = 1 + store.additionalFloors.length as int;
-              return floorCount > 1 ? '$grid  •  ${l.nFloors(floorCount)}' : grid;
+              return floorCount > 1
+                  ? '$grid  •  ${l.nFloors(floorCount)}'
+                  : grid;
             }()),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
@@ -686,16 +740,19 @@ class _StoresTab extends ConsumerWidget {
                 if (isOwned) ...[
                   IconButton(
                     icon: const Icon(Icons.delete_outline),
-                    onPressed: () => _confirmDelete(context, ref, store.id, store.name, l),
+                    onPressed: () =>
+                        _confirmDelete(context, ref, store.id, store.name, l),
                   ),
                 ],
               ],
             ),
             onTap: isOwned
                 ? () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => StoreEditorScreen(existing: store)),
-                    )
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => StoreEditorScreen(existing: store),
+                    ),
+                  )
                 : null,
           ),
         );
@@ -703,14 +760,26 @@ class _StoresTab extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmDelete(BuildContext context, WidgetRef ref, String id, String name, AppLocalizations l) async {
+  Future<void> _confirmDelete(
+    BuildContext context,
+    WidgetRef ref,
+    String id,
+    String name,
+    AppLocalizations l,
+  ) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(l.deleteConfirm(name)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(l.no)),
-          TextButton(onPressed: () => Navigator.pop(dialogContext, true), child: Text(l.yes)),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(l.no),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(l.yes),
+          ),
         ],
       ),
     );
@@ -749,4 +818,3 @@ class _NavIcon extends StatelessWidget {
     );
   }
 }
-

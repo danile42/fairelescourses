@@ -27,15 +27,24 @@ final firestoreSyncProvider = Provider<void>((ref) {
   if (hid == null) return;
   final svc = ref.watch(firestoreServiceProvider);
 
-  final shopsSub = svc.shopsStream(hid).listen(
-    (shops) => ref.read(supermarketsProvider.notifier).syncFromRemote(shops),
-    onError: (_) {}, // network errors are non-fatal; Firestore uses offline cache
-  );
+  final shopsSub = svc
+      .shopsStream(hid)
+      .listen(
+        (shops) =>
+            ref.read(supermarketsProvider.notifier).syncFromRemote(shops),
+        onError:
+            (
+              _,
+            ) {}, // network errors are non-fatal; Firestore uses offline cache
+      );
 
-  final listsSub = svc.listsStream(hid).listen(
-    (lists) => ref.read(shoppingListsProvider.notifier).syncFromRemote(lists),
-    onError: (_) {},
-  );
+  final listsSub = svc
+      .listsStream(hid)
+      .listen(
+        (lists) =>
+            ref.read(shoppingListsProvider.notifier).syncFromRemote(lists),
+        onError: (_) {},
+      );
 
   ref.onDispose(() {
     shopsSub.cancel();

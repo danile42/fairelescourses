@@ -65,10 +65,13 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     if (r != null) _osmRadiusMeters = r;
     final cats = box.get(_kCategories);
     if (cats != null && cats.isNotEmpty) {
-      final loaded = cats.split(',')
-          .map((k) => osmShopCategories
-              .where((c) => '${c.osmKey}:${c.osmValue}' == k)
-              .firstOrNull)
+      final loaded = cats
+          .split(',')
+          .map(
+            (k) => osmShopCategories
+                .where((c) => '${c.osmKey}:${c.osmValue}' == k)
+                .firstOrNull,
+          )
           .nonNulls
           .toSet();
       if (loaded.isNotEmpty) _selectedCategories = loaded;
@@ -78,8 +81,10 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
   void _persistFilters() {
     final box = Hive.box<String>('settings');
     box.put(_kRadius, _osmRadiusMeters.toString());
-    box.put(_kCategories,
-        _selectedCategories.map((c) => '${c.osmKey}:${c.osmValue}').join(','));
+    box.put(
+      _kCategories,
+      _selectedCategories.map((c) => '${c.osmKey}:${c.osmValue}').join(','),
+    );
   }
 
   @override
@@ -104,7 +109,9 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
 
   bool get _hasMapData {
     if (!_searched) return false;
-    return _firestoreResults.any((r) => r.shop.lat != null && r.shop.lng != null) ||
+    return _firestoreResults.any(
+          (r) => r.shop.lat != null && r.shop.lng != null,
+        ) ||
         _osmResults.isNotEmpty;
   }
 
@@ -118,7 +125,10 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       setState(_clearResults);
       return;
     }
-    _debounce = Timer(const Duration(milliseconds: 400), () => _search(q.trim()));
+    _debounce = Timer(
+      const Duration(milliseconds: 400),
+      () => _search(q.trim()),
+    );
   }
 
   Future<void> _search(String q) async {
@@ -133,7 +143,9 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
             : await svc.searchByName(q);
         if (mounted) {
           setState(() {
-            _firestoreResults = shops.map((s) => ShopSearchResult(shop: s)).toList();
+            _firestoreResults = shops
+                .map((s) => ShopSearchResult(shop: s))
+                .toList();
             _osmResults = [];
             _loading = false;
             _searched = true;
@@ -173,10 +185,14 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       if (!mounted) return;
       setState(() => _geocoding = false);
       if (coords == null) {
-        setState(() { _loading = false; _searched = true; });
+        setState(() {
+          _loading = false;
+          _searched = true;
+        });
         final l = AppLocalizations.of(context)!;
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l.geocodeFailed)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l.geocodeFailed)));
         return;
       }
       lat = coords.lat;
@@ -190,7 +206,9 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
 
     List<ShopSearchResult> firestoreHits;
     try {
-      firestoreHits = await ref.read(firestoreServiceProvider).searchNearby(lat, lng, 25.0);
+      firestoreHits = await ref
+          .read(firestoreServiceProvider)
+          .searchNearby(lat, lng, 25.0);
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -210,8 +228,12 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     });
 
     try {
-      final osmHits = await OverpassService.searchNearby(lat, lng, _osmRadiusMeters,
-          categories: _selectedCategories);
+      final osmHits = await OverpassService.searchNearby(
+        lat,
+        lng,
+        _osmRadiusMeters,
+        categories: _selectedCategories,
+      );
       if (!mounted) return;
       final osmOnly = osmHits
           .where((osm) => !_coveredByFirestore(osm, firestoreHits))
@@ -238,8 +260,12 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       _osmLoading = true;
     });
     try {
-      final osmHits = await OverpassService.searchNearby(lat, lng, _osmRadiusMeters,
-          categories: _selectedCategories);
+      final osmHits = await OverpassService.searchNearby(
+        lat,
+        lng,
+        _osmRadiusMeters,
+        categories: _selectedCategories,
+      );
       if (!mounted) return;
       final osmOnly = osmHits
           .where((osm) => !_coveredByFirestore(osm, _firestoreResults))
@@ -263,7 +289,9 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       if (r.shop.name.toLowerCase() == name) return true;
       final sLat = r.shop.lat;
       final sLng = r.shop.lng;
-      if (sLat != null && sLng != null && _haversine(osm.lat, osm.lng, sLat, sLng) < 0.2) {
+      if (sLat != null &&
+          sLng != null &&
+          _haversine(osm.lat, osm.lng, sLat, sLng) < 0.2) {
         return true;
       }
     }
@@ -274,9 +302,12 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     const r = 6371.0;
     final dLat = (lat2 - lat1) * pi / 180;
     final dLng = (lng2 - lng1) * pi / 180;
-    final a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(lat1 * pi / 180) * cos(lat2 * pi / 180) *
-            sin(dLng / 2) * sin(dLng / 2);
+    final a =
+        sin(dLat / 2) * sin(dLat / 2) +
+        cos(lat1 * pi / 180) *
+            cos(lat2 * pi / 180) *
+            sin(dLng / 2) *
+            sin(dLng / 2);
     return r * 2 * atan2(sqrt(a), sqrt(1 - a));
   }
 
@@ -353,26 +384,32 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     final stores = ref.watch(supermarketsProvider);
     final homeLoc = ref.watch(homeLocationProvider);
     final knownNames = stores.map((s) => s.name.toLowerCase()).toSet();
-    final itemSuggestions = stores
-        .expand((s) => s.cells.values.expand((goods) => goods))
-        .map((g) => g.trim())
-        .where((g) => g.isNotEmpty)
-        .toSet()
-        .toList()
-      ..sort();
+    final itemSuggestions =
+        stores
+            .expand((s) => s.cells.values.expand((goods) => goods))
+            .map((g) => g.trim())
+            .where((g) => g.isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort();
     final theme = Theme.of(context);
 
     // Apply brand filter (empty selection = show all)
     final filteredFirestore = _selectedBrands.isEmpty
         ? _firestoreResults
         : _firestoreResults
-            .where((r) => _selectedBrands.contains(_extractBrand(r.shop.name, null)))
-            .toList();
+              .where(
+                (r) =>
+                    _selectedBrands.contains(_extractBrand(r.shop.name, null)),
+              )
+              .toList();
     final filteredOsm = _osmResults.where((osm) {
       if (_osmNameFilter != null &&
-          !osm.name.toLowerCase().contains(_osmNameFilter!)) return false;
+          !osm.name.toLowerCase().contains(_osmNameFilter!))
+        return false;
       if (_selectedBrands.isNotEmpty &&
-          !_selectedBrands.contains(_extractBrand(osm.name, osm.brand))) return false;
+          !_selectedBrands.contains(_extractBrand(osm.name, osm.brand)))
+        return false;
       return true;
     }).toList();
 
@@ -399,17 +436,20 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
             child: SegmentedButton<_SearchMode>(
               segments: [
                 ButtonSegment(
-                    value: _SearchMode.byName,
-                    label: Text(l.searchByName),
-                    icon: const Icon(Icons.store_outlined)),
+                  value: _SearchMode.byName,
+                  label: Text(l.searchByName),
+                  icon: const Icon(Icons.store_outlined),
+                ),
                 ButtonSegment(
-                    value: _SearchMode.byItem,
-                    label: Text(l.searchByItem),
-                    icon: const Icon(Icons.shopping_basket_outlined)),
+                  value: _SearchMode.byItem,
+                  label: Text(l.searchByItem),
+                  icon: const Icon(Icons.shopping_basket_outlined),
+                ),
                 ButtonSegment(
-                    value: _SearchMode.byLocation,
-                    label: Text(l.searchByLocation),
-                    icon: const Icon(Icons.location_on_outlined)),
+                  value: _SearchMode.byLocation,
+                  label: Text(l.searchByLocation),
+                  icon: const Icon(Icons.location_on_outlined),
+                ),
               ],
               selected: {_mode},
               onSelectionChanged: (v) => _switchMode(v.first),
@@ -469,8 +509,8 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                       hintText: _mode == _SearchMode.byItem
                           ? l.searchItemHint
                           : _mode == _SearchMode.byLocation
-                              ? l.locationSearchHint
-                              : l.searchShopsHint,
+                          ? l.locationSearchHint
+                          : l.searchShopsHint,
                       prefixIcon: const Icon(Icons.search),
                       suffixIcon: (_loading || _geocoding)
                           ? const Padding(
@@ -478,7 +518,9 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                               child: SizedBox(
                                 width: 20,
                                 height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               ),
                             )
                           : null,
@@ -494,13 +536,17 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                 },
               ),
             ),
-          if (_mode == _SearchMode.byLocation || (_searched && availableBrands.length >= 2))
+          if (_mode == _SearchMode.byLocation ||
+              (_searched && availableBrands.length >= 2))
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
               child: Row(
                 children: [
-                  if (_mode == _SearchMode.byLocation) _buildCategoryFilter(l, theme),
-                  if (_mode == _SearchMode.byLocation && _searched && availableBrands.length >= 2)
+                  if (_mode == _SearchMode.byLocation)
+                    _buildCategoryFilter(l, theme),
+                  if (_mode == _SearchMode.byLocation &&
+                      _searched &&
+                      availableBrands.length >= 2)
                     const SizedBox(width: 8),
                   if (_searched && availableBrands.length >= 2)
                     _buildBrandFilter(l, theme, availableBrands),
@@ -511,12 +557,26 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
             if (_osmError != null || _osmLoading) _buildOsmStatusRow(l, theme),
             Expanded(
               child: _buildMapView(
-                  context, l, knownNames, stores, theme, filteredFirestore, filteredOsm),
+                context,
+                l,
+                knownNames,
+                stores,
+                theme,
+                filteredFirestore,
+                filteredOsm,
+              ),
             ),
           ] else
             Expanded(
               child: _buildResults(
-                  context, l, knownNames, stores, theme, filteredFirestore, filteredOsm),
+                context,
+                l,
+                knownNames,
+                stores,
+                theme,
+                filteredFirestore,
+                filteredOsm,
+              ),
             ),
         ],
       ),
@@ -526,22 +586,25 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
   // ── List view ────────────────────────────────────────────────────────────────
 
   Widget _buildResults(
-      BuildContext context,
-      AppLocalizations l,
-      Set<String> knownNames,
-      List<Supermarket> stores,
-      ThemeData theme,
-      List<ShopSearchResult> filteredFirestore,
-      List<OsmShop> filteredOsm) {
+    BuildContext context,
+    AppLocalizations l,
+    Set<String> knownNames,
+    List<Supermarket> stores,
+    ThemeData theme,
+    List<ShopSearchResult> filteredFirestore,
+    List<OsmShop> filteredOsm,
+  ) {
     if (_mode == _SearchMode.byLocation) {
       final homeLoc = ref.read(homeLocationProvider);
       if (_nearMe && homeLoc == null && !_searched) {
         return Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: Text(l.noLocationSet,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.grey)),
+            child: Text(
+              l.noLocationSet,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.grey),
+            ),
           ),
         );
       }
@@ -560,9 +623,11 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
             children: [
               const Icon(Icons.cloud_off, size: 48, color: Colors.grey),
               const SizedBox(height: 12),
-              Text(l.geocodeFailed,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.grey)),
+              Text(
+                l.geocodeFailed,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.grey),
+              ),
             ],
           ),
         ),
@@ -570,9 +635,13 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     }
 
     if (!_searched) {
-      if (_mode == _SearchMode.byLocation && _nearMe) return const SizedBox.shrink();
+      if (_mode == _SearchMode.byLocation && _nearMe)
+        return const SizedBox.shrink();
       return Center(
-        child: Text(l.searchShopsMinChars, style: const TextStyle(color: Colors.grey)),
+        child: Text(
+          l.searchShopsMinChars,
+          style: const TextStyle(color: Colors.grey),
+        ),
       );
     }
 
@@ -614,21 +683,32 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
         if (showDivider && i == firestoreCount) {
           return Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-            child: Row(children: [
-              const Expanded(child: Divider()),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Text(l.osmShopsTitle,
-                    style: theme.textTheme.labelSmall?.copyWith(color: Colors.grey)),
-              ),
-              const Expanded(child: Divider()),
-            ]),
+            child: Row(
+              children: [
+                const Expanded(child: Divider()),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    l.osmShopsTitle,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+                const Expanded(child: Divider()),
+              ],
+            ),
           );
         }
 
         if (i < firestoreCount) {
           return _buildFirestoreCard(
-              context, l, filteredFirestore[i], knownNames, theme);
+            context,
+            l,
+            filteredFirestore[i],
+            knownNames,
+            theme,
+          );
         }
 
         if (_osmLoading || _osmError != null) {
@@ -637,13 +717,24 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
 
         final osmIndex = i - osmSectionStart;
         return _buildOsmCard(
-            context, l, filteredOsm[osmIndex], stores, knownNames, theme);
+          context,
+          l,
+          filteredOsm[osmIndex],
+          stores,
+          knownNames,
+          theme,
+        );
       },
     );
   }
 
-  Widget _buildFirestoreCard(BuildContext context, AppLocalizations l,
-      ShopSearchResult result, Set<String> knownNames, ThemeData theme) {
+  Widget _buildFirestoreCard(
+    BuildContext context,
+    AppLocalizations l,
+    ShopSearchResult result,
+    Set<String> knownNames,
+    ThemeData theme,
+  ) {
     final shop = result.shop;
     final known = knownNames.contains(shop.name.toLowerCase());
     final distText = result.distanceKm != null
@@ -654,17 +745,22 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       child: ListTile(
         leading: const Icon(Icons.store_outlined),
         title: Text(shop.name),
-        subtitle: Text([
-          '${shop.rows.length}×${shop.cols.length}  •  ${shop.cells.length} cells',
-          ?distText,
-          ?shop.address,
-        ].nonNulls.join('  •  ')),
+        subtitle: Text(
+          [
+            '${shop.rows.length}×${shop.cols.length}  •  ${shop.cells.length} cells',
+            ?distText,
+            ?shop.address,
+          ].nonNulls.join('  •  '),
+        ),
         trailing: known
             ? Chip(
-                label: Text(l.shopAlreadyKnown,
-                    style: TextStyle(
-                        color: theme.colorScheme.onSecondaryContainer,
-                        fontSize: 12)),
+                label: Text(
+                  l.shopAlreadyKnown,
+                  style: TextStyle(
+                    color: theme.colorScheme.onSecondaryContainer,
+                    fontSize: 12,
+                  ),
+                ),
                 backgroundColor: theme.colorScheme.secondaryContainer,
                 padding: EdgeInsets.zero,
               )
@@ -676,13 +772,22 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     );
   }
 
-  Widget _buildOsmCard(BuildContext context, AppLocalizations l, OsmShop osm,
-      List<Supermarket> stores, Set<String> knownNames, ThemeData theme) {
-    final alreadyLocal = knownNames.contains(osm.name.toLowerCase()) ||
-        stores.any((s) =>
-            s.lat != null &&
-            s.lng != null &&
-            _haversine(osm.lat, osm.lng, s.lat!, s.lng!) < 0.2);
+  Widget _buildOsmCard(
+    BuildContext context,
+    AppLocalizations l,
+    OsmShop osm,
+    List<Supermarket> stores,
+    Set<String> knownNames,
+    ThemeData theme,
+  ) {
+    final alreadyLocal =
+        knownNames.contains(osm.name.toLowerCase()) ||
+        stores.any(
+          (s) =>
+              s.lat != null &&
+              s.lng != null &&
+              _haversine(osm.lat, osm.lng, s.lat!, s.lng!) < 0.2,
+        );
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: ListTile(
@@ -691,10 +796,13 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
         subtitle: Text([?osm.address].nonNulls.join('  •  ')),
         trailing: alreadyLocal
             ? Chip(
-                label: Text(l.alreadyDefined,
-                    style: TextStyle(
-                        color: theme.colorScheme.onSecondaryContainer,
-                        fontSize: 12)),
+                label: Text(
+                  l.alreadyDefined,
+                  style: TextStyle(
+                    color: theme.colorScheme.onSecondaryContainer,
+                    fontSize: 12,
+                  ),
+                ),
                 backgroundColor: theme.colorScheme.secondaryContainer,
                 padding: EdgeInsets.zero,
               )
@@ -730,13 +838,14 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
   // ── Map view ─────────────────────────────────────────────────────────────────
 
   Widget _buildMapView(
-      BuildContext context,
-      AppLocalizations l,
-      Set<String> knownNames,
-      List<Supermarket> stores,
-      ThemeData theme,
-      List<ShopSearchResult> filteredFirestore,
-      List<OsmShop> filteredOsm) {
+    BuildContext context,
+    AppLocalizations l,
+    Set<String> knownNames,
+    List<Supermarket> stores,
+    ThemeData theme,
+    List<ShopSearchResult> filteredFirestore,
+    List<OsmShop> filteredOsm,
+  ) {
     final markers = <Marker>[];
 
     for (final r in filteredFirestore) {
@@ -744,40 +853,55 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       final lng = r.shop.lng;
       if (lat == null || lng == null) continue;
       final known = knownNames.contains(r.shop.name.toLowerCase());
-      markers.add(Marker(
-        point: LatLng(lat, lng),
-        width: 36,
-        height: 36,
-        child: GestureDetector(
-          onTap: () => _showFirestoreSheet(context, l, r, known, theme),
-          child: Icon(
-            Icons.location_pin,
-            size: 36,
-            color: known ? Colors.grey : theme.colorScheme.primary,
+      markers.add(
+        Marker(
+          point: LatLng(lat, lng),
+          width: 36,
+          height: 36,
+          child: GestureDetector(
+            onTap: () => _showFirestoreSheet(context, l, r, known, theme),
+            child: Icon(
+              Icons.location_pin,
+              size: 36,
+              color: known ? Colors.grey : theme.colorScheme.primary,
+            ),
           ),
         ),
-      ));
+      );
     }
 
     for (final osm in filteredOsm) {
-      final alreadyLocal = knownNames.contains(osm.name.toLowerCase()) ||
-          stores.any((s) =>
-              s.lat != null &&
-              s.lng != null &&
-              _haversine(osm.lat, osm.lng, s.lat!, s.lng!) < 0.2);
-      markers.add(Marker(
-        point: LatLng(osm.lat, osm.lng),
-        width: 36,
-        height: 36,
-        child: GestureDetector(
-          onTap: () => _showOsmSheet(context, l, osm, alreadyLocal, stores, knownNames, theme),
-          child: Icon(
-            Icons.location_pin,
-            size: 36,
-            color: alreadyLocal ? Colors.grey : theme.colorScheme.secondary,
+      final alreadyLocal =
+          knownNames.contains(osm.name.toLowerCase()) ||
+          stores.any(
+            (s) =>
+                s.lat != null &&
+                s.lng != null &&
+                _haversine(osm.lat, osm.lng, s.lat!, s.lng!) < 0.2,
+          );
+      markers.add(
+        Marker(
+          point: LatLng(osm.lat, osm.lng),
+          width: 36,
+          height: 36,
+          child: GestureDetector(
+            onTap: () => _showOsmSheet(
+              context,
+              l,
+              osm,
+              alreadyLocal,
+              stores,
+              knownNames,
+              theme,
+            ),
+            child: Icon(
+              Icons.location_pin,
+              size: 36,
+              color: alreadyLocal ? Colors.grey : theme.colorScheme.secondary,
+            ),
           ),
         ),
-      ));
+      );
     }
 
     // Center on last searched location; fall back to centroid of markers
@@ -785,8 +909,12 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     if (_lastLat != null && _lastLng != null) {
       center = LatLng(_lastLat!, _lastLng!);
     } else if (markers.isNotEmpty) {
-      final avgLat = markers.map((m) => m.point.latitude).reduce((a, b) => a + b) / markers.length;
-      final avgLng = markers.map((m) => m.point.longitude).reduce((a, b) => a + b) / markers.length;
+      final avgLat =
+          markers.map((m) => m.point.latitude).reduce((a, b) => a + b) /
+          markers.length;
+      final avgLng =
+          markers.map((m) => m.point.longitude).reduce((a, b) => a + b) /
+          markers.length;
       center = LatLng(avgLat, avgLng);
     } else {
       center = const LatLng(51.5, 10.0); // centre of Germany as fallback
@@ -806,15 +934,20 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
           userAgentPackageName: 'com.fairelescourses.fairelescourses',
         ),
         MarkerLayer(markers: markers),
-        RichAttributionWidget(attributions: [
-          TextSourceAttribution('OpenStreetMap contributors'),
-        ]),
+        RichAttributionWidget(
+          attributions: [TextSourceAttribution('OpenStreetMap contributors')],
+        ),
       ],
     );
   }
 
-  void _showFirestoreSheet(BuildContext pageContext, AppLocalizations l,
-      ShopSearchResult result, bool known, ThemeData theme) {
+  void _showFirestoreSheet(
+    BuildContext pageContext,
+    AppLocalizations l,
+    ShopSearchResult result,
+    bool known,
+    ThemeData theme,
+  ) {
     final shop = result.shop;
     showModalBottomSheet(
       context: pageContext,
@@ -832,8 +965,10 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
               ],
               if (result.distanceKm != null) ...[
                 const SizedBox(height: 4),
-                Text(l.distanceKm(result.distanceKm!.toStringAsFixed(1)),
-                    style: theme.textTheme.bodySmall),
+                Text(
+                  l.distanceKm(result.distanceKm!.toStringAsFixed(1)),
+                  style: theme.textTheme.bodySmall,
+                ),
               ],
               const SizedBox(height: 16),
               SizedBox(
@@ -859,13 +994,14 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
   }
 
   void _showOsmSheet(
-      BuildContext pageContext,
-      AppLocalizations l,
-      OsmShop osm,
-      bool alreadyLocal,
-      List<Supermarket> stores,
-      Set<String> knownNames,
-      ThemeData theme) {
+    BuildContext pageContext,
+    AppLocalizations l,
+    OsmShop osm,
+    bool alreadyLocal,
+    List<Supermarket> stores,
+    Set<String> knownNames,
+    ThemeData theme,
+  ) {
     showModalBottomSheet(
       context: pageContext,
       builder: (sheetCtx) => SafeArea(
@@ -927,50 +1063,56 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
   Widget _buildCategoryFilter(AppLocalizations l, ThemeData theme) {
     final active = _selectedCategories.length > 1;
     return PopupMenuButton<OsmShopCategory>(
-          tooltip: l.brandFilter,
-          onSelected: (cat) {
-            setState(() {
-              if (_selectedCategories.contains(cat)) {
-                if (_selectedCategories.length > 1) _selectedCategories.remove(cat);
-              } else {
-                _selectedCategories.add(cat);
+      tooltip: l.brandFilter,
+      onSelected: (cat) {
+        setState(() {
+          if (_selectedCategories.contains(cat)) {
+            if (_selectedCategories.length > 1) _selectedCategories.remove(cat);
+          } else {
+            _selectedCategories.add(cat);
+          }
+          _osmResults = [];
+          _osmError = null;
+        });
+        _persistFilters();
+        if (_lastLat != null) _retryOsm();
+      },
+      itemBuilder: (ctx) => osmShopCategories
+          .map(
+            (cat) => CheckedPopupMenuItem<OsmShopCategory>(
+              value: cat,
+              checked: _selectedCategories.contains(cat),
+              child: Text(osmCategoryLabel(l, cat.labelKey)),
+            ),
+          )
+          .toList(),
+      child: InputChip(
+        avatar: Icon(
+          Icons.category_outlined,
+          size: 18,
+          color: active
+              ? theme.colorScheme.onSecondaryContainer
+              : theme.colorScheme.onSurfaceVariant,
+        ),
+        label: Text(
+          _selectedCategories.length == 1
+              ? osmCategoryLabel(l, _selectedCategories.first.labelKey)
+              : '${osmCategoryLabel(l, _selectedCategories.first.labelKey)} + ${_selectedCategories.length - 1}',
+        ),
+        selected: active,
+        onDeleted: active
+            ? () {
+                setState(() {
+                  _selectedCategories = {osmShopCategories[0]};
+                  _osmResults = [];
+                  _osmError = null;
+                });
+                _persistFilters();
+                if (_lastLat != null) _retryOsm();
               }
-              _osmResults = [];
-              _osmError = null;
-            });
-            _persistFilters();
-            if (_lastLat != null) _retryOsm();
-          },
-          itemBuilder: (ctx) => osmShopCategories
-              .map((cat) => CheckedPopupMenuItem<OsmShopCategory>(
-                    value: cat,
-                    checked: _selectedCategories.contains(cat),
-                    child: Text(osmCategoryLabel(l, cat.labelKey)),
-                  ))
-              .toList(),
-          child: InputChip(
-            avatar: Icon(Icons.category_outlined,
-                size: 18,
-                color: active
-                    ? theme.colorScheme.onSecondaryContainer
-                    : theme.colorScheme.onSurfaceVariant),
-            label: Text(_selectedCategories.length == 1
-                ? osmCategoryLabel(l, _selectedCategories.first.labelKey)
-                : '${osmCategoryLabel(l, _selectedCategories.first.labelKey)} + ${_selectedCategories.length - 1}'),
-            selected: active,
-            onDeleted: active
-                ? () {
-                    setState(() {
-                      _selectedCategories = {osmShopCategories[0]};
-                      _osmResults = [];
-                      _osmError = null;
-                    });
-                    _persistFilters();
-                    if (_lastLat != null) _retryOsm();
-                  }
-                : null,
-            onPressed: null,
-          ),
+            : null,
+        onPressed: null,
+      ),
     );
   }
 
@@ -990,15 +1132,20 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
         if (_lastLat != null) _retryOsm();
       },
       itemBuilder: (ctx) => _radiusOptions
-          .map((r) => CheckedPopupMenuItem<int>(
-                value: r,
-                checked: r == _osmRadiusMeters,
-                child: Text(formatOsmRadius(r)),
-              ))
+          .map(
+            (r) => CheckedPopupMenuItem<int>(
+              value: r,
+              checked: r == _osmRadiusMeters,
+              child: Text(formatOsmRadius(r)),
+            ),
+          )
           .toList(),
       child: Chip(
-        avatar: Icon(Icons.radio_button_checked,
-            size: 18, color: theme.colorScheme.onSurfaceVariant),
+        avatar: Icon(
+          Icons.radio_button_checked,
+          size: 18,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
         label: Text(formatOsmRadius(_osmRadiusMeters)),
       ),
     );
@@ -1020,8 +1167,10 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
           const Icon(Icons.cloud_off, size: 18, color: Colors.grey),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(l.osmLoadFailed,
-                style: const TextStyle(color: Colors.grey)),
+            child: Text(
+              l.osmLoadFailed,
+              style: const TextStyle(color: Colors.grey),
+            ),
           ),
           TextButton.icon(
             onPressed: _retryOsm,
@@ -1035,46 +1184,52 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
 
   // ── Brand filter ─────────────────────────────────────────────────────────────
 
-  Widget _buildBrandFilter(AppLocalizations l, ThemeData theme, Set<String> brands) {
+  Widget _buildBrandFilter(
+    AppLocalizations l,
+    ThemeData theme,
+    Set<String> brands,
+  ) {
     final sorted = brands.toList()..sort();
     final active = _selectedBrands.isNotEmpty;
     return PopupMenuButton<String>(
-          tooltip: l.brandFilter,
-          onSelected: (brand) {
-            setState(() {
-              if (_selectedBrands.contains(brand)) {
-                _selectedBrands.remove(brand);
-              } else {
-                _selectedBrands.add(brand);
-              }
-            });
-          },
-          itemBuilder: (ctx) => sorted
-              .map((brand) => CheckedPopupMenuItem<String>(
-                    value: brand,
-                    checked: _selectedBrands.contains(brand),
-                    child: Text(brand),
-                  ))
-              .toList(),
-          child: InputChip(
-            avatar: Icon(
-              Icons.storefront_outlined,
-              size: 18,
-              color: active
-                  ? theme.colorScheme.onSecondaryContainer
-                  : theme.colorScheme.onSurfaceVariant,
+      tooltip: l.brandFilter,
+      onSelected: (brand) {
+        setState(() {
+          if (_selectedBrands.contains(brand)) {
+            _selectedBrands.remove(brand);
+          } else {
+            _selectedBrands.add(brand);
+          }
+        });
+      },
+      itemBuilder: (ctx) => sorted
+          .map(
+            (brand) => CheckedPopupMenuItem<String>(
+              value: brand,
+              checked: _selectedBrands.contains(brand),
+              child: Text(brand),
             ),
-            label: Text(
-              active
-                  ? _selectedBrands.length == 1
-                      ? _selectedBrands.first
-                      : '${_selectedBrands.first} + ${_selectedBrands.length - 1}'
-                  : l.brandFilter,
-            ),
-            selected: active,
-            onDeleted: active ? () => setState(() => _selectedBrands = {}) : null,
-            onPressed: null, // tap handled by PopupMenuButton
-          ),
+          )
+          .toList(),
+      child: InputChip(
+        avatar: Icon(
+          Icons.storefront_outlined,
+          size: 18,
+          color: active
+              ? theme.colorScheme.onSecondaryContainer
+              : theme.colorScheme.onSurfaceVariant,
+        ),
+        label: Text(
+          active
+              ? _selectedBrands.length == 1
+                    ? _selectedBrands.first
+                    : '${_selectedBrands.first} + ${_selectedBrands.length - 1}'
+              : l.brandFilter,
+        ),
+        selected: active,
+        onDeleted: active ? () => setState(() => _selectedBrands = {}) : null,
+        onPressed: null, // tap handled by PopupMenuButton
+      ),
     );
   }
 }

@@ -53,11 +53,11 @@ class _FakeStoresNotifierWith extends SupermarketNotifier {
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 ShoppingList _list(String id, String name) => ShoppingList(
-      id: id,
-      name: name,
-      preferredStoreIds: [],
-      items: [ShoppingItem(name: 'Milk')],
-    );
+  id: id,
+  name: name,
+  preferredStoreIds: [],
+  items: [ShoppingItem(name: 'Milk')],
+);
 
 Widget _wrap({
   required List<ShoppingList> lists,
@@ -74,8 +74,7 @@ Widget _wrap({
       householdProvider.overrideWith(() => _NullHouseholdNotifier()),
       shoppingListsProvider.overrideWith(() => _FakeListsNotifier(lists)),
       if (stores != null)
-        supermarketsProvider
-            .overrideWith(() => _FakeStoresNotifierWith(stores))
+        supermarketsProvider.overrideWith(() => _FakeStoresNotifierWith(stores))
       else
         supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
       navSessionProvider.overrideWith((ref) => Stream.value(session)),
@@ -127,8 +126,9 @@ void main() {
       expect(find.textContaining('No shopping lists'), findsOneWidget);
     });
 
-    testWidgets('delete menu item is enabled when no active session',
-        (tester) async {
+    testWidgets('delete menu item is enabled when no active session', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap(lists: [_list('L1', 'Groceries')]));
       await tester.pumpAndSettle();
 
@@ -142,25 +142,28 @@ void main() {
       expect(deleteText.style?.color, isNot(Colors.grey));
     });
 
-    testWidgets('delete menu item is disabled when session is active for that list',
-        (tester) async {
-      const session = NavSession(listId: 'L1', startedBy: 'uid-1');
-      await tester.pumpWidget(
-        _wrap(lists: [_list('L1', 'Groceries')], session: session),
-      );
-      await tester.pumpAndSettle();
+    testWidgets(
+      'delete menu item is disabled when session is active for that list',
+      (tester) async {
+        const session = NavSession(listId: 'L1', startedBy: 'uid-1');
+        await tester.pumpWidget(
+          _wrap(lists: [_list('L1', 'Groceries')], session: session),
+        );
+        await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.more_vert).first);
-      await tester.pumpAndSettle();
+        await tester.tap(find.byIcon(Icons.more_vert).first);
+        await tester.pumpAndSettle();
 
-      // When disabled, the code explicitly sets TextStyle(color: Colors.grey).
-      expect(find.text('Delete'), findsOneWidget);
-      final deleteText = tester.widget<Text>(find.text('Delete'));
-      expect(deleteText.style?.color, Colors.grey);
-    });
+        // When disabled, the code explicitly sets TextStyle(color: Colors.grey).
+        expect(find.text('Delete'), findsOneWidget);
+        final deleteText = tester.widget<Text>(find.text('Delete'));
+        expect(deleteText.style?.color, Colors.grey);
+      },
+    );
 
-    testWidgets('delete is enabled for a list that is NOT the active session',
-        (tester) async {
+    testWidgets('delete is enabled for a list that is NOT the active session', (
+      tester,
+    ) async {
       // Session is on L1, but we have L1 and L2 — only L1's delete should be disabled.
       const session = NavSession(listId: 'L1', startedBy: 'uid-1');
       await tester.pumpWidget(
@@ -208,8 +211,9 @@ void main() {
       return s;
     }
 
-    testWidgets('single-floor store shows grid size without floor count',
-        (tester) async {
+    testWidgets('single-floor store shows grid size without floor count', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap(lists: [], stores: [_makeStore()]));
       await tester.pumpAndSettle();
 
@@ -221,10 +225,12 @@ void main() {
       expect(find.textContaining('floors'), findsNothing);
     });
 
-    testWidgets('multi-floor store shows floor count in subtitle',
-        (tester) async {
+    testWidgets('multi-floor store shows floor count in subtitle', (
+      tester,
+    ) async {
       await tester.pumpWidget(
-          _wrap(lists: [], stores: [_makeStore(extraFloors: 1)]));
+        _wrap(lists: [], stores: [_makeStore(extraFloors: 1)]),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Shops'));
@@ -236,7 +242,8 @@ void main() {
 
     testWidgets('three-floor store shows correct count', (tester) async {
       await tester.pumpWidget(
-          _wrap(lists: [], stores: [_makeStore(extraFloors: 2)]));
+        _wrap(lists: [], stores: [_makeStore(extraFloors: 2)]),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Shops'));

@@ -115,8 +115,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
 
   // ── Progress accounting (includes carried-over and deferred items) ───────
 
-  int get _effectiveTotal =>
-      _currentPlan.totalItems + _carriedOverItems.length;
+  int get _effectiveTotal => _currentPlan.totalItems + _carriedOverItems.length;
 
   int get _effectiveHandled {
     final checked = _checkedPerStore[_storeIndex];
@@ -171,8 +170,9 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     final l = AppLocalizations.of(context)!;
     final storePlans = widget.plan.storePlans;
     final hasNextShop = _storeIndex < storePlans.length - 1;
-    final nextShopName =
-        hasNextShop ? storePlans[_storeIndex + 1].storeName : null;
+    final nextShopName = hasNextShop
+        ? storePlans[_storeIndex + 1].storeName
+        : null;
 
     await showModalBottomSheet<void>(
       context: context,
@@ -185,19 +185,22 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
               child: Text(
                 item,
                 style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 16),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: Text(l.collectLater,
-                  style: const TextStyle(color: Colors.grey, fontSize: 13)),
+              child: Text(
+                l.collectLater,
+                style: const TextStyle(color: Colors.grey, fontSize: 13),
+              ),
             ),
             const Divider(height: 1),
             if (hasNextShop)
               ListTile(
-                leading:
-                    const Icon(Icons.skip_next, color: Colors.deepPurple),
+                leading: const Icon(Icons.skip_next, color: Colors.deepPurple),
                 title: Text(l.deferToShop(nextShopName!)),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -241,10 +244,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   }
 
   void _finishTour() {
-    ref
-        .read(shoppingListsProvider.notifier)
-        .uncheckAll(widget.listId)
-        .ignore();
+    ref.read(shoppingListsProvider.notifier).uncheckAll(widget.listId).ignore();
     // Host deletes the collaborative session here (while still mounted,
     // so ref.read is legal). Doing it in dispose() would also fire on back.
     if (widget.isCollaborative && widget.isHost) {
@@ -272,17 +272,20 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
           .firstOrNull;
       if (source != null) {
         final itemNames = items.toSet();
-        notifier.update(source.copyWith(
-          items: source.items
-              .where((i) => !itemNames.contains(i.name))
-              .toList(),
-        ));
+        notifier.update(
+          source.copyWith(
+            items: source.items
+                .where((i) => !itemNames.contains(i.name))
+                .toList(),
+          ),
+        );
       }
     }
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-          builder: (_) => ListEditorScreen(list: newList, isNew: false)),
+        builder: (_) => ListEditorScreen(list: newList, isNew: false),
+      ),
     );
   }
 
@@ -298,8 +301,8 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (_) =>
-              NavigationScreen(plan: newPlan, listId: tempList.id)),
+        builder: (_) => NavigationScreen(plan: newPlan, listId: tempList.id),
+      ),
     );
     if (!mounted) return;
 
@@ -314,7 +317,8 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
       ...widget.plan.storePlans.expand((s) => s.unmatched),
     };
     final allHandled = allUnmatched.every((i) => newNavigated.contains(i));
-    final planDone = widget.plan.storePlans.isEmpty ||
+    final planDone =
+        widget.plan.storePlans.isEmpty ||
         (_storeIndex >= widget.plan.storePlans.length - 1 &&
             _effectiveHandled >= _effectiveTotal);
     if (allHandled && planDone && mounted) {
@@ -333,18 +337,22 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
       builder: (ctx) => SimpleDialog(
         title: Text(l.whichShopForItem(item)),
         children: [
-          ...shops.map((s) => SimpleDialogOption(
-                onPressed: () => Navigator.pop(ctx, s),
-                child: Text(s.name),
-              )),
+          ...shops.map(
+            (s) => SimpleDialogOption(
+              onPressed: () => Navigator.pop(ctx, s),
+              child: Text(s.name),
+            ),
+          ),
           const Divider(height: 1),
           SimpleDialogOption(
             onPressed: () => Navigator.pop(ctx, searchSentinel),
-            child: Row(children: [
-              const Icon(Icons.search, size: 18),
-              const SizedBox(width: 8),
-              Text(l.searchShops),
-            ]),
+            child: Row(
+              children: [
+                const Icon(Icons.search, size: 18),
+                const SizedBox(width: 8),
+                Text(l.searchShops),
+              ],
+            ),
           ),
         ],
       ),
@@ -360,18 +368,21 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
       await Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (_) =>
-                StoreEditorScreen(existing: result, focusItems: [item])),
+          builder: (_) =>
+              StoreEditorScreen(existing: result, focusItems: [item]),
+        ),
       );
     }
     if (!mounted) return;
     if (!mounted) return;
     final allShopGoods = ref
         .read(supermarketsProvider)
-        .expand((s) => [
-              ...s.cells.values.expand((v) => v),
-              ...s.subcells.values.expand((v) => v),
-            ])
+        .expand(
+          (s) => [
+            ...s.cells.values.expand((v) => v),
+            ...s.subcells.values.expand((v) => v),
+          ],
+        )
         .map((g) => g.toLowerCase())
         .toSet();
     final allUnmatched = {
@@ -380,9 +391,11 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     };
     setState(() {
       _resolvedUnmatched = allUnmatched
-          .where((u) =>
-              allShopGoods.contains(u.toLowerCase()) &&
-              !_navigatedUnmatched.contains(u))
+          .where(
+            (u) =>
+                allShopGoods.contains(u.toLowerCase()) &&
+                !_navigatedUnmatched.contains(u),
+          )
           .toSet();
     });
   }
@@ -480,8 +493,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     final l = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final stores = ref.read(supermarketsProvider);
-    final store =
-        stores.where((s) => s.id == _currentPlan.storeId).firstOrNull;
+    final store = stores.where((s) => s.id == _currentPlan.storeId).firstOrNull;
     return Card(
       margin: const EdgeInsets.fromLTRB(8, 8, 8, 2),
       color: Colors.deepPurple.shade50,
@@ -490,23 +502,25 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [
-              Icon(Icons.history, size: 16, color: theme.colorScheme.primary),
-              const SizedBox(width: 6),
-              Text(
-                l.fromPreviousShop(_carriedFromStoreName ?? ''),
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                  color: theme.colorScheme.primary,
+            Row(
+              children: [
+                Icon(Icons.history, size: 16, color: theme.colorScheme.primary),
+                const SizedBox(width: 6),
+                Text(
+                  l.fromPreviousShop(_carriedFromStoreName ?? ''),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    color: theme.colorScheme.primary,
+                  ),
                 ),
-              ),
-            ]),
+              ],
+            ),
             const SizedBox(height: 4),
-            ..._carriedOverItems.map((item) => _buildItemRow(
-                  item,
-                  available: store?.findCell(item) != null,
-                )),
+            ..._carriedOverItems.map(
+              (item) =>
+                  _buildItemRow(item, available: store?.findCell(item) != null),
+            ),
           ],
         ),
       ),
@@ -523,17 +537,18 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     // In collaborative mode, keep checked state in sync with the shared list.
     if (widget.isCollaborative) {
       ref.listen<List<ShoppingList>>(shoppingListsProvider, (_, lists) {
-        final list =
-            lists.where((l) => l.id == widget.listId).firstOrNull;
+        final list = lists.where((l) => l.id == widget.listId).firstOrNull;
         if (list != null) setState(() => _syncCheckedFromList(list));
       });
     }
 
     if (plan.storePlans.isEmpty) {
       final stillUnmatched = plan.globalUnmatched
-          .where((i) =>
-              !_resolvedUnmatched.contains(i) &&
-              !_navigatedUnmatched.contains(i))
+          .where(
+            (i) =>
+                !_resolvedUnmatched.contains(i) &&
+                !_navigatedUnmatched.contains(i),
+          )
           .toList();
       return Scaffold(
         appBar: AppBar(
@@ -556,24 +571,36 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(children: [
-                        Icon(Icons.store_outlined,
-                            color: Colors.blue.shade700, size: 18),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(l.nowInShops,
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.store_outlined,
+                            color: Colors.blue.shade700,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              l.nowInShops,
                               style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue.shade700)),
-                        ),
-                      ]),
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue.shade700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 6),
-                      ..._resolvedUnmatched.map((item) => Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 1),
-                            child: Text('• $item',
-                                style: const TextStyle(fontSize: 13)),
-                          )),
+                      ..._resolvedUnmatched.map(
+                        (item) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 1),
+                          child: Text(
+                            '• $item',
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: 10),
                       ElevatedButton.icon(
                         onPressed: _navigateForResolved,
@@ -596,36 +623,53 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(children: [
-                        const Icon(Icons.search_off,
-                            color: Colors.grey, size: 18),
-                        const SizedBox(width: 8),
-                        Text(l.unmatched,
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.search_off,
+                            color: Colors.grey,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            l.unmatched,
                             style: const TextStyle(
-                                fontSize: 13, fontWeight: FontWeight.bold)),
-                      ]),
-                      const SizedBox(height: 8),
-                      ...stillUnmatched.map((item) => Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 2),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                    child: Text('• $item',
-                                        style:
-                                            const TextStyle(fontSize: 13))),
-                                TextButton.icon(
-                                  onPressed: () => _showShopPicker(item),
-                                  icon: const Icon(Icons.store_outlined,
-                                      size: 14),
-                                  label: Text(l.assignToShop,
-                                      style:
-                                          const TextStyle(fontSize: 12)),
-                                  style: TextButton.styleFrom(
-                                      visualDensity: VisualDensity.compact),
-                                ),
-                              ],
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
                             ),
-                          )),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ...stillUnmatched.map(
+                        (item) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  '• $item',
+                                  style: const TextStyle(fontSize: 13),
+                                ),
+                              ),
+                              TextButton.icon(
+                                onPressed: () => _showShopPicker(item),
+                                icon: const Icon(
+                                  Icons.store_outlined,
+                                  size: 14,
+                                ),
+                                label: Text(
+                                  l.assignToShop,
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                                style: TextButton.styleFrom(
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -634,11 +678,16 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.search_off,
-                          size: 64, color: Colors.grey),
+                      const Icon(
+                        Icons.search_off,
+                        size: 64,
+                        color: Colors.grey,
+                      ),
                       const SizedBox(height: 16),
-                      Text(l.unmatched,
-                          style: const TextStyle(color: Colors.grey)),
+                      Text(
+                        l.unmatched,
+                        style: const TextStyle(color: Colors.grey),
+                      ),
                     ],
                   ),
                 ),
@@ -662,16 +711,15 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         actions: [
           if (widget.isCollaborative) _CollaborativeBadge(),
           IconButton(
-            icon: Icon(_viewMode == _ViewMode.grid
-                ? Icons.list
-                : Icons.grid_view),
-            tooltip: _viewMode == _ViewMode.grid
-                ? l.viewList
-                : l.viewGrid,
-            onPressed: () => setState(() => _viewMode =
-                _viewMode == _ViewMode.grid
-                    ? _ViewMode.list
-                    : _ViewMode.grid),
+            icon: Icon(
+              _viewMode == _ViewMode.grid ? Icons.list : Icons.grid_view,
+            ),
+            tooltip: _viewMode == _ViewMode.grid ? l.viewList : l.viewGrid,
+            onPressed: () => setState(
+              () => _viewMode = _viewMode == _ViewMode.grid
+                  ? _ViewMode.list
+                  : _ViewMode.grid,
+            ),
           ),
           PopupMenuButton<String>(
             itemBuilder: (_) => [
@@ -699,87 +747,94 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
               )
             : null,
       ),
-      body: Builder(builder: (context) {
-        // In list view use overall totals across all stores.
-        final listTotal = _viewMode == _ViewMode.list
-            ? widget.plan.storePlans
-                .fold(0, (s, sp) => s + sp.totalItems)
-            : total;
-        final listHandled = _viewMode == _ViewMode.list
-            ? () {
-                int c = 0;
-                for (int si = 0;
-                    si < widget.plan.storePlans.length;
-                    si++) {
-                  final checked = _checkedPerStore[si];
-                  for (final stop in widget.plan.storePlans[si].stops) {
-                    for (final item in stop.items) {
-                      if (checked.contains(item) ||
-                          _deferNextShop.contains(item) ||
-                          _forNewList.contains(item)) c++;
+      body: Builder(
+        builder: (context) {
+          // In list view use overall totals across all stores.
+          final listTotal = _viewMode == _ViewMode.list
+              ? widget.plan.storePlans.fold(0, (s, sp) => s + sp.totalItems)
+              : total;
+          final listHandled = _viewMode == _ViewMode.list
+              ? () {
+                  int c = 0;
+                  for (int si = 0; si < widget.plan.storePlans.length; si++) {
+                    final checked = _checkedPerStore[si];
+                    for (final stop in widget.plan.storePlans[si].stops) {
+                      for (final item in stop.items) {
+                        if (checked.contains(item) ||
+                            _deferNextShop.contains(item) ||
+                            _forNewList.contains(item))
+                          c++;
+                      }
                     }
                   }
-                }
-                return c;
-              }()
-            : handled;
-        return Column(
-        children: [
-          LinearProgressIndicator(
-            value: listTotal == 0 ? 1.0 : listHandled / listTotal,
-            minHeight: 6,
-            backgroundColor: Colors.grey.shade200,
-          ),
-          if (_viewMode == _ViewMode.grid)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  Icon(Icons.store_outlined,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.primary),
-                  const SizedBox(width: 6),
-                  Text(storePlan.storeName,
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
-                  const Spacer(),
-                  Text(l.progress(handled, total)),
-                ],
+                  return c;
+                }()
+              : handled;
+          return Column(
+            children: [
+              LinearProgressIndicator(
+                value: listTotal == 0 ? 1.0 : listHandled / listTotal,
+                minHeight: 6,
+                backgroundColor: Colors.grey.shade200,
               ),
-            ),
-          if (_viewMode == _ViewMode.grid) ...[
-            MiniMap(
-              storePlan: storePlan,
-              currentCell: _currentCell,
-              checkedItems: _checkedPerStore[_storeIndex],
-              currentFloor: _currentFloorIndex,
-            ),
-            const Divider(height: 1),
-          ],
-          Expanded(
-            child: allDone
-                ? _DoneView(
-                    plan: plan,
-                    storeIndex: _storeIndex,
-                    onNextShop: _advanceToNextShop,
-                    onAssignToShop: _showShopPicker,
-                    resolvedUnmatched: _resolvedUnmatched,
-                    navigatedUnmatched: _navigatedUnmatched,
-                    onNavigateResolved: _navigateForResolved,
-                    onFinish: _finishTour,
-                    deferNextShop: _deferNextShop,
-                    forNewList: _forNewList,
-                    carriedOverItems: _carriedOverItems,
-                    checkedAtCurrentStore: _checkedPerStore[_storeIndex],
-                    onCreateList: (items, move) =>
-                        _createListFromItems(items, move: move),
-                  )
-                : _viewMode == _ViewMode.grid
+              if (_viewMode == _ViewMode.grid)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.store_outlined,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        storePlan.storeName,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const Spacer(),
+                      Text(l.progress(handled, total)),
+                    ],
+                  ),
+                ),
+              if (_viewMode == _ViewMode.grid) ...[
+                MiniMap(
+                  storePlan: storePlan,
+                  currentCell: _currentCell,
+                  checkedItems: _checkedPerStore[_storeIndex],
+                  currentFloor: _currentFloorIndex,
+                ),
+                const Divider(height: 1),
+              ],
+              Expanded(
+                child: allDone
+                    ? _DoneView(
+                        plan: plan,
+                        storeIndex: _storeIndex,
+                        onNextShop: _advanceToNextShop,
+                        onAssignToShop: _showShopPicker,
+                        resolvedUnmatched: _resolvedUnmatched,
+                        navigatedUnmatched: _navigatedUnmatched,
+                        onNavigateResolved: _navigateForResolved,
+                        onFinish: _finishTour,
+                        deferNextShop: _deferNextShop,
+                        forNewList: _forNewList,
+                        carriedOverItems: _carriedOverItems,
+                        checkedAtCurrentStore: _checkedPerStore[_storeIndex],
+                        onCreateList: (items, move) =>
+                            _createListFromItems(items, move: move),
+                      )
+                    : _viewMode == _ViewMode.grid
                     ? _buildGridView(storePlan)
                     : _buildListView(),
-          ),
-        ],
-        ); // Column
-      }), // Builder
+              ),
+            ],
+          ); // Column
+        },
+      ), // Builder
     );
   }
 
@@ -803,8 +858,9 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         final entry = items[i];
         if (entry is _FloorHeader) return _buildFloorHeader(entry.floor);
         final stop = entry as NavigationStop;
-        final allStopDone = stop.items
-            .every((item) => _isChecked(item) || _isDeferred(item));
+        final allStopDone = stop.items.every(
+          (item) => _isChecked(item) || _isDeferred(item),
+        );
         final isCurrent =
             stop.cell == _currentCell && stop.floor == _currentFloorIndex;
         return AnimatedOpacity(
@@ -816,8 +872,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                 ? Theme.of(context).colorScheme.primaryContainer
                 : null,
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -856,22 +911,28 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 2),
             child: Row(
               children: [
-                Icon(Icons.store_outlined,
-                    size: 15, color: theme.colorScheme.primary),
+                Icon(
+                  Icons.store_outlined,
+                  size: 15,
+                  color: theme.colorScheme.primary,
+                ),
                 const SizedBox(width: 6),
-                Text(plans[si].storeName,
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: theme.colorScheme.primary)),
+                Text(
+                  plans[si].storeName,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
               ],
             ),
           ),
           const Divider(height: 1, indent: 16, endIndent: 16),
           // ── Items in navigation order ────────────────────────────────────
-          ...plans[si].stops.expand((stop) => stop.items).map(
-                (item) => _buildItemRow(item, forStore: si),
-              ),
+          ...plans[si].stops
+              .expand((stop) => stop.items)
+              .map((item) => _buildItemRow(item, forStore: si)),
         ],
         // ── Unmatched items ──────────────────────────────────────────────
         if (allUnmatched.isNotEmpty) ...[
@@ -881,11 +942,14 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
               children: [
                 const Icon(Icons.search_off, color: Colors.grey, size: 15),
                 const SizedBox(width: 6),
-                Text(l.unmatched,
-                    style: const TextStyle(
-                        color: Colors.grey,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13)),
+                Text(
+                  l.unmatched,
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
               ],
             ),
           ),
@@ -897,16 +961,21 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                 children: [
                   const SizedBox(width: 36),
                   Expanded(
-                      child: Text(item,
-                          style: const TextStyle(
-                              color: Colors.grey, fontSize: 13))),
+                    child: Text(
+                      item,
+                      style: const TextStyle(color: Colors.grey, fontSize: 13),
+                    ),
+                  ),
                   TextButton.icon(
                     onPressed: () => _showShopPicker(item),
                     icon: const Icon(Icons.store_outlined, size: 14),
-                    label: Text(l.assignToShop,
-                        style: const TextStyle(fontSize: 12)),
+                    label: Text(
+                      l.assignToShop,
+                      style: const TextStyle(fontSize: 12),
+                    ),
                     style: TextButton.styleFrom(
-                        visualDensity: VisualDensity.compact),
+                      visualDensity: VisualDensity.compact,
+                    ),
                   ),
                 ],
               ),
@@ -921,8 +990,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     final l = AppLocalizations.of(context)!;
     final stores = ref.read(supermarketsProvider);
     final storePlan = _currentPlan;
-    final store =
-        stores.where((s) => s.id == storePlan.storeId).firstOrNull;
+    final store = stores.where((s) => s.id == storePlan.storeId).firstOrNull;
     final fname = store?.floorAt(floor).name ?? '';
     final label = fname.isNotEmpty ? fname : l.floorIndex(floor);
     return Padding(
@@ -937,11 +1005,14 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
               children: [
                 const Icon(Icons.stairs, size: 14, color: Colors.grey),
                 const SizedBox(width: 4),
-                Text(label,
-                    style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey)),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
+                ),
               ],
             ),
           ),
@@ -965,8 +1036,10 @@ class _CollaborativeBadge extends StatelessWidget {
       padding: const EdgeInsets.only(right: 12),
       child: Chip(
         avatar: const Icon(Icons.group, size: 14),
-        label: Text(l.navCollaborativeLabel,
-            style: const TextStyle(fontSize: 11)),
+        label: Text(
+          l.navCollaborativeLabel,
+          style: const TextStyle(fontSize: 11),
+        ),
         padding: EdgeInsets.zero,
         visualDensity: VisualDensity.compact,
       ),
@@ -979,8 +1052,11 @@ class _StoreTabs extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
-  const _StoreTabs(
-      {required this.plans, required this.currentIndex, required this.onTap});
+  const _StoreTabs({
+    required this.plans,
+    required this.currentIndex,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -997,12 +1073,14 @@ class _StoreTabs extends StatelessWidget {
               selected: selected,
               onSelected: (_) => onTap(i),
               selectedColor: Colors.white,
-              backgroundColor:
-                  Theme.of(context).colorScheme.primary.withAlpha(100),
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.primary.withAlpha(100),
               labelStyle: TextStyle(
-                  color: selected
-                      ? Theme.of(context).colorScheme.primary
-                      : Colors.white),
+                color: selected
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.white,
+              ),
             ),
           );
         }),
@@ -1048,13 +1126,14 @@ class _DoneView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
     final isLastShop = storeIndex >= plan.storePlans.length - 1;
-    final stillUnmatched = {
-      ...plan.globalUnmatched,
-      ...plan.storePlans.expand((s) => s.unmatched),
-    }
-        .where((i) =>
-            !resolvedUnmatched.contains(i) && !navigatedUnmatched.contains(i))
-        .toList();
+    final stillUnmatched =
+        {...plan.globalUnmatched, ...plan.storePlans.expand((s) => s.unmatched)}
+            .where(
+              (i) =>
+                  !resolvedUnmatched.contains(i) &&
+                  !navigatedUnmatched.contains(i),
+            )
+            .toList();
     final hasExtra = resolvedUnmatched.isNotEmpty || stillUnmatched.isNotEmpty;
 
     // Items to save to a new list at the end of the tour.
@@ -1064,8 +1143,9 @@ class _DoneView extends ConsumerWidget {
         ? <String>{
             ...deferNextShop, // couldn't defer to a next shop (last store)
             ...forNewList,
-            ...carriedOverItems
-                .where((i) => !checkedAtCurrentStore.contains(i)),
+            ...carriedOverItems.where(
+              (i) => !checkedAtCurrentStore.contains(i),
+            ),
           }.toList()
         : <String>[];
 
@@ -1087,19 +1167,17 @@ class _DoneView extends ConsumerWidget {
               Text(
                 l.allItemsChecked,
                 style: TextStyle(
-                    fontSize: 18,
-                    color: (hasExtra || finalDeferredItems.isNotEmpty) &&
-                            isLastShop
-                        ? Colors.orange.shade800
-                        : null),
+                  fontSize: 18,
+                  color:
+                      (hasExtra || finalDeferredItems.isNotEmpty) && isLastShop
+                      ? Colors.orange.shade800
+                      : null,
+                ),
               ),
               if (!isLastShop) ...[
                 // ── Intermediate store done ──────────────────────────────
                 const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: onNextShop,
-                  child: Text(l.nextShop),
-                ),
+                ElevatedButton(onPressed: onNextShop, child: Text(l.nextShop)),
                 // Show items that will be carried to the next store.
                 if (deferNextShop.isNotEmpty) ...[
                   const SizedBox(height: 12),
@@ -1125,25 +1203,36 @@ class _DoneView extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(children: [
-                          Icon(Icons.store_outlined,
-                              color: Colors.blue.shade700, size: 18),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(l.nowInShops,
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.store_outlined,
+                              color: Colors.blue.shade700,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                l.nowInShops,
                                 style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue.shade700)),
-                          ),
-                        ]),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue.shade700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                         const SizedBox(height: 6),
-                        ...resolvedUnmatched.map((item) => Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 1),
-                              child: Text('• $item',
-                                  style: const TextStyle(fontSize: 13)),
-                            )),
+                        ...resolvedUnmatched.map(
+                          (item) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 1),
+                            child: Text(
+                              '• $item',
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 10),
                         Row(
                           children: [
@@ -1163,8 +1252,10 @@ class _DoneView extends ConsumerWidget {
                             OutlinedButton.icon(
                               onPressed: () =>
                                   onCreateList(resolvedUnmatched, true),
-                              icon: const Icon(Icons.drive_file_move_outline,
-                                  size: 16),
+                              icon: const Icon(
+                                Icons.drive_file_move_outline,
+                                size: 16,
+                              ),
                               label: Text(l.moveToNewList),
                             ),
                           ],
@@ -1185,36 +1276,53 @@ class _DoneView extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(children: [
-                          const Icon(Icons.warning_amber_outlined,
-                              color: Colors.orange, size: 18),
-                          const SizedBox(width: 8),
-                          Text(l.unmatched,
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.warning_amber_outlined,
+                              color: Colors.orange,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              l.unmatched,
                               style: const TextStyle(
-                                  fontSize: 13, fontWeight: FontWeight.bold)),
-                        ]),
-                        const SizedBox(height: 8),
-                        ...stillUnmatched.map((item) => Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 2),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                      child: Text('• $item',
-                                          style: const TextStyle(
-                                              fontSize: 13))),
-                                  TextButton.icon(
-                                    onPressed: () => onAssignToShop(item),
-                                    icon: const Icon(Icons.store_outlined,
-                                        size: 14),
-                                    label: Text(l.assignToShop,
-                                        style: const TextStyle(fontSize: 12)),
-                                    style: TextButton.styleFrom(
-                                        visualDensity: VisualDensity.compact),
-                                  ),
-                                ],
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
                               ),
-                            )),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        ...stillUnmatched.map(
+                          (item) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    '• $item',
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                ),
+                                TextButton.icon(
+                                  onPressed: () => onAssignToShop(item),
+                                  icon: const Icon(
+                                    Icons.store_outlined,
+                                    size: 14,
+                                  ),
+                                  label: Text(
+                                    l.assignToShop,
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                  style: TextButton.styleFrom(
+                                    visualDensity: VisualDensity.compact,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 8),
                         Wrap(
                           spacing: 8,
@@ -1229,8 +1337,10 @@ class _DoneView extends ConsumerWidget {
                             OutlinedButton.icon(
                               onPressed: () =>
                                   onCreateList(stillUnmatched, true),
-                              icon: const Icon(Icons.drive_file_move_outline,
-                                  size: 16),
+                              icon: const Icon(
+                                Icons.drive_file_move_outline,
+                                size: 16,
+                              ),
                               label: Text(l.moveToNewList),
                             ),
                           ],
@@ -1252,23 +1362,34 @@ class _DoneView extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(children: [
-                          Icon(Icons.playlist_add,
-                              color: Colors.deepPurple.shade700, size: 18),
-                          const SizedBox(width: 8),
-                          Text(l.deferToNewList,
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.playlist_add,
+                              color: Colors.deepPurple.shade700,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              l.deferToNewList,
                               style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.deepPurple.shade700)),
-                        ]),
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.deepPurple.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
                         const SizedBox(height: 6),
-                        ...finalDeferredItems.map((item) => Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 1),
-                              child: Text('• $item',
-                                  style: const TextStyle(fontSize: 13)),
-                            )),
+                        ...finalDeferredItems.map(
+                          (item) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 1),
+                            child: Text(
+                              '• $item',
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 10),
                         ElevatedButton.icon(
                           onPressed: () {
@@ -1284,10 +1405,14 @@ class _DoneView extends ConsumerWidget {
                                 .read(shoppingListsProvider.notifier)
                                 .add(newList);
                             Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => ListEditorScreen(
-                                        list: newList, isNew: false)));
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ListEditorScreen(
+                                  list: newList,
+                                  isNew: false,
+                                ),
+                              ),
+                            );
                           },
                           icon: const Icon(Icons.list_alt, size: 16),
                           label: Text(l.newList),
@@ -1327,23 +1452,29 @@ class _DoneView extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
-            Icon(icon, color: iconColor, size: 18),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(label,
+          Row(
+            children: [
+              Icon(icon, color: iconColor, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  label,
                   style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: iconColor)),
-            ),
-          ]),
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: iconColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 6),
-          ...items.map((item) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 1),
-                child:
-                    Text('• $item', style: const TextStyle(fontSize: 13)),
-              )),
+          ...items.map(
+            (item) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 1),
+              child: Text('• $item', style: const TextStyle(fontSize: 13)),
+            ),
+          ),
         ],
       ),
     );

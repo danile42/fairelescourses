@@ -11,7 +11,9 @@ final supermarketBoxProvider = Provider<Box<Supermarket>>((ref) {
 });
 
 final supermarketsProvider =
-    NotifierProvider<SupermarketNotifier, List<Supermarket>>(SupermarketNotifier.new);
+    NotifierProvider<SupermarketNotifier, List<Supermarket>>(
+      SupermarketNotifier.new,
+    );
 
 class SupermarketNotifier extends Notifier<List<Supermarket>> {
   late Box<Supermarket> _box;
@@ -29,23 +31,27 @@ class SupermarketNotifier extends Notifier<List<Supermarket>> {
     await _box.put(s.id, s);
     state = [...state, s];
     final hid = _hid;
-    if (hid != null) ref.read(firestoreServiceProvider).upsertShop(hid, s).ignore();
+    if (hid != null)
+      ref.read(firestoreServiceProvider).upsertShop(hid, s).ignore();
   }
 
   Future<void> update(Supermarket s) async {
-    s.ownerUid ??= state.where((e) => e.id == s.id).firstOrNull?.ownerUid
-        ?? ref.read(currentUidProvider);
+    s.ownerUid ??=
+        state.where((e) => e.id == s.id).firstOrNull?.ownerUid ??
+        ref.read(currentUidProvider);
     await _box.put(s.id, s);
     state = [for (final e in state) e.id == s.id ? s : e];
     final hid = _hid;
-    if (hid != null) ref.read(firestoreServiceProvider).upsertShop(hid, s).ignore();
+    if (hid != null)
+      ref.read(firestoreServiceProvider).upsertShop(hid, s).ignore();
   }
 
   Future<void> remove(String id) async {
     await _box.delete(id);
     state = state.where((s) => s.id != id).toList();
     final hid = _hid;
-    if (hid != null) ref.read(firestoreServiceProvider).deleteShop(hid, id).ignore();
+    if (hid != null)
+      ref.read(firestoreServiceProvider).deleteShop(hid, id).ignore();
   }
 
   /// Called by the Firestore sync listener. Replaces state with remote data.

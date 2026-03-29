@@ -25,8 +25,9 @@ class FirebaseAppNotifier extends Notifier<FirebaseApp> {
 }
 
 /// The active Firebase app — default (built-in) or a user-supplied custom one.
-final firebaseAppProvider =
-    NotifierProvider<FirebaseAppNotifier, FirebaseApp>(FirebaseAppNotifier.new);
+final firebaseAppProvider = NotifierProvider<FirebaseAppNotifier, FirebaseApp>(
+  FirebaseAppNotifier.new,
+);
 
 /// Call from main() after Hive is open and the default Firebase app is initialized.
 /// Signs in anonymously on whichever app will be used for sync.
@@ -42,7 +43,9 @@ Future<void> initActiveFirebaseApp() async {
 
 /// Persist new credentials and switch the active app.
 Future<void> applyCustomFirebaseCredentials(
-    FirebaseCredentials creds, FirebaseAppNotifier notifier) async {
+  FirebaseCredentials creds,
+  FirebaseAppNotifier notifier,
+) async {
   final box = Hive.box<String>('settings');
   await box.put(_credsKey, creds.toJson());
   final app = await _initNamedApp(creds);
@@ -51,7 +54,9 @@ Future<void> applyCustomFirebaseCredentials(
 }
 
 /// Remove custom credentials and revert to the default app.
-Future<void> clearCustomFirebaseCredentials(FirebaseAppNotifier notifier) async {
+Future<void> clearCustomFirebaseCredentials(
+  FirebaseAppNotifier notifier,
+) async {
   final box = Hive.box<String>('settings');
   await box.delete(_credsKey);
   try {

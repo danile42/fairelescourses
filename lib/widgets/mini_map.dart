@@ -8,6 +8,7 @@ class MiniMap extends ConsumerWidget {
   final StorePlan storePlan;
   final String? currentCell;
   final Set<String> checkedItems;
+
   /// Which floor's grid to display (0 = ground floor).
   final int currentFloor;
 
@@ -43,6 +44,7 @@ class MiniMap extends ConsumerWidget {
       }
       return -1;
     }
+
     int colOf(String cell) {
       for (var i = 0; i < rows.length; i++) {
         for (var j = 0; j < cols.length; j++) {
@@ -99,26 +101,40 @@ class MiniMap extends ConsumerWidget {
                 final isStop = stopCells.contains(cellId);
                 final isDone = doneCells.contains(cellId);
                 // Only highlight as current if the current cell is on this displayed floor.
-                final isCurrent = cellId == currentCell && stopCells.contains(cellId);
+                final isCurrent =
+                    cellId == currentCell && stopCells.contains(cellId);
                 final isEntrance = cellId == floor.entrance;
                 final isExit = cellId == floor.exit;
 
                 Color bg = Colors.grey.shade200;
                 if (isEntrance) bg = Colors.green.shade200;
                 if (isExit) bg = Colors.red.shade200;
-                if (isStop) bg = isDone ? Colors.green.shade100 : Colors.blue.shade200;
+                if (isStop)
+                  bg = isDone ? Colors.green.shade100 : Colors.blue.shade200;
                 if (isCurrent) bg = theme.colorScheme.primary;
 
                 Widget? child;
                 if (isCurrent) {
-                  final icon = const Icon(Icons.navigation, size: 14, color: Colors.white);
+                  final icon = const Icon(
+                    Icons.navigation,
+                    size: 14,
+                    color: Colors.white,
+                  );
                   child = arrowAngle != null
                       ? Transform.rotate(angle: arrowAngle, child: icon)
                       : icon;
                 } else if (isDone) {
-                  child = const Icon(Icons.check, size: 12, color: Colors.green);
+                  child = const Icon(
+                    Icons.check,
+                    size: 12,
+                    color: Colors.green,
+                  );
                 } else if (isStop) {
-                  child = const Icon(Icons.circle, size: 8, color: Colors.white);
+                  child = const Icon(
+                    Icons.circle,
+                    size: 8,
+                    color: Colors.white,
+                  );
                 }
 
                 return Container(

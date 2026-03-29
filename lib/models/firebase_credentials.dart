@@ -16,12 +16,12 @@ class FirebaseCredentials {
   });
 
   String toJson() => jsonEncode({
-        'projectId': projectId,
-        'apiKey': apiKey,
-        'appId': appId,
-        'messagingSenderId': messagingSenderId,
-        'storageBucket': storageBucket,
-      });
+    'projectId': projectId,
+    'apiKey': apiKey,
+    'appId': appId,
+    'messagingSenderId': messagingSenderId,
+    'storageBucket': storageBucket,
+  });
 
   factory FirebaseCredentials.fromJson(String json) {
     final m = jsonDecode(json) as Map<String, dynamic>;
@@ -42,7 +42,8 @@ class FirebaseCredentials {
       final client = (m['client'] as List).first as Map<String, dynamic>;
       final clientInfo = client['client_info'] as Map<String, dynamic>;
       final apiKey =
-          ((client['api_key'] as List).first as Map<String, dynamic>)['current_key']
+          ((client['api_key'] as List).first
+                  as Map<String, dynamic>)['current_key']
               as String;
       return FirebaseCredentials(
         projectId: info['project_id'] as String,

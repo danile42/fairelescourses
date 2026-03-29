@@ -16,10 +16,7 @@ class ShoppingItemAdapter extends TypeAdapter<ShoppingItem> {
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return ShoppingItem(
-      name: fields[0] as String,
-      checked: fields[1] as bool,
-    );
+    return ShoppingItem(name: fields[0] as String, checked: fields[1] as bool);
   }
 
   @override

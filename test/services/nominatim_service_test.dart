@@ -12,9 +12,12 @@ void main() {
   group('NominatimService.geocode', () {
     test('returns lat/lng for valid response', () async {
       final client = _client([
-        {'lat': '48.1374300', 'lon': '11.5754900', 'display_name': 'Munich'}
+        {'lat': '48.1374300', 'lon': '11.5754900', 'display_name': 'Munich'},
       ]);
-      final result = await NominatimService.geocode('Munich', httpClient: client);
+      final result = await NominatimService.geocode(
+        'Munich',
+        httpClient: client,
+      );
       expect(result, isNotNull);
       expect(result!.lat, closeTo(48.1374300, 1e-6));
       expect(result.lng, closeTo(11.5754900, 1e-6));
@@ -22,13 +25,19 @@ void main() {
 
     test('returns null for empty result list', () async {
       final client = _client(<dynamic>[]);
-      final result = await NominatimService.geocode('Nowhere', httpClient: client);
+      final result = await NominatimService.geocode(
+        'Nowhere',
+        httpClient: client,
+      );
       expect(result, isNull);
     });
 
     test('returns null on non-200 status', () async {
       final client = _client({'error': 'bad'}, status: 500);
-      final result = await NominatimService.geocode('Anywhere', httpClient: client);
+      final result = await NominatimService.geocode(
+        'Anywhere',
+        httpClient: client,
+      );
       expect(result, isNull);
     });
 
@@ -45,7 +54,7 @@ void main() {
 
     test('returns null when lat is not a parseable number', () async {
       final client = _client([
-        {'lat': 'invalid', 'lon': '11.5', 'display_name': 'X'}
+        {'lat': 'invalid', 'lon': '11.5', 'display_name': 'X'},
       ]);
       final result = await NominatimService.geocode('X', httpClient: client);
       expect(result, isNull);
@@ -53,7 +62,7 @@ void main() {
 
     test('returns null when lon is missing', () async {
       final client = _client([
-        {'lat': '48.1', 'display_name': 'X'}
+        {'lat': '48.1', 'display_name': 'X'},
       ]);
       final result = await NominatimService.geocode('X', httpClient: client);
       expect(result, isNull);
@@ -64,7 +73,10 @@ void main() {
         {'lat': '10.0', 'lon': '20.0', 'display_name': 'First'},
         {'lat': '30.0', 'lon': '40.0', 'display_name': 'Second'},
       ]);
-      final result = await NominatimService.geocode('query', httpClient: client);
+      final result = await NominatimService.geocode(
+        'query',
+        httpClient: client,
+      );
       expect(result!.lat, closeTo(10.0, 1e-6));
     });
   });

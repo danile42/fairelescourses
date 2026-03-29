@@ -13,6 +13,7 @@ import '../services/navigation_planner.dart';
 import 'navigation_screen.dart';
 
 enum _ExitAction { save, discard }
+
 enum _ItemAction { rename, delete, move }
 
 class ListEditorScreen extends ConsumerStatefulWidget {
@@ -72,9 +73,18 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
       builder: (dialogContext) => AlertDialog(
         content: Text(l.unsavedChanges),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(l.keepEditing)),
-          TextButton(onPressed: () => Navigator.pop(dialogContext, _ExitAction.discard), child: Text(l.discardChanges)),
-          TextButton(onPressed: () => Navigator.pop(dialogContext, _ExitAction.save), child: Text(l.save)),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(l.keepEditing),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, _ExitAction.discard),
+            child: Text(l.discardChanges),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, _ExitAction.save),
+            child: Text(l.save),
+          ),
         ],
       ),
     );
@@ -106,10 +116,12 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
       builder: (ctx) => SimpleDialog(
         title: Text(l.moveToList),
         children: targets
-            .map((lst) => SimpleDialogOption(
-                  onPressed: () => Navigator.pop(ctx, lst),
-                  child: Text(lst.name),
-                ))
+            .map(
+              (lst) => SimpleDialogOption(
+                onPressed: () => Navigator.pop(ctx, lst),
+                child: Text(lst.name),
+              ),
+            )
             .toList(),
       ),
     );
@@ -120,9 +132,9 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
       _dirty = true;
       _items = [..._items]..removeAt(index);
     });
-    ref.read(shoppingListsProvider.notifier).update(
-          target.copyWith(items: [...target.items, item]),
-        );
+    ref
+        .read(shoppingListsProvider.notifier)
+        .update(target.copyWith(items: [...target.items, item]));
   }
 
   Future<void> _editItem(int index, List<String> suggestions) async {
@@ -138,7 +150,9 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
           optionsBuilder: (tv) {
             if (tv.text.trim().isEmpty) return const [];
             final q = tv.text.toLowerCase();
-            return suggestions.where((s) => s.toLowerCase().contains(q)).take(8);
+            return suggestions
+                .where((s) => s.toLowerCase().contains(q))
+                .take(8);
           },
           onSelected: (value) {
             pending = value;
@@ -161,16 +175,21 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
             child: Material(
               elevation: 4,
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 200, maxWidth: 280),
+                constraints: const BoxConstraints(
+                  maxHeight: 200,
+                  maxWidth: 280,
+                ),
                 child: ListView(
                   padding: EdgeInsets.zero,
                   shrinkWrap: true,
                   children: options
-                      .map((o) => ListTile(
-                            dense: true,
-                            title: Text(o),
-                            onTap: () => onSelected(o),
-                          ))
+                      .map(
+                        (o) => ListTile(
+                          dense: true,
+                          title: Text(o),
+                          onTap: () => onSelected(o),
+                        ),
+                      )
                       .toList(),
                 ),
               ),
@@ -247,13 +266,14 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final stores = ref.watch(supermarketsProvider);
-    final suggestions = stores
-        .expand((s) => s.cells.values.expand((goods) => goods))
-        .map((g) => g.trim())
-        .where((g) => g.isNotEmpty)
-        .toSet()
-        .toList()
-      ..sort();
+    final suggestions =
+        stores
+            .expand((s) => s.cells.values.expand((goods) => goods))
+            .map((g) => g.trim())
+            .where((g) => g.isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort();
 
     return PopScope(
       canPop: !_dirty && !_pendingItemText,
@@ -269,165 +289,193 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
         }
       },
       child: Scaffold(
-      appBar: AppBar(
-        title: Text(l.listEditor),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        actions: [
-          TextButton(
-            onPressed: _save,
-            child: Text(l.save, style: const TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                TextField(
-                  controller: _nameCtrl,
-                  decoration: InputDecoration(labelText: l.listName, border: const OutlineInputBorder()),
-                ),
-                const SizedBox(height: 12),
-                if (stores.isNotEmpty)
-                  _StoreSelector(
-                    stores: stores,
-                    selectedIds: _preferredStoreIds,
-                    onChanged: (ids) => setState(() { _dirty = true; _preferredStoreIds = ids; }),
-                    label: l.preferredShops,
-                  ),
-              ],
+        appBar: AppBar(
+          title: Text(l.listEditor),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          foregroundColor: Colors.white,
+          actions: [
+            TextButton(
+              onPressed: _save,
+              child: Text(l.save, style: const TextStyle(color: Colors.white)),
             ),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: _items.isEmpty
-                ? Center(child: Text(l.noItemsInList, style: const TextStyle(color: Colors.grey)))
-                : ReorderableListView.builder(
-                    padding: EdgeInsets.zero,
-                    itemCount: _items.length,
-                    onReorder: (oldIndex, newIndex) {
-                      setState(() {
-                        _dirty = true;
-                        if (newIndex > oldIndex) newIndex--;
-                        final item = _items.removeAt(oldIndex);
-                        _items.insert(newIndex, item);
-                      });
-                    },
-                    itemBuilder: (context, i) {
-                      final item = _items[i];
-                      final otherLists = ref
-                          .read(shoppingListsProvider)
-                          .where((lst) => lst.id != widget.list.id)
-                          .isNotEmpty;
-                      return ListTile(
-                        key: ValueKey(i),
-                        leading: Checkbox(
-                          value: item.checked,
-                          onChanged: (_) => _toggleItem(i),
-                        ),
-                        title: Text(
-                          item.name,
-                          style: item.checked
-                              ? const TextStyle(decoration: TextDecoration.lineThrough, color: Colors.grey)
-                              : null,
-                        ),
-                        onTap: () => _editItem(i, suggestions),
-                        trailing: PopupMenuButton<_ItemAction>(
-                          icon: const Icon(Icons.more_vert, size: 18),
-                          padding: EdgeInsets.zero,
-                          onSelected: (action) {
-                            if (action == _ItemAction.rename) {
-                              _editItem(i, suggestions);
-                            } else if (action == _ItemAction.delete) {
-                              _removeItem(i);
-                            } else {
-                              _moveItemToList(i);
-                            }
-                          },
-                          itemBuilder: (ctx) => [
-                            PopupMenuItem(
-                              value: _ItemAction.rename,
-                              child: Row(children: [
-                                const Icon(Icons.edit_outlined, size: 16),
-                                const SizedBox(width: 8),
-                                Text(AppLocalizations.of(ctx)!.rename),
-                              ]),
-                            ),
-                            PopupMenuItem(
-                              value: _ItemAction.delete,
-                              child: Row(children: [
-                                const Icon(Icons.close, size: 16),
-                                const SizedBox(width: 8),
-                                Text(AppLocalizations.of(ctx)!.delete),
-                              ]),
-                            ),
-                            if (otherLists)
-                              PopupMenuItem(
-                                value: _ItemAction.move,
-                                child: Row(children: [
-                                  const Icon(Icons.drive_file_move_outline, size: 16),
-                                  const SizedBox(width: 8),
-                                  Text(AppLocalizations.of(ctx)!.moveToList),
-                                ]),
-                              ),
-                          ],
-                        ),
-                      );
-                    },
+          ],
+        ),
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _nameCtrl,
+                    decoration: InputDecoration(
+                      labelText: l.listName,
+                      border: const OutlineInputBorder(),
+                    ),
                   ),
-          ),
-          _AddItemBar(
-            suggestions: suggestions,
-            onAdd: _addItem,
-            label: l.addItem,
-            hint: l.itemHint,
-            onPendingChanged: (hasPending) => setState(() => _pendingItemText = hasPending),
-          ),
-          if (_items.isNotEmpty)
-            Builder(builder: (context) {
-              final hid = ref.watch(householdProvider);
-              final showTwo = hid != null && _navModeSeen;
-              final hasActiveCollab =
-                  ref.watch(navSessionProvider).asData?.value != null;
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                child: showTwo
-                    ? Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            icon: const _NavIcon(Icons.person_outline),
-                            tooltip: l.navModeSingle,
-                            onPressed: hasActiveCollab
-                                ? null
-                                : () => _startNav(collaborative: false),
-                          ),
-                          IconButton(
-                            icon: const _NavIcon(Icons.group_outlined),
-                            tooltip: l.navModeCollaborative,
-                            onPressed: hasActiveCollab || _singleNavActive
-                                ? null
-                                : () => _startNav(collaborative: true),
-                          ),
-                        ],
-                      )
-                    : SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: hasActiveCollab
-                              ? null
-                              : () => _startNav(collaborative: false),
-                          icon: const Icon(Icons.play_arrow),
-                          label: Text(l.startNavigation),
-                        ),
+                  const SizedBox(height: 12),
+                  if (stores.isNotEmpty)
+                    _StoreSelector(
+                      stores: stores,
+                      selectedIds: _preferredStoreIds,
+                      onChanged: (ids) => setState(() {
+                        _dirty = true;
+                        _preferredStoreIds = ids;
+                      }),
+                      label: l.preferredShops,
+                    ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: _items.isEmpty
+                  ? Center(
+                      child: Text(
+                        l.noItemsInList,
+                        style: const TextStyle(color: Colors.grey),
                       ),
-              );
-            }),
-        ],
-      ),
+                    )
+                  : ReorderableListView.builder(
+                      padding: EdgeInsets.zero,
+                      itemCount: _items.length,
+                      onReorder: (oldIndex, newIndex) {
+                        setState(() {
+                          _dirty = true;
+                          if (newIndex > oldIndex) newIndex--;
+                          final item = _items.removeAt(oldIndex);
+                          _items.insert(newIndex, item);
+                        });
+                      },
+                      itemBuilder: (context, i) {
+                        final item = _items[i];
+                        final otherLists = ref
+                            .read(shoppingListsProvider)
+                            .where((lst) => lst.id != widget.list.id)
+                            .isNotEmpty;
+                        return ListTile(
+                          key: ValueKey(i),
+                          leading: Checkbox(
+                            value: item.checked,
+                            onChanged: (_) => _toggleItem(i),
+                          ),
+                          title: Text(
+                            item.name,
+                            style: item.checked
+                                ? const TextStyle(
+                                    decoration: TextDecoration.lineThrough,
+                                    color: Colors.grey,
+                                  )
+                                : null,
+                          ),
+                          onTap: () => _editItem(i, suggestions),
+                          trailing: PopupMenuButton<_ItemAction>(
+                            icon: const Icon(Icons.more_vert, size: 18),
+                            padding: EdgeInsets.zero,
+                            onSelected: (action) {
+                              if (action == _ItemAction.rename) {
+                                _editItem(i, suggestions);
+                              } else if (action == _ItemAction.delete) {
+                                _removeItem(i);
+                              } else {
+                                _moveItemToList(i);
+                              }
+                            },
+                            itemBuilder: (ctx) => [
+                              PopupMenuItem(
+                                value: _ItemAction.rename,
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.edit_outlined, size: 16),
+                                    const SizedBox(width: 8),
+                                    Text(AppLocalizations.of(ctx)!.rename),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuItem(
+                                value: _ItemAction.delete,
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.close, size: 16),
+                                    const SizedBox(width: 8),
+                                    Text(AppLocalizations.of(ctx)!.delete),
+                                  ],
+                                ),
+                              ),
+                              if (otherLists)
+                                PopupMenuItem(
+                                  value: _ItemAction.move,
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.drive_file_move_outline,
+                                        size: 16,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        AppLocalizations.of(ctx)!.moveToList,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+            ),
+            _AddItemBar(
+              suggestions: suggestions,
+              onAdd: _addItem,
+              label: l.addItem,
+              hint: l.itemHint,
+              onPendingChanged: (hasPending) =>
+                  setState(() => _pendingItemText = hasPending),
+            ),
+            if (_items.isNotEmpty)
+              Builder(
+                builder: (context) {
+                  final hid = ref.watch(householdProvider);
+                  final showTwo = hid != null && _navModeSeen;
+                  final hasActiveCollab =
+                      ref.watch(navSessionProvider).asData?.value != null;
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: showTwo
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              IconButton(
+                                icon: const _NavIcon(Icons.person_outline),
+                                tooltip: l.navModeSingle,
+                                onPressed: hasActiveCollab
+                                    ? null
+                                    : () => _startNav(collaborative: false),
+                              ),
+                              IconButton(
+                                icon: const _NavIcon(Icons.group_outlined),
+                                tooltip: l.navModeCollaborative,
+                                onPressed: hasActiveCollab || _singleNavActive
+                                    ? null
+                                    : () => _startNav(collaborative: true),
+                              ),
+                            ],
+                          )
+                        : SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: hasActiveCollab
+                                  ? null
+                                  : () => _startNav(collaborative: false),
+                              icon: const Icon(Icons.play_arrow),
+                              label: Text(l.startNavigation),
+                            ),
+                          ),
+                  );
+                },
+              ),
+          ],
+        ),
       ),
     );
   }

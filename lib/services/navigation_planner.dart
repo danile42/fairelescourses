@@ -14,12 +14,18 @@ class NavigationPlanner {
     }
 
     // Determine store order: preferred first, then rest.
-    final preferred = stores.where((s) => list.preferredStoreIds.contains(s.id)).toList();
-    final others = stores.where((s) => !list.preferredStoreIds.contains(s.id)).toList();
+    final preferred = stores
+        .where((s) => list.preferredStoreIds.contains(s.id))
+        .toList();
+    final others = stores
+        .where((s) => !list.preferredStoreIds.contains(s.id))
+        .toList();
     final orderedStores = [...preferred, ...others];
 
     // Assign each item to the first store that can match it.
-    final Map<String, List<String>> storeItems = {for (final s in orderedStores) s.id: []};
+    final Map<String, List<String>> storeItems = {
+      for (final s in orderedStores) s.id: [],
+    };
     final globalUnmatched = <String>[];
 
     for (final item in list.items) {
@@ -40,20 +46,28 @@ class NavigationPlanner {
       if (items.isEmpty) continue;
       final stops = _buildRoute(store, items);
       final unmatched = items.where((i) => store.findCell(i) == null).toList();
-      storePlans.add(StorePlan(
-        storeId: store.id,
-        storeName: store.name,
-        stops: stops,
-        unmatched: unmatched,
-      ));
+      storePlans.add(
+        StorePlan(
+          storeId: store.id,
+          storeName: store.name,
+          stops: stops,
+          unmatched: unmatched,
+        ),
+      );
     }
 
-    return NavigationPlan(storePlans: storePlans, globalUnmatched: globalUnmatched);
+    return NavigationPlan(
+      storePlans: storePlans,
+      globalUnmatched: globalUnmatched,
+    );
   }
 
   /// Build an ordered list of stops for the given items in [store].
   /// Groups by floor, then runs nearest-neighbor routing within each floor.
-  static List<NavigationStop> _buildRoute(Supermarket store, List<String> items) {
+  static List<NavigationStop> _buildRoute(
+    Supermarket store,
+    List<String> items,
+  ) {
     // Group items by (floor, cell).
     final Map<(int, String), List<String>> floorCellItems = {};
     for (final item in items) {
@@ -66,7 +80,8 @@ class NavigationPlanner {
     if (floorCellItems.isEmpty) return [];
 
     // Route floor by floor in ascending order.
-    final floors = floorCellItems.keys.map((k) => k.$1).toSet().toList()..sort();
+    final floors = floorCellItems.keys.map((k) => k.$1).toSet().toList()
+      ..sort();
     final stops = <NavigationStop>[];
 
     for (final floorIdx in floors) {
@@ -86,11 +101,13 @@ class NavigationPlanner {
           return da.compareTo(db);
         });
         current = remaining.removeAt(0);
-        stops.add(NavigationStop(
-          cell: current,
-          items: cellItems[current]!,
-          floor: floorIdx,
-        ));
+        stops.add(
+          NavigationStop(
+            cell: current,
+            items: cellItems[current]!,
+            floor: floorIdx,
+          ),
+        );
       }
     }
 

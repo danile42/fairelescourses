@@ -9,17 +9,16 @@ Supermarket makeStore({
   String exit = 'C3',
   Map<String, List<String>> cells = const {},
   Map<String, List<String>> subcells = const {},
-}) =>
-    Supermarket(
-      id: 'store-1',
-      name: 'Test Store',
-      rows: rows,
-      cols: cols,
-      entrance: entrance,
-      exit: exit,
-      cells: Map.from(cells),
-      subcells: Map.from(subcells),
-    );
+}) => Supermarket(
+  id: 'store-1',
+  name: 'Test Store',
+  rows: rows,
+  cols: cols,
+  entrance: entrance,
+  exit: exit,
+  cells: Map.from(cells),
+  subcells: Map.from(subcells),
+);
 
 void main() {
   group('allCells', () {
@@ -78,37 +77,49 @@ void main() {
 
   group('findCell', () {
     test('exact match returns cell', () {
-      final s = makeStore(cells: {
-        'A1': ['Milk', 'Dairy'],
-      });
+      final s = makeStore(
+        cells: {
+          'A1': ['Milk', 'Dairy'],
+        },
+      );
       expect(s.findCell('Milk'), 'A1');
     });
 
     test('case-insensitive match', () {
-      final s = makeStore(cells: {
-        'B2': ['Bread'],
-      });
+      final s = makeStore(
+        cells: {
+          'B2': ['Bread'],
+        },
+      );
       expect(s.findCell('bread'), 'B2');
       expect(s.findCell('BREAD'), 'B2');
     });
 
     test('partial match: query contains tag', () {
-      final s = makeStore(cells: {
-        'C3': ['Organic Milk'],
-      });
+      final s = makeStore(
+        cells: {
+          'C3': ['Organic Milk'],
+        },
+      );
       // tag.contains(query) path: "Organic Milk".contains("milk") → true (via toLowerCase)
       expect(s.findCell('organic milk'), 'C3');
     });
 
     test('partial match: tag contains query', () {
-      final s = makeStore(cells: {
-        'A2': ['Sparkling Water'],
-      });
+      final s = makeStore(
+        cells: {
+          'A2': ['Sparkling Water'],
+        },
+      );
       expect(s.findCell('water'), 'A2');
     });
 
     test('not found returns null', () {
-      final s = makeStore(cells: {'A1': ['Bread']});
+      final s = makeStore(
+        cells: {
+          'A1': ['Bread'],
+        },
+      );
       expect(s.findCell('Fish'), isNull);
     });
 
@@ -118,18 +129,24 @@ void main() {
     });
 
     test('subcell lookup returns base cell id', () {
-      final s = makeStore(subcells: {
-        'B2:col:0': ['Cheese'],
-        'B2:col:1': ['Butter'],
-      });
+      final s = makeStore(
+        subcells: {
+          'B2:col:0': ['Cheese'],
+          'B2:col:1': ['Butter'],
+        },
+      );
       expect(s.findCell('Cheese'), 'B2');
       expect(s.findCell('Butter'), 'B2');
     });
 
     test('cell match takes priority over subcell', () {
       final s = makeStore(
-        cells: {'A1': ['Milk']},
-        subcells: {'B2:col:0': ['Milk']},
+        cells: {
+          'A1': ['Milk'],
+        },
+        subcells: {
+          'B2:col:0': ['Milk'],
+        },
       );
       expect(s.findCell('Milk'), 'A1');
     });
@@ -166,8 +183,12 @@ void main() {
   group('serialization', () {
     test('toMap / fromMap roundtrip', () {
       final s = makeStore(
-        cells: {'A1': ['Bread', 'Bakery']},
-        subcells: {'B2:col:0': ['Cheese']},
+        cells: {
+          'A1': ['Bread', 'Bakery'],
+        },
+        subcells: {
+          'B2:col:0': ['Cheese'],
+        },
       );
       final restored = Supermarket.fromMap(s.toMap());
       expect(restored.id, s.id);
@@ -206,11 +227,17 @@ void main() {
 
     test('optional fields survive non-null roundtrip', () {
       final s = Supermarket(
-        id: 'x', name: 'X',
-        rows: ['A'], cols: ['1'],
-        entrance: 'A1', exit: 'A1',
-        cells: {}, address: '123 Main St',
-        lat: 48.1, lng: 11.5, parentId: 'pid',
+        id: 'x',
+        name: 'X',
+        rows: ['A'],
+        cols: ['1'],
+        entrance: 'A1',
+        exit: 'A1',
+        cells: {},
+        address: '123 Main St',
+        lat: 48.1,
+        lng: 11.5,
+        parentId: 'pid',
       );
       final restored = Supermarket.fromMap(s.toMap());
       expect(restored.address, '123 Main St');
@@ -222,13 +249,13 @@ void main() {
 
   group('multi-floor', () {
     ShopFloor _floor1({Map<String, List<String>>? cells}) => ShopFloor(
-          name: 'Upper',
-          rows: ['A', 'B'],
-          cols: ['1', '2'],
-          entrance: 'A1',
-          exit: 'B2',
-          cells: cells ?? {},
-        );
+      name: 'Upper',
+      rows: ['A', 'B'],
+      cols: ['1', '2'],
+      entrance: 'A1',
+      exit: 'B2',
+      cells: cells ?? {},
+    );
 
     test('single-floor store has no additionalFloors', () {
       final s = makeStore();
@@ -242,7 +269,9 @@ void main() {
         cols: ['1', '2'],
         entrance: 'A1',
         exit: 'B2',
-        cells: {'A1': ['Milk']},
+        cells: {
+          'A1': ['Milk'],
+        },
       );
       final f = s.floorAt(0);
       expect(f.rows, ['A', 'B']);
@@ -260,20 +289,36 @@ void main() {
 
     test('floorAt(1) returns first additional floor', () {
       final s = makeStore();
-      s.additionalFloors = [_floor1(cells: {'B1': ['Books']})];
+      s.additionalFloors = [
+        _floor1(
+          cells: {
+            'B1': ['Books'],
+          },
+        ),
+      ];
       final f = s.floorAt(1);
       expect(f.name, 'Upper');
       expect(f.cells['B1'], ['Books']);
     });
 
     test('findCellWithFloor returns (0, cell) for ground-floor item', () {
-      final s = makeStore(cells: {'A1': ['Milk']});
+      final s = makeStore(
+        cells: {
+          'A1': ['Milk'],
+        },
+      );
       expect(s.findCellWithFloor('Milk'), (0, 'A1'));
     });
 
     test('findCellWithFloor returns (1, cell) for upper-floor item', () {
       final s = makeStore();
-      s.additionalFloors = [_floor1(cells: {'B2': ['Cheese']})];
+      s.additionalFloors = [
+        _floor1(
+          cells: {
+            'B2': ['Cheese'],
+          },
+        ),
+      ];
       expect(s.findCellWithFloor('Cheese'), (1, 'B2'));
     });
 
@@ -281,22 +326,52 @@ void main() {
       // "Brot" is on floor 0; "Brotaufstrich" is on floor 1.
       // Query "Brotaufstrich" should match floor 1 exactly,
       // not floor 0 via the partial-match ("Brot" contained in query).
-      final s = makeStore(cells: {'A1': ['Brot']});
-      s.additionalFloors = [_floor1(cells: {'A2': ['Brotaufstrich']})];
+      final s = makeStore(
+        cells: {
+          'A1': ['Brot'],
+        },
+      );
+      s.additionalFloors = [
+        _floor1(
+          cells: {
+            'A2': ['Brotaufstrich'],
+          },
+        ),
+      ];
       final result = s.findCellWithFloor('Brotaufstrich');
       expect(result?.$1, 1);
       expect(result?.$2, 'A2');
     });
 
     test('findCellWithFloor returns null when item not on any floor', () {
-      final s = makeStore(cells: {'A1': ['Milk']});
-      s.additionalFloors = [_floor1(cells: {'B2': ['Cheese']})];
+      final s = makeStore(
+        cells: {
+          'A1': ['Milk'],
+        },
+      );
+      s.additionalFloors = [
+        _floor1(
+          cells: {
+            'B2': ['Cheese'],
+          },
+        ),
+      ];
       expect(s.findCellWithFloor('Fish'), isNull);
     });
 
     test('toMap / fromMap roundtrip preserves additional floors', () {
-      final s = makeStore(cells: {'A1': ['Milk']});
-      s.additionalFloors = [_floor1(cells: {'B2': ['Electronics']})];
+      final s = makeStore(
+        cells: {
+          'A1': ['Milk'],
+        },
+      );
+      s.additionalFloors = [
+        _floor1(
+          cells: {
+            'B2': ['Electronics'],
+          },
+        ),
+      ];
       final restored = Supermarket.fromMap(s.toMap());
       expect(restored.additionalFloors.length, 1);
       expect(restored.additionalFloors.first.name, 'Upper');

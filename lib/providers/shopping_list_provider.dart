@@ -12,7 +12,9 @@ final shoppingListBoxProvider = Provider<Box<ShoppingList>>((ref) {
 });
 
 final shoppingListsProvider =
-    NotifierProvider<ShoppingListNotifier, List<ShoppingList>>(ShoppingListNotifier.new);
+    NotifierProvider<ShoppingListNotifier, List<ShoppingList>>(
+      ShoppingListNotifier.new,
+    );
 
 class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
   late Box<ShoppingList> _box;
@@ -31,21 +33,24 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
     await _box.put(l.id, l);
     _sync();
     final hid = _hid;
-    if (hid != null) ref.read(firestoreServiceProvider).upsertList(hid, l).ignore();
+    if (hid != null)
+      ref.read(firestoreServiceProvider).upsertList(hid, l).ignore();
   }
 
   Future<void> update(ShoppingList l) async {
     await _box.put(l.id, l);
     _sync();
     final hid = _hid;
-    if (hid != null) ref.read(firestoreServiceProvider).upsertList(hid, l).ignore();
+    if (hid != null)
+      ref.read(firestoreServiceProvider).upsertList(hid, l).ignore();
   }
 
   Future<void> remove(String id) async {
     await _box.delete(id);
     _sync();
     final hid = _hid;
-    if (hid != null) ref.read(firestoreServiceProvider).deleteList(hid, id).ignore();
+    if (hid != null)
+      ref.read(firestoreServiceProvider).deleteList(hid, id).ignore();
   }
 
   Future<void> toggleItem(String listId, int index) async {
@@ -57,7 +62,8 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
     await _box.put(listId, updated);
     _sync();
     final hid = _hid;
-    if (hid != null) ref.read(firestoreServiceProvider).upsertList(hid, updated).ignore();
+    if (hid != null)
+      ref.read(firestoreServiceProvider).upsertList(hid, updated).ignore();
   }
 
   /// Toggle a list item by name (case-insensitive). Used by collaborative navigation.
@@ -65,7 +71,8 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
     final list = _box.get(listId);
     if (list == null) return;
     final idx = list.items.indexWhere(
-        (i) => i.name.toLowerCase() == name.toLowerCase());
+      (i) => i.name.toLowerCase() == name.toLowerCase(),
+    );
     if (idx < 0) return;
     await toggleItem(listId, idx);
   }
@@ -130,7 +137,8 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
     await _box.put(listId, updated);
     _sync();
     final hid = _hid;
-    if (hid != null) ref.read(firestoreServiceProvider).upsertList(hid, updated).ignore();
+    if (hid != null)
+      ref.read(firestoreServiceProvider).upsertList(hid, updated).ignore();
   }
 
   /// Upload all local lists to Firestore (called when joining a household).

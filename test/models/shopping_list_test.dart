@@ -42,16 +42,17 @@ void main() {
 
   group('ShoppingList', () {
     ShoppingList makeList({List<ShoppingItem>? items}) => ShoppingList(
-          id: 'list-1',
-          name: 'Weekly',
-          preferredStoreIds: ['s1'],
-          items: items ??
-              [
-                ShoppingItem(name: 'Milk'),
-                ShoppingItem(name: 'Bread', checked: true),
-                ShoppingItem(name: 'Eggs', checked: true),
-              ],
-        );
+      id: 'list-1',
+      name: 'Weekly',
+      preferredStoreIds: ['s1'],
+      items:
+          items ??
+          [
+            ShoppingItem(name: 'Milk'),
+            ShoppingItem(name: 'Bread', checked: true),
+            ShoppingItem(name: 'Eggs', checked: true),
+          ],
+    );
 
     test('checkedCount counts only checked items', () {
       expect(makeList().checkedCount, 2);
@@ -63,7 +64,11 @@ void main() {
 
     test('checkedCount is 0 when none checked', () {
       final list = makeList(
-          items: [ShoppingItem(name: 'A'), ShoppingItem(name: 'B')]);
+        items: [
+          ShoppingItem(name: 'A'),
+          ShoppingItem(name: 'B'),
+        ],
+      );
       expect(list.checkedCount, 0);
     });
 
@@ -93,21 +98,13 @@ void main() {
     });
 
     test('fromMap tolerates missing preferredStoreIds', () {
-      final map = {
-        'id': 'x',
-        'name': 'Test',
-        'items': <dynamic>[],
-      };
+      final map = {'id': 'x', 'name': 'Test', 'items': <dynamic>[]};
       final list = ShoppingList.fromMap(map);
       expect(list.preferredStoreIds, isEmpty);
     });
 
     test('fromMap tolerates missing items', () {
-      final map = {
-        'id': 'x',
-        'name': 'Test',
-        'preferredStoreIds': <dynamic>[],
-      };
+      final map = {'id': 'x', 'name': 'Test', 'preferredStoreIds': <dynamic>[]};
       final list = ShoppingList.fromMap(map);
       expect(list.items, isEmpty);
     });

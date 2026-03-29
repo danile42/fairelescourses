@@ -25,12 +25,14 @@ ProviderContainer makeContainer(Box<ShoppingList> box) {
   when(() => mock.upsertList(any(), any())).thenAnswer((_) async {});
   when(() => mock.deleteList(any(), any())).thenAnswer((_) async {});
 
-  return ProviderContainer(overrides: [
-    shoppingListBoxProvider.overrideWithValue(box),
-    // No household → Firestore calls are skipped by the notifier itself.
-    householdProvider.overrideWith(() => _NullHouseholdNotifier()),
-    firestoreServiceProvider.overrideWithValue(mock),
-  ]);
+  return ProviderContainer(
+    overrides: [
+      shoppingListBoxProvider.overrideWithValue(box),
+      // No household → Firestore calls are skipped by the notifier itself.
+      householdProvider.overrideWith(() => _NullHouseholdNotifier()),
+      firestoreServiceProvider.overrideWithValue(mock),
+    ],
+  );
 }
 
 class _NullHouseholdNotifier extends HouseholdNotifier {
@@ -39,11 +41,11 @@ class _NullHouseholdNotifier extends HouseholdNotifier {
 }
 
 ShoppingList makeList(String id, List<String> itemNames) => ShoppingList(
-      id: id,
-      name: 'List $id',
-      preferredStoreIds: [],
-      items: itemNames.map((n) => ShoppingItem(name: n)).toList(),
-    );
+  id: id,
+  name: 'List $id',
+  preferredStoreIds: [],
+  items: itemNames.map((n) => ShoppingItem(name: n)).toList(),
+);
 
 // ── tests ────────────────────────────────────────────────────────────────────
 
@@ -108,9 +110,7 @@ void main() {
       await box.put('L1', list);
       final container = makeContainer(box);
       addTearDown(container.dispose);
-      await container
-          .read(shoppingListsProvider.notifier)
-          .toggleItem('L1', 0);
+      await container.read(shoppingListsProvider.notifier).toggleItem('L1', 0);
       final state = container.read(shoppingListsProvider);
       expect(state.first.items[0].checked, isTrue);
       expect(state.first.items[1].checked, isFalse);
@@ -124,8 +124,10 @@ void main() {
       final notifier = container.read(shoppingListsProvider.notifier);
       await notifier.toggleItem('L1', 0);
       await notifier.toggleItem('L1', 0);
-      expect(container.read(shoppingListsProvider).first.items[0].checked,
-          isFalse);
+      expect(
+        container.read(shoppingListsProvider).first.items[0].checked,
+        isFalse,
+      );
     });
 
     test('toggleItemByName is case-insensitive', () async {
@@ -136,8 +138,10 @@ void main() {
       await container
           .read(shoppingListsProvider.notifier)
           .toggleItemByName('L1', 'whole milk');
-      expect(container.read(shoppingListsProvider).first.items[0].checked,
-          isTrue);
+      expect(
+        container.read(shoppingListsProvider).first.items[0].checked,
+        isTrue,
+      );
     });
 
     test('toggleItemByName with unknown name does nothing', () async {
@@ -149,8 +153,9 @@ void main() {
           .read(shoppingListsProvider.notifier)
           .toggleItemByName('L1', 'Fish');
       expect(
-          container.read(shoppingListsProvider).first.items[0].checked,
-          isFalse);
+        container.read(shoppingListsProvider).first.items[0].checked,
+        isFalse,
+      );
     });
 
     test('uncheckAll unchecks every item', () async {
@@ -166,44 +171,47 @@ void main() {
       await box.put('L1', list);
       final container = makeContainer(box);
       addTearDown(container.dispose);
-      await container
-          .read(shoppingListsProvider.notifier)
-          .uncheckAll('L1');
+      await container.read(shoppingListsProvider.notifier).uncheckAll('L1');
       final items = container.read(shoppingListsProvider).first.items;
       expect(items.every((i) => !i.checked), isTrue);
     });
 
-    test('copy creates new list with same name and all items unchecked', () async {
-      final list = ShoppingList(
-        id: 'L1',
-        name: 'Original',
-        preferredStoreIds: ['s1'],
-        items: [
-          ShoppingItem(name: 'Milk', checked: true),
-          ShoppingItem(name: 'Bread'),
-        ],
-      );
-      await box.put('L1', list);
-      final container = makeContainer(box);
-      addTearDown(container.dispose);
-      await container.read(shoppingListsProvider.notifier).copy('L1');
-      final all = container.read(shoppingListsProvider);
-      expect(all.length, 2);
-      final copy = all.firstWhere((l) => l.id != 'L1');
-      expect(copy.name, 'Original');
-      expect(copy.preferredStoreIds, ['s1']);
-      expect(copy.items.every((i) => !i.checked), isTrue);
-      expect(copy.id, isNot('L1'));
-    });
+    test(
+      'copy creates new list with same name and all items unchecked',
+      () async {
+        final list = ShoppingList(
+          id: 'L1',
+          name: 'Original',
+          preferredStoreIds: ['s1'],
+          items: [
+            ShoppingItem(name: 'Milk', checked: true),
+            ShoppingItem(name: 'Bread'),
+          ],
+        );
+        await box.put('L1', list);
+        final container = makeContainer(box);
+        addTearDown(container.dispose);
+        await container.read(shoppingListsProvider.notifier).copy('L1');
+        final all = container.read(shoppingListsProvider);
+        expect(all.length, 2);
+        final copy = all.firstWhere((l) => l.id != 'L1');
+        expect(copy.name, 'Original');
+        expect(copy.preferredStoreIds, ['s1']);
+        expect(copy.items.every((i) => !i.checked), isTrue);
+        expect(copy.id, isNot('L1'));
+      },
+    );
 
     test('merge combines items and removes other lists', () async {
       final l1 = ShoppingList(
-        id: 'L1', name: 'Target',
+        id: 'L1',
+        name: 'Target',
         preferredStoreIds: [],
         items: [ShoppingItem(name: 'Milk', checked: true)],
       );
       final l2 = ShoppingList(
-        id: 'L2', name: 'Source',
+        id: 'L2',
+        name: 'Source',
         preferredStoreIds: [],
         items: [
           ShoppingItem(name: 'Milk'), // duplicate, unchecked wins
@@ -214,14 +222,16 @@ void main() {
       await box.put('L2', l2);
       final container = makeContainer(box);
       addTearDown(container.dispose);
-      await container
-          .read(shoppingListsProvider.notifier)
-          .merge(['L1', 'L2'], 'L1');
+      await container.read(shoppingListsProvider.notifier).merge([
+        'L1',
+        'L2',
+      ], 'L1');
       final all = container.read(shoppingListsProvider);
       expect(all.length, 1);
       expect(all.first.id, 'L1');
-      final milkItem =
-          all.first.items.firstWhere((i) => i.name.toLowerCase() == 'milk');
+      final milkItem = all.first.items.firstWhere(
+        (i) => i.name.toLowerCase() == 'milk',
+      );
       expect(milkItem.checked, isFalse); // unchecked wins
       expect(all.first.items.any((i) => i.name == 'Bread'), isTrue);
     });
@@ -230,7 +240,9 @@ void main() {
       await box.put('local-only', makeList('local-only', ['Old']));
       final container = makeContainer(box);
       addTearDown(container.dispose);
-      final remote = [makeList('remote-1', ['New'])];
+      final remote = [
+        makeList('remote-1', ['New']),
+      ];
       await container
           .read(shoppingListsProvider.notifier)
           .syncFromRemote(remote);

@@ -50,9 +50,12 @@ class HelpScreen extends StatelessWidget {
             const SizedBox(height: 24),
             const Divider(),
             const SizedBox(height: 16),
-            Text(l.helpDataTitle,
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              l.helpDataTitle,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 12),
             _DataRow(
               icon: Icons.phone_android,
@@ -114,17 +117,23 @@ class _Section extends StatelessWidget {
             color: theme.colorScheme.primaryContainer,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon,
-              color: theme.colorScheme.onPrimaryContainer, size: 24),
+          child: Icon(
+            icon,
+            color: theme.colorScheme.onPrimaryContainer,
+            size: 24,
+          ),
         ),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title,
-                  style: theme.textTheme.titleSmall
-                      ?.copyWith(fontWeight: FontWeight.bold)),
+              Text(
+                title,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 4),
               Text(body, style: theme.textTheme.bodyMedium),
             ],
@@ -158,15 +167,40 @@ class ShopEditorHelpScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _Section(icon: Icons.grid_on_outlined, title: l.shopEditorHelpGridTitle, body: l.shopEditorHelpGridBody, theme: theme),
+            _Section(
+              icon: Icons.grid_on_outlined,
+              title: l.shopEditorHelpGridTitle,
+              body: l.shopEditorHelpGridBody,
+              theme: theme,
+            ),
             const SizedBox(height: 20),
-            _Section(icon: Icons.label_outlined, title: l.shopEditorHelpGoodsTitle, body: l.shopEditorHelpGoodsBody, theme: theme),
+            _Section(
+              icon: Icons.label_outlined,
+              title: l.shopEditorHelpGoodsTitle,
+              body: l.shopEditorHelpGoodsBody,
+              theme: theme,
+            ),
             const SizedBox(height: 20),
-            _Section(icon: Icons.login, title: l.shopEditorHelpEntranceTitle, body: l.shopEditorHelpEntranceBody, theme: theme),
+            _Section(
+              icon: Icons.login,
+              title: l.shopEditorHelpEntranceTitle,
+              body: l.shopEditorHelpEntranceBody,
+              theme: theme,
+            ),
             const SizedBox(height: 20),
-            _Section(icon: Icons.layers_outlined, title: l.shopEditorHelpFloorsTitle, body: l.shopEditorHelpFloorsBody, theme: theme),
+            _Section(
+              icon: Icons.layers_outlined,
+              title: l.shopEditorHelpFloorsTitle,
+              body: l.shopEditorHelpFloorsBody,
+              theme: theme,
+            ),
             const SizedBox(height: 20),
-            _Section(icon: Icons.call_split, title: l.shopEditorHelpSplitTitle, body: l.shopEditorHelpSplitBody, theme: theme),
+            _Section(
+              icon: Icons.call_split,
+              title: l.shopEditorHelpSplitTitle,
+              body: l.shopEditorHelpSplitBody,
+              theme: theme,
+            ),
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
@@ -206,15 +240,40 @@ class FirebaseHelpScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _Section(icon: Icons.add_circle_outline, title: l.firebaseHelpProjectTitle, body: l.firebaseHelpProjectBody, theme: theme),
+            _Section(
+              icon: Icons.add_circle_outline,
+              title: l.firebaseHelpProjectTitle,
+              body: l.firebaseHelpProjectBody,
+              theme: theme,
+            ),
             const SizedBox(height: 20),
-            _Section(icon: Icons.storage_outlined, title: l.firebaseHelpFirestoreTitle, body: l.firebaseHelpFirestoreBody, theme: theme),
+            _Section(
+              icon: Icons.storage_outlined,
+              title: l.firebaseHelpFirestoreTitle,
+              body: l.firebaseHelpFirestoreBody,
+              theme: theme,
+            ),
             const SizedBox(height: 20),
-            _Section(icon: Icons.person_outlined, title: l.firebaseHelpAuthTitle, body: l.firebaseHelpAuthBody, theme: theme),
+            _Section(
+              icon: Icons.person_outlined,
+              title: l.firebaseHelpAuthTitle,
+              body: l.firebaseHelpAuthBody,
+              theme: theme,
+            ),
             const SizedBox(height: 20),
-            _Section(icon: Icons.shield_outlined, title: l.firebaseHelpRulesTitle, body: l.firebaseHelpRulesBody, theme: theme),
+            _Section(
+              icon: Icons.shield_outlined,
+              title: l.firebaseHelpRulesTitle,
+              body: l.firebaseHelpRulesBody,
+              theme: theme,
+            ),
             const SizedBox(height: 20),
-            _Section(icon: Icons.key_outlined, title: l.firebaseHelpCredsTitle, body: l.firebaseHelpCredsBody, theme: theme),
+            _Section(
+              icon: Icons.key_outlined,
+              title: l.firebaseHelpCredsTitle,
+              body: l.firebaseHelpCredsBody,
+              theme: theme,
+            ),
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
@@ -251,9 +310,7 @@ class _DataRow extends StatelessWidget {
       children: [
         Icon(icon, color: color, size: 20),
         const SizedBox(width: 12),
-        Expanded(
-          child: Text(text, style: theme.textTheme.bodyMedium),
-        ),
+        Expanded(child: Text(text, style: theme.textTheme.bodyMedium)),
       ],
     );
   }

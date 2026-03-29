@@ -1292,32 +1292,160 @@ abstract class AppLocalizations {
   /// **'In local-only mode, nothing leaves your device.'**
   String get helpDataLocalOnly;
 
+  /// No description provided for @shopEditorHelpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How the shop editor works'**
   String get shopEditorHelpTitle;
+
+  /// No description provided for @shopEditorHelpGridTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The grid'**
   String get shopEditorHelpGridTitle;
+
+  /// No description provided for @shopEditorHelpGridBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw the shop layout as a grid of cells. Use the + buttons to add rows and columns.'**
   String get shopEditorHelpGridBody;
+
+  /// No description provided for @shopEditorHelpGoodsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigning goods'**
   String get shopEditorHelpGoodsTitle;
+
+  /// No description provided for @shopEditorHelpGoodsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a cell to assign which goods are found there. The app uses this to plan the shortest route through your list.'**
   String get shopEditorHelpGoodsBody;
+
+  /// No description provided for @shopEditorHelpEntranceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Entrance & exit'**
   String get shopEditorHelpEntranceTitle;
+
+  /// No description provided for @shopEditorHelpEntranceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Long-press a cell to set it as the entrance or exit. Navigation starts at the entrance and ends at the exit.'**
   String get shopEditorHelpEntranceBody;
+
+  /// No description provided for @shopEditorHelpFloorsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Multiple floors'**
   String get shopEditorHelpFloorsTitle;
+
+  /// No description provided for @shopEditorHelpFloorsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add floors for shops with multiple levels. Each floor has its own grid, entrance, and exit.'**
   String get shopEditorHelpFloorsBody;
+
+  /// No description provided for @shopEditorHelpSplitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Splitting cells'**
   String get shopEditorHelpSplitTitle;
+
+  /// No description provided for @shopEditorHelpSplitBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Double-tap a cell to split it into two halves — useful for aisles with a left and right side.'**
   String get shopEditorHelpSplitBody;
+
+  /// No description provided for @shopEditorHelpClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
   String get shopEditorHelpClose;
 
+  /// No description provided for @firebaseHelpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Firebase setup'**
   String get firebaseHelpTitle;
+
+  /// No description provided for @firebaseHelpProjectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'1. Create a Firebase project'**
   String get firebaseHelpProjectTitle;
+
+  /// No description provided for @firebaseHelpProjectBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to console.firebase.google.com, create a new project, and register an Android app with this app\'s package name.'**
   String get firebaseHelpProjectBody;
+
+  /// No description provided for @firebaseHelpFirestoreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'2. Enable Firestore'**
   String get firebaseHelpFirestoreTitle;
+
+  /// No description provided for @firebaseHelpFirestoreBody.
+  ///
+  /// In en, this message translates to:
+  /// **'In the Firebase console, open Firestore Database and create a database in production mode.'**
   String get firebaseHelpFirestoreBody;
+
+  /// No description provided for @firebaseHelpAuthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'3. Enable Anonymous Auth'**
   String get firebaseHelpAuthTitle;
+
+  /// No description provided for @firebaseHelpAuthBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Under Authentication → Sign-in method, enable the Anonymous provider. The app signs in anonymously to read and write data.'**
   String get firebaseHelpAuthBody;
+
+  /// No description provided for @firebaseHelpRulesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'4. Security rules'**
   String get firebaseHelpRulesTitle;
+
+  /// No description provided for @firebaseHelpRulesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow authenticated read/write for all documents. All data is encrypted client-side with the household ID — the server never sees plaintext.'**
   String get firebaseHelpRulesBody;
+
+  /// No description provided for @firebaseHelpCredsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'5. Your credentials'**
   String get firebaseHelpCredsTitle;
+
+  /// No description provided for @firebaseHelpCredsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'In Project settings → Your apps, download google-services.json and paste it here, or enter the values manually.'**
   String get firebaseHelpCredsBody;
+
+  /// No description provided for @firebaseAdvancedWarningBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Configuring a custom Firebase instance requires creating and managing your own Firebase project. The built-in instance works for most users.\n\nContinue?'**
   String get firebaseAdvancedWarningBody;
+
+  /// No description provided for @firebaseAdvancedContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
   String get firebaseAdvancedContinue;
+
+  /// No description provided for @firebaseHelpClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
   String get firebaseHelpClose;
 }
 

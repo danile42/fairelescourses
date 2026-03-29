@@ -91,8 +91,10 @@ class Supermarket extends HiveObject {
   // ---------------------------------------------------------------------------
 
   /// All valid cell ids for this supermarket.
-  List<String> get allCells =>
-      [for (final r in rows) for (final c in cols) '$r$c'];
+  List<String> get allCells => [
+    for (final r in rows)
+      for (final c in cols) '$r$c',
+  ];
 
   /// Manhattan distance between two cell ids. Returns null if either is invalid.
   int? distance(String a, String b) {
@@ -187,7 +189,8 @@ class Supermarket extends HiveObject {
       }
       for (final entry in extra[fi].subcells.entries) {
         for (final tag in entry.value) {
-          if (tag.toLowerCase() == q) return (fi + 1, entry.key.split(':').first);
+          if (tag.toLowerCase() == q)
+            return (fi + 1, entry.key.split(':').first);
         }
       }
     }
@@ -205,7 +208,8 @@ class Supermarket extends HiveObject {
       for (final entry in subcells.entries) {
         for (final tag in entry.value) {
           final t = tag.toLowerCase();
-          if (words.every((w) => t.contains(w))) return (0, entry.key.split(':').first);
+          if (words.every((w) => t.contains(w)))
+            return (0, entry.key.split(':').first);
         }
       }
       for (var fi = 0; fi < extra.length; fi++) {
@@ -218,7 +222,8 @@ class Supermarket extends HiveObject {
         for (final entry in extra[fi].subcells.entries) {
           for (final tag in entry.value) {
             final t = tag.toLowerCase();
-            if (words.every((w) => t.contains(w))) return (fi + 1, entry.key.split(':').first);
+            if (words.every((w) => t.contains(w)))
+              return (fi + 1, entry.key.split(':').first);
           }
         }
       }
@@ -234,7 +239,8 @@ class Supermarket extends HiveObject {
     for (final entry in subcells.entries) {
       for (final tag in entry.value) {
         final t = tag.toLowerCase();
-        if (t.contains(q) || q.contains(t)) return (0, entry.key.split(':').first);
+        if (t.contains(q) || q.contains(t))
+          return (0, entry.key.split(':').first);
       }
     }
     for (var fi = 0; fi < extra.length; fi++) {
@@ -255,8 +261,9 @@ class Supermarket extends HiveObject {
 
   /// Returns "row" or "col" for a split cell, or null if not split.
   String? splitAxis(String cellId) {
-    final key =
-        subcells.keys.where((k) => k.startsWith('$cellId:')).firstOrNull;
+    final key = subcells.keys
+        .where((k) => k.startsWith('$cellId:'))
+        .firstOrNull;
     if (key == null) return null;
     return key.split(':')[1];
   }
@@ -270,49 +277,48 @@ class Supermarket extends HiveObject {
   // ---------------------------------------------------------------------------
 
   Map<String, dynamic> toMap() => {
-        'id': id,
-        'name': name,
-        'rows': rows,
-        'cols': cols,
-        'entrance': entrance,
-        'exit': exit,
-        'cells': cells.map((k, v) => MapEntry(k, List<String>.from(v))),
-        if (address != null) 'address': address,
-        if (lat != null) 'lat': lat,
-        if (lng != null) 'lng': lng,
-        if (parentId != null) 'parentId': parentId,
-        if (subcells.isNotEmpty)
-          'subcells':
-              subcells.map((k, v) => MapEntry(k, List<String>.from(v))),
-        if (osmCategory != null) 'osmCategory': osmCategory,
-        if (floorsRaw != null && floorsRaw!.isNotEmpty)
-          'floors': additionalFloors.map((f) => f.toMap()).toList(),
-        if (groundFloorName != null) 'groundFloorName': groundFloorName,
-      };
+    'id': id,
+    'name': name,
+    'rows': rows,
+    'cols': cols,
+    'entrance': entrance,
+    'exit': exit,
+    'cells': cells.map((k, v) => MapEntry(k, List<String>.from(v))),
+    if (address != null) 'address': address,
+    if (lat != null) 'lat': lat,
+    if (lng != null) 'lng': lng,
+    if (parentId != null) 'parentId': parentId,
+    if (subcells.isNotEmpty)
+      'subcells': subcells.map((k, v) => MapEntry(k, List<String>.from(v))),
+    if (osmCategory != null) 'osmCategory': osmCategory,
+    if (floorsRaw != null && floorsRaw!.isNotEmpty)
+      'floors': additionalFloors.map((f) => f.toMap()).toList(),
+    if (groundFloorName != null) 'groundFloorName': groundFloorName,
+  };
 
   factory Supermarket.fromMap(Map<String, dynamic> m) => Supermarket(
-        id: m['id'] as String,
-        name: m['name'] as String,
-        rows: List<String>.from(m['rows'] as List),
-        cols: List<String>.from(m['cols'] as List),
-        entrance: m['entrance'] as String,
-        exit: m['exit'] as String,
-        cells: (m['cells'] as Map<String, dynamic>).map(
-          (k, v) => MapEntry(k, List<String>.from(v as List)),
-        ),
-        address: m['address'] as String?,
-        lat: (m['lat'] as num?)?.toDouble(),
-        lng: (m['lng'] as num?)?.toDouble(),
-        parentId: m['parentId'] as String?,
-        subcells: m['subcells'] != null
-            ? (m['subcells'] as Map<String, dynamic>).map(
-                (k, v) => MapEntry(k, List<String>.from(v as List)),
-              )
-            : null,
-        osmCategory: m['osmCategory'] as String?,
-        floorsRaw: m['floors'] != null ? (m['floors'] as List).toList() : null,
-        groundFloorName: m['groundFloorName'] as String?,
-      );
+    id: m['id'] as String,
+    name: m['name'] as String,
+    rows: List<String>.from(m['rows'] as List),
+    cols: List<String>.from(m['cols'] as List),
+    entrance: m['entrance'] as String,
+    exit: m['exit'] as String,
+    cells: (m['cells'] as Map<String, dynamic>).map(
+      (k, v) => MapEntry(k, List<String>.from(v as List)),
+    ),
+    address: m['address'] as String?,
+    lat: (m['lat'] as num?)?.toDouble(),
+    lng: (m['lng'] as num?)?.toDouble(),
+    parentId: m['parentId'] as String?,
+    subcells: m['subcells'] != null
+        ? (m['subcells'] as Map<String, dynamic>).map(
+            (k, v) => MapEntry(k, List<String>.from(v as List)),
+          )
+        : null,
+    osmCategory: m['osmCategory'] as String?,
+    floorsRaw: m['floors'] != null ? (m['floors'] as List).toList() : null,
+    groundFloorName: m['groundFloorName'] as String?,
+  );
 
   Supermarket copyWith({
     String? name,
@@ -329,24 +335,29 @@ class Supermarket extends HiveObject {
     Object? osmCategory = _sentinel,
     Object? floorsRaw = _sentinel,
     Object? groundFloorName = _sentinel,
-  }) =>
-      Supermarket(
-        id: id,
-        name: name ?? this.name,
-        rows: rows ?? this.rows,
-        cols: cols ?? this.cols,
-        entrance: entrance ?? this.entrance,
-        exit: exit ?? this.exit,
-        cells: cells ?? this.cells,
-        subcells: subcells ?? this.subcells,
-        address: address == _sentinel ? this.address : address as String?,
-        lat: lat == _sentinel ? this.lat : lat as double?,
-        lng: lng == _sentinel ? this.lng : lng as double?,
-        parentId: parentId == _sentinel ? this.parentId : parentId as String?,
-        osmCategory: osmCategory == _sentinel ? this.osmCategory : osmCategory as String?,
-        floorsRaw: floorsRaw == _sentinel ? this.floorsRaw : floorsRaw as List<dynamic>?,
-        groundFloorName: groundFloorName == _sentinel ? this.groundFloorName : groundFloorName as String?,
-      );
+  }) => Supermarket(
+    id: id,
+    name: name ?? this.name,
+    rows: rows ?? this.rows,
+    cols: cols ?? this.cols,
+    entrance: entrance ?? this.entrance,
+    exit: exit ?? this.exit,
+    cells: cells ?? this.cells,
+    subcells: subcells ?? this.subcells,
+    address: address == _sentinel ? this.address : address as String?,
+    lat: lat == _sentinel ? this.lat : lat as double?,
+    lng: lng == _sentinel ? this.lng : lng as double?,
+    parentId: parentId == _sentinel ? this.parentId : parentId as String?,
+    osmCategory: osmCategory == _sentinel
+        ? this.osmCategory
+        : osmCategory as String?,
+    floorsRaw: floorsRaw == _sentinel
+        ? this.floorsRaw
+        : floorsRaw as List<dynamic>?,
+    groundFloorName: groundFloorName == _sentinel
+        ? this.groundFloorName
+        : groundFloorName as String?,
+  );
 }
 
 const _sentinel = Object();

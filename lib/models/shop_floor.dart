@@ -19,13 +19,15 @@ class ShopFloor {
     required this.exit,
     Map<String, List<String>>? cells,
     Map<String, List<String>>? subcells,
-  })  : cells = cells ?? {},
-        subcells = subcells ?? {};
+  }) : cells = cells ?? {},
+       subcells = subcells ?? {};
 
   // ── Grid helpers (same logic as Supermarket) ──────────────────────────────
 
-  List<String> get allCells =>
-      [for (final r in rows) for (final c in cols) '$r$c'];
+  List<String> get allCells => [
+    for (final r in rows)
+      for (final c in cols) '$r$c',
+  ];
 
   int? distance(String a, String b) {
     final posA = _cellPos(a);
@@ -65,29 +67,29 @@ class ShopFloor {
   // ── Serialisation ─────────────────────────────────────────────────────────
 
   Map<String, dynamic> toMap() => {
-        'name': name,
-        'rows': rows,
-        'cols': cols,
-        'entrance': entrance,
-        'exit': exit,
-        'cells': cells.map((k, v) => MapEntry(k, List<String>.from(v))),
-        if (subcells.isNotEmpty)
-          'subcells': subcells.map((k, v) => MapEntry(k, List<String>.from(v))),
-      };
+    'name': name,
+    'rows': rows,
+    'cols': cols,
+    'entrance': entrance,
+    'exit': exit,
+    'cells': cells.map((k, v) => MapEntry(k, List<String>.from(v))),
+    if (subcells.isNotEmpty)
+      'subcells': subcells.map((k, v) => MapEntry(k, List<String>.from(v))),
+  };
 
   factory ShopFloor.fromMap(Map m) => ShopFloor(
-        name: (m['name'] as String?) ?? '',
-        rows: List<String>.from(m['rows'] as List),
-        cols: List<String>.from(m['cols'] as List),
-        entrance: m['entrance'] as String,
-        exit: m['exit'] as String,
-        cells: (m['cells'] as Map).map(
-          (k, v) => MapEntry(k as String, List<String>.from(v as List)),
-        ),
-        subcells: m['subcells'] != null
-            ? (m['subcells'] as Map).map(
-                (k, v) => MapEntry(k as String, List<String>.from(v as List)),
-              )
-            : null,
-      );
+    name: (m['name'] as String?) ?? '',
+    rows: List<String>.from(m['rows'] as List),
+    cols: List<String>.from(m['cols'] as List),
+    entrance: m['entrance'] as String,
+    exit: m['exit'] as String,
+    cells: (m['cells'] as Map).map(
+      (k, v) => MapEntry(k as String, List<String>.from(v as List)),
+    ),
+    subcells: m['subcells'] != null
+        ? (m['subcells'] as Map).map(
+            (k, v) => MapEntry(k as String, List<String>.from(v as List)),
+          )
+        : null,
+  );
 }

@@ -60,23 +60,28 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
     if (!mounted) return;
     setState(() => _settingHome = false);
     if (coords == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l.geocodeFailed)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l.geocodeFailed)));
       return;
     }
-    await ref.read(homeLocationProvider.notifier).set(query, coords.lat, coords.lng);
+    await ref
+        .read(homeLocationProvider.notifier)
+        .set(query, coords.lat, coords.lng);
     if (!mounted) return;
     _homeCtrl.clear();
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(l.homeLocationSaved)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l.homeLocationSaved)));
   }
 
   Future<void> _clearHomeLocation() async {
     final l = AppLocalizations.of(context)!;
     await ref.read(homeLocationProvider.notifier).clear();
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(l.homeLocationCleared)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l.homeLocationCleared)));
   }
 
   Future<void> _create() async {
@@ -89,8 +94,9 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
     final code = _joinCtrl.text.trim().toUpperCase();
     final valid = RegExp(r'^[A-Z0-9]{6}$').hasMatch(code);
     if (!valid) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l.joinHouseholdInvalid)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l.joinHouseholdInvalid)));
       return;
     }
     await _setHousehold(code);
@@ -116,8 +122,14 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
       builder: (ctx) => AlertDialog(
         content: Text(l.leaveHouseholdConfirm),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.cancel)),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.yes)),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l.yes),
+          ),
         ],
       ),
     );
@@ -127,8 +139,9 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
   void _copy(String id) {
     final l = AppLocalizations.of(context)!;
     Clipboard.setData(ClipboardData(text: id));
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(l.copiedToClipboard)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l.copiedToClipboard)));
   }
 
   Future<void> _startEditingFirebase() async {
@@ -172,8 +185,9 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
     if (_pasteJsonMode) {
       creds = FirebaseCredentials.fromGoogleServicesJson(_jsonCtrl.text.trim());
       if (creds == null) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l.firebaseInstanceJsonInvalid)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l.firebaseInstanceJsonInvalid)));
         return;
       }
     } else {
@@ -187,8 +201,9 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
           appId.isEmpty ||
           senderId.isEmpty ||
           bucket.isEmpty) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l.firebaseInstanceFieldsRequired)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l.firebaseInstanceFieldsRequired)),
+        );
         return;
       }
       creds = FirebaseCredentials(
@@ -203,17 +218,21 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
     setState(() => _applyingFirebase = true);
     try {
       await applyCustomFirebaseCredentials(
-          creds, ref.read(firebaseAppProvider.notifier));
+        creds,
+        ref.read(firebaseAppProvider.notifier),
+      );
       if (!mounted) return;
       // Leave household — it belongs to the old instance
       ref.read(householdProvider.notifier).clear();
       setState(() => _editingFirebase = false);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l.firebaseInstanceSaved)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l.firebaseInstanceSaved)));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     } finally {
       if (mounted) setState(() => _applyingFirebase = false);
     }
@@ -226,18 +245,27 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
       builder: (ctx) => AlertDialog(
         content: Text(l.firebaseInstanceResetConfirm),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.cancel)),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.yes)),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l.yes),
+          ),
         ],
       ),
     );
     if (ok != true || !mounted) return;
-    await clearCustomFirebaseCredentials(ref.read(firebaseAppProvider.notifier));
+    await clearCustomFirebaseCredentials(
+      ref.read(firebaseAppProvider.notifier),
+    );
     if (!mounted) return;
     ref.read(householdProvider.notifier).clear();
     setState(() => _editingFirebase = false);
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(l.firebaseInstanceSaved)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l.firebaseInstanceSaved)));
   }
 
   Future<void> _toggleLocalOnly(bool value) async {
@@ -245,10 +273,18 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        content: Text(value ? l.localOnlyConfirmEnable : l.localOnlyConfirmDisable),
+        content: Text(
+          value ? l.localOnlyConfirmEnable : l.localOnlyConfirmDisable,
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.cancel)),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.yes)),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l.yes),
+          ),
         ],
       ),
     );
@@ -282,7 +318,10 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
             const SizedBox(height: 8),
             if (homeLoc != null) ...[
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.secondaryContainer,
                   borderRadius: BorderRadius.circular(12),
@@ -292,13 +331,17 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                     const Icon(Icons.home_outlined, size: 18),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text(homeLoc.address,
-                          style: theme.textTheme.bodyMedium),
+                      child: Text(
+                        homeLoc.address,
+                        style: theme.textTheme.bodyMedium,
+                      ),
                     ),
                     TextButton(
                       onPressed: _clearHomeLocation,
-                      child: Text(l.delete,
-                          style: TextStyle(color: theme.colorScheme.error)),
+                      child: Text(
+                        l.delete,
+                        style: TextStyle(color: theme.colorScheme.error),
+                      ),
                     ),
                   ],
                 ),
@@ -315,7 +358,8 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                       border: const OutlineInputBorder(),
                       isDense: true,
                     ),
-                    onSubmitted: (_) => _settingHome ? null : _setHomeLocation(),
+                    onSubmitted: (_) =>
+                        _settingHome ? null : _setHomeLocation(),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -338,8 +382,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
             // ── Local-only toggle ────────────────────────────────────────────
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: Text(l.localOnlyMode,
-                  style: theme.textTheme.titleMedium),
+              title: Text(l.localOnlyMode, style: theme.textTheme.titleMedium),
               subtitle: Text(l.localOnlyModeDesc),
               value: localOnly,
               onChanged: _toggleLocalOnly,
@@ -347,220 +390,245 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
             if (localOnly) ...[
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.tertiaryContainer,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text(l.localOnlyWarning,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onTertiaryContainer)),
+                child: Text(
+                  l.localOnlyWarning,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onTertiaryContainer,
+                  ),
+                ),
               ),
               const SizedBox(height: 8),
             ],
             if (!localOnly) ...[
-            if (hid != null) ...[
-              Text(l.yourHouseholdId, style: theme.textTheme.labelLarge),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        hid,
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontFamily: 'monospace',
-                          letterSpacing: 4,
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onPrimaryContainer,
+              if (hid != null) ...[
+                Text(l.yourHouseholdId, style: theme.textTheme.labelLarge),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          hid,
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            fontFamily: 'monospace',
+                            letterSpacing: 4,
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onPrimaryContainer,
+                          ),
                         ),
                       ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.copy),
-                      tooltip: l.copiedToClipboard,
-                      onPressed: () => _copy(hid),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.share_outlined),
-                      tooltip: l.shareHouseholdId,
-                      onPressed: () => Share.share(hid),
-                    ),
+                      IconButton(
+                        icon: const Icon(Icons.copy),
+                        tooltip: l.copiedToClipboard,
+                        onPressed: () => _copy(hid),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.share_outlined),
+                        tooltip: l.shareHouseholdId,
+                        onPressed: () => Share.share(hid),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.link_off),
+                  label: Text(l.leaveHousehold),
+                  onPressed: _leave,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: theme.colorScheme.error,
+                    side: BorderSide(color: theme.colorScheme.error),
+                  ),
+                ),
+              ] else ...[
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.add_home_outlined),
+                  label: Text(l.createHousehold),
+                  onPressed: _joining ? null : _create,
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Divider(),
+                ),
+                Text(l.joinHousehold, style: theme.textTheme.titleMedium),
+                const SizedBox(height: 4),
+                TextField(
+                  controller: _joinCtrl,
+                  decoration: InputDecoration(
+                    hintText: l.joinHouseholdHint,
+                    border: const OutlineInputBorder(),
+                  ),
+                  textCapitalization: TextCapitalization.characters,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
+                    LengthLimitingTextInputFormatter(6),
                   ],
+                  onSubmitted: (_) => _joining ? null : _join(),
                 ),
-              ),
-              const SizedBox(height: 16),
-              OutlinedButton.icon(
-                icon: const Icon(Icons.link_off),
-                label: Text(l.leaveHousehold),
-                onPressed: _leave,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: theme.colorScheme.error,
-                  side: BorderSide(color: theme.colorScheme.error),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    icon: _joining
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.link),
+                    label: Text(l.joinHousehold),
+                    onPressed: _joining ? null : _join,
+                  ),
                 ),
-              ),
-            ] else ...[
-              ElevatedButton.icon(
-                icon: const Icon(Icons.add_home_outlined),
-                label: Text(l.createHousehold),
-                onPressed: _joining ? null : _create,
-              ),
+              ],
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),
                 child: Divider(),
               ),
-              Text(l.joinHousehold, style: theme.textTheme.titleMedium),
-              const SizedBox(height: 4),
-              TextField(
-                controller: _joinCtrl,
-                decoration: InputDecoration(
-                  hintText: l.joinHouseholdHint,
-                  border: const OutlineInputBorder(),
-                ),
-                textCapitalization: TextCapitalization.characters,
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
-                  LengthLimitingTextInputFormatter(6),
-                ],
-                onSubmitted: (_) => _joining ? null : _join(),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  icon: _joining
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.link),
-                  label: Text(l.joinHousehold),
-                  onPressed: _joining ? null : _join,
-                ),
-              ),
-            ],
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
-              child: Divider(),
-            ),
-            // ── Firebase instance ────────────────────────────────────────────
-            Row(
-              children: [
-                Expanded(
-                  child: Text(l.firebaseInstanceTitle,
-                      style: theme.textTheme.titleMedium),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.help_outline, size: 20),
-                  tooltip: l.firebaseHelpTitle,
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const FirebaseHelpScreen()),
-                  ),
-                ),
-                if (!_editingFirebase)
-                  TextButton(
-                    onPressed: _startEditingFirebase,
-                    child: Text(l.firebaseInstanceChange),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            if (!_editingFirebase) ...[
-              Container(
-                width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  savedCreds != null
-                      ? l.firebaseInstanceCustom(savedCreds.projectId)
-                      : l.firebaseInstanceDefault,
-                  style: theme.textTheme.bodyMedium,
-                ),
-              ),
-            ] else ...[
-              // Toggle: fields vs paste JSON
+              // ── Firebase instance ────────────────────────────────────────────
               Row(
                 children: [
                   Expanded(
-                    child: SegmentedButton<bool>(
-                      segments: [
-                        ButtonSegment(
-                            value: false,
-                            label: Text(l.firebaseInstanceProjectId)),
-                        ButtonSegment(
-                            value: true,
-                            label: Text(l.firebaseInstancePasteJson)),
-                      ],
-                      selected: {_pasteJsonMode},
-                      onSelectionChanged: (v) =>
-                          setState(() => _pasteJsonMode = v.first),
+                    child: Text(
+                      l.firebaseInstanceTitle,
+                      style: theme.textTheme.titleMedium,
                     ),
                   ),
+                  IconButton(
+                    icon: const Icon(Icons.help_outline, size: 20),
+                    tooltip: l.firebaseHelpTitle,
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const FirebaseHelpScreen(),
+                      ),
+                    ),
+                  ),
+                  if (!_editingFirebase)
+                    TextButton(
+                      onPressed: _startEditingFirebase,
+                      child: Text(l.firebaseInstanceChange),
+                    ),
                 ],
               ),
-              const SizedBox(height: 12),
-              if (_pasteJsonMode) ...[
-                TextField(
-                  controller: _jsonCtrl,
-                  maxLines: 8,
-                  decoration: const InputDecoration(
-                    hintText: 'google-services.json',
-                    border: OutlineInputBorder(),
-                    alignLabelWithHint: true,
+              const SizedBox(height: 8),
+              if (!_editingFirebase) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    savedCreds != null
+                        ? l.firebaseInstanceCustom(savedCreds.projectId)
+                        : l.firebaseInstanceDefault,
+                    style: theme.textTheme.bodyMedium,
                   ),
                 ),
               ] else ...[
-                _field(_projectIdCtrl, l.firebaseInstanceProjectId),
-                _field(_apiKeyCtrl, l.firebaseInstanceApiKey),
-                _field(_appIdCtrl, l.firebaseInstanceAppId),
-                _field(_senderIdCtrl, l.firebaseInstanceSenderId),
-                _field(_bucketCtrl, l.firebaseInstanceBucket),
-              ],
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _applyingFirebase ? null : _applyFirebaseCredentials,
-                      child: _applyingFirebase
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(l.firebaseInstanceSave),
+                // Toggle: fields vs paste JSON
+                Row(
+                  children: [
+                    Expanded(
+                      child: SegmentedButton<bool>(
+                        segments: [
+                          ButtonSegment(
+                            value: false,
+                            label: Text(l.firebaseInstanceProjectId),
+                          ),
+                          ButtonSegment(
+                            value: true,
+                            label: Text(l.firebaseInstancePasteJson),
+                          ),
+                        ],
+                        selected: {_pasteJsonMode},
+                        onSelectionChanged: (v) =>
+                            setState(() => _pasteJsonMode = v.first),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                if (_pasteJsonMode) ...[
+                  TextField(
+                    controller: _jsonCtrl,
+                    maxLines: 8,
+                    decoration: const InputDecoration(
+                      hintText: 'google-services.json',
+                      border: OutlineInputBorder(),
+                      alignLabelWithHint: true,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                ] else ...[
+                  _field(_projectIdCtrl, l.firebaseInstanceProjectId),
+                  _field(_apiKeyCtrl, l.firebaseInstanceApiKey),
+                  _field(_appIdCtrl, l.firebaseInstanceAppId),
+                  _field(_senderIdCtrl, l.firebaseInstanceSenderId),
+                  _field(_bucketCtrl, l.firebaseInstanceBucket),
+                ],
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _applyingFirebase
+                            ? null
+                            : _applyFirebaseCredentials,
+                        child: _applyingFirebase
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(l.firebaseInstanceSave),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    TextButton(
+                      onPressed: _applyingFirebase
+                          ? null
+                          : () => setState(() => _editingFirebase = false),
+                      child: Text(l.cancel),
+                    ),
+                  ],
+                ),
+                if (savedCreds != null) ...[
+                  const SizedBox(height: 8),
                   TextButton(
-                    onPressed:
-                        _applyingFirebase ? null : () => setState(() => _editingFirebase = false),
-                    child: Text(l.cancel),
+                    onPressed: _applyingFirebase
+                        ? null
+                        : _resetFirebaseInstance,
+                    style: TextButton.styleFrom(
+                      foregroundColor: theme.colorScheme.error,
+                    ),
+                    child: Text(l.firebaseInstanceReset),
                   ),
                 ],
-              ),
-              if (savedCreds != null) ...[
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: _applyingFirebase ? null : _resetFirebaseInstance,
-                  style: TextButton.styleFrom(
-                      foregroundColor: theme.colorScheme.error),
-                  child: Text(l.firebaseInstanceReset),
-                ),
               ],
-            ],
-            const SizedBox(height: 24),
+              const SizedBox(height: 24),
             ], // end if (!localOnly)
           ],
         ),
@@ -569,14 +637,14 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
   }
 
   Widget _field(TextEditingController ctrl, String label) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: TextField(
-          controller: ctrl,
-          decoration: InputDecoration(
-            labelText: label,
-            border: const OutlineInputBorder(),
-            isDense: true,
-          ),
-        ),
-      );
+    padding: const EdgeInsets.only(bottom: 10),
+    child: TextField(
+      controller: ctrl,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        isDense: true,
+      ),
+    ),
+  );
 }

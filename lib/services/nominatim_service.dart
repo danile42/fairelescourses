@@ -6,22 +6,27 @@ class NominatimService {
   static const _base = 'https://nominatim.openstreetmap.org/search';
 
   /// Returns (lat, lng) for the given address query, or null if not found.
-  static Future<({double lat, double lng})?> geocode(String query,
-      {http.Client? httpClient}) async {
+  static Future<({double lat, double lng})?> geocode(
+    String query, {
+    http.Client? httpClient,
+  }) async {
     if (query.trim().isEmpty) return null;
-    final uri = Uri.parse(_base).replace(queryParameters: {
-      'q': query.trim(),
-      'format': 'json',
-      'limit': '1',
-    });
+    final uri = Uri.parse(_base).replace(
+      queryParameters: {'q': query.trim(), 'format': 'json', 'limit': '1'},
+    );
     final client = httpClient ?? http.Client();
     final http.Response response;
     try {
-      response = await client.get(uri, headers: {
-        'User-Agent': 'Fairelescourses/1.0 (shopping navigation app)',
-        'Accept-Language': 'en,de;q=0.9',
-        'Accept': 'application/json',
-      }).timeout(const Duration(seconds: 15));
+      response = await client
+          .get(
+            uri,
+            headers: {
+              'User-Agent': 'Fairelescourses/1.0 (shopping navigation app)',
+              'Accept-Language': 'en,de;q=0.9',
+              'Accept': 'application/json',
+            },
+          )
+          .timeout(const Duration(seconds: 15));
     } finally {
       if (httpClient == null) client.close();
     }

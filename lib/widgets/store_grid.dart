@@ -58,8 +58,11 @@ class StoreGrid extends StatelessWidget {
                   onTap: () => onColLongPress!(colIdx),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Icon(Icons.remove_circle_outline,
-                        size: 18, color: theme.colorScheme.error.withAlpha(180)),
+                    child: Icon(
+                      Icons.remove_circle_outline,
+                      size: 18,
+                      color: theme.colorScheme.error.withAlpha(180),
+                    ),
                   ),
                 )
               : const SizedBox.shrink(),
@@ -76,8 +79,11 @@ class StoreGrid extends StatelessWidget {
                   onTap: () => onRowLongPress!(rowIdx),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 2),
-                    child: Icon(Icons.remove_circle_outline,
-                        size: 18, color: theme.colorScheme.error.withAlpha(180)),
+                    child: Icon(
+                      Icons.remove_circle_outline,
+                      size: 18,
+                      color: theme.colorScheme.error.withAlpha(180),
+                    ),
                   ),
                 )
               : const SizedBox.shrink(),
@@ -112,8 +118,9 @@ class StoreGrid extends StatelessWidget {
                         rowHeader(rowIdx),
                         ...cols.map((col) {
                           final cellId = '$row$col';
-                          final isSplit = subcells.keys
-                              .any((k) => k.startsWith('$cellId:'));
+                          final isSplit = subcells.keys.any(
+                            (k) => k.startsWith('$cellId:'),
+                          );
                           if (isSplit) {
                             return _buildSplitCell(context, cellId, cellSize);
                           }
@@ -134,8 +141,11 @@ class StoreGrid extends StatelessWidget {
                             child: InkWell(
                               onTap: onAddRow,
                               borderRadius: BorderRadius.circular(10),
-                              child: Icon(Icons.add_circle_outline,
-                                  size: 16, color: theme.colorScheme.primary),
+                              child: Icon(
+                                Icons.add_circle_outline,
+                                size: 16,
+                                color: theme.colorScheme.primary,
+                              ),
                             ),
                           ),
                         ),
@@ -151,8 +161,11 @@ class StoreGrid extends StatelessWidget {
                     child: InkWell(
                       onTap: onAddCol,
                       borderRadius: BorderRadius.circular(10),
-                      child: Icon(Icons.add_circle_outline,
-                          size: 16, color: theme.colorScheme.primary),
+                      child: Icon(
+                        Icons.add_circle_outline,
+                        size: 16,
+                        color: theme.colorScheme.primary,
+                      ),
                     ),
                   ),
                 ),
@@ -163,7 +176,11 @@ class StoreGrid extends StatelessWidget {
     );
   }
 
-  Widget _buildNormalCell(BuildContext context, String cellId, double cellSize) {
+  Widget _buildNormalCell(
+    BuildContext context,
+    String cellId,
+    double cellSize,
+  ) {
     final theme = Theme.of(context);
     final goods = cells[cellId] ?? [];
     final isEntrance = cellId == entrance;
@@ -172,18 +189,20 @@ class StoreGrid extends StatelessWidget {
     final isDimmed = dimmedCells?.contains(cellId) ?? false;
 
     const visibleCount = 2;
-    final overflow =
-        goods.length > visibleCount ? goods.length - visibleCount : 0;
+    final overflow = goods.length > visibleCount
+        ? goods.length - visibleCount
+        : 0;
 
     return GestureDetector(
       onTap: () => onCellTap(cellId),
-      onDoubleTap:
-          onCellDoubleTap != null ? () => onCellDoubleTap!(cellId) : null,
+      onDoubleTap: onCellDoubleTap != null
+          ? () => onCellDoubleTap!(cellId)
+          : null,
       onLongPress: onCellLongPress != null
           ? () => onCellLongPress!(cellId)
           : goods.length > visibleCount
-              ? () => _showAllGoods(context, cellId, goods)
-              : null,
+          ? () => _showAllGoods(context, cellId, goods)
+          : null,
       child: Container(
         width: cellSize,
         height: cellSize,
@@ -192,12 +211,12 @@ class StoreGrid extends StatelessWidget {
           color: isHighlight
               ? theme.colorScheme.primaryContainer
               : isEntrance
-                  ? Colors.green.shade100
-                  : isExit
-                      ? Colors.red.shade100
-                      : goods.isEmpty
-                          ? Colors.grey.shade100
-                          : Colors.blue.shade50,
+              ? Colors.green.shade100
+              : isExit
+              ? Colors.red.shade100
+              : goods.isEmpty
+              ? Colors.grey.shade100
+              : Colors.blue.shade50,
           border: Border.all(
             color: isHighlight
                 ? theme.colorScheme.primary
@@ -230,9 +249,10 @@ class StoreGrid extends StatelessWidget {
                     Text(
                       '+$overflow',
                       style: TextStyle(
-                          fontSize: 7,
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.bold),
+                        fontSize: 7,
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                 ],
               ],
@@ -243,15 +263,13 @@ class StoreGrid extends StatelessWidget {
     );
   }
 
-  Widget _buildSplitCell(
-      BuildContext context, String cellId, double cellSize) {
+  Widget _buildSplitCell(BuildContext context, String cellId, double cellSize) {
     final theme = Theme.of(context);
     final isDimmed = dimmedCells?.contains(cellId) ?? false;
     final isHighlight = cellId == highlightCell;
 
     // Determine axis from the first subcell key for this cell.
-    final axisKey =
-        subcells.keys.firstWhere((k) => k.startsWith('$cellId:'));
+    final axisKey = subcells.keys.firstWhere((k) => k.startsWith('$cellId:'));
     final axis = axisKey.split(':')[1]; // "row" or "col"
 
     final key0 = '$cellId:$axis:0';
@@ -269,23 +287,23 @@ class StoreGrid extends StatelessWidget {
               border: isFirst
                   ? null
                   : axis == 'col'
-                      ? Border(
-                          left: BorderSide(color: Colors.grey.shade400))
-                      : Border(
-                          top: BorderSide(color: Colors.grey.shade400)),
+                  ? Border(left: BorderSide(color: Colors.grey.shade400))
+                  : Border(top: BorderSide(color: Colors.grey.shade400)),
             ),
             padding: const EdgeInsets.all(2),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: goods
                   .take(2)
-                  .map((g) => Text(
-                        g,
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 6),
-                      ))
+                  .map(
+                    (g) => Text(
+                      g,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 6),
+                    ),
+                  )
                   .toList(),
             ),
           ),
@@ -294,16 +312,19 @@ class StoreGrid extends StatelessWidget {
     }
 
     final halves = axis == 'col'
-        ? Row(children: [
-            halfWidget(key0, goods0, isFirst: true),
-            halfWidget(key1, goods1, isFirst: false),
-          ])
+        ? Row(
+            children: [
+              halfWidget(key0, goods0, isFirst: true),
+              halfWidget(key1, goods1, isFirst: false),
+            ],
+          )
         : Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               halfWidget(key0, goods0, isFirst: true),
               halfWidget(key1, goods1, isFirst: false),
-            ]);
+            ],
+          );
 
     return GestureDetector(
       onLongPress: onSplitCellLongPress != null
@@ -339,8 +360,7 @@ class StoreGrid extends StatelessWidget {
     return 44;
   }
 
-  void _showAllGoods(
-      BuildContext context, String cellId, List<String> goods) {
+  void _showAllGoods(BuildContext context, String cellId, List<String> goods) {
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -349,14 +369,18 @@ class StoreGrid extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: goods
-              .map((g) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Row(children: [
+              .map(
+                (g) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Row(
+                    children: [
                       const Icon(Icons.circle, size: 6),
                       const SizedBox(width: 8),
                       Expanded(child: Text(g)),
-                    ]),
-                  ))
+                    ],
+                  ),
+                ),
+              )
               .toList(),
         ),
         actions: [

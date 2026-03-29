@@ -17,19 +17,19 @@ class _FakeStoresNotifier extends SupermarketNotifier {
 }
 
 Widget _wrap() => ProviderScope(
-      overrides: [
-        supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
-      ],
-      child: const MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: OsmShopsScreen(lat: 48.1, lng: 11.5, radiusMeters: 2000),
-      ),
-    );
+  overrides: [supermarketsProvider.overrideWith(() => _FakeStoresNotifier())],
+  child: const MaterialApp(
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: OsmShopsScreen(lat: 48.1, lng: 11.5, radiusMeters: 2000),
+  ),
+);
 
 void main() {
   group('OsmShopsScreen', () {
-    testWidgets('shows error state when network is unavailable', (tester) async {
+    testWidgets('shows error state when network is unavailable', (
+      tester,
+    ) async {
       // TestWidgetsFlutterBinding intercepts all HTTP and returns 400,
       // so the Overpass call fails and the error UI should appear.
       await tester.pumpWidget(_wrap());

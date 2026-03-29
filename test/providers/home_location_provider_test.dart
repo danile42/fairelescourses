@@ -7,8 +7,7 @@ import 'package:fairelescourses/providers/home_location_provider.dart';
 
 import '../helpers/hive_helper.dart';
 
-ProviderContainer makeContainer() =>
-    ProviderContainer();
+ProviderContainer makeContainer() => ProviderContainer();
 
 void main() {
   late Directory hiveDir;
