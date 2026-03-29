@@ -1681,66 +1681,6 @@ class _SplitActionCard extends StatelessWidget {
 // Dimension counter widget
 // ---------------------------------------------------------------------------
 
-class _DimensionCounter extends StatelessWidget {
-  final String label;
-  final int value;
-  final String suffix;
-  final int max;
-  final void Function(int delta) onChanged;
-
-  const _DimensionCounter({
-    required this.label,
-    required this.value,
-    required this.suffix,
-    required this.max,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return InputDecorator(
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.remove),
-            onPressed: value > 1 ? () => onChanged(-1) : null,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          ),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '$value',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                suffix,
-                style: theme.textTheme.labelSmall?.copyWith(color: Colors.grey),
-              ),
-            ],
-          ),
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: value < max ? () => onChanged(1) : null,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 // ---------------------------------------------------------------------------
 // Floor tab bar
 // ---------------------------------------------------------------------------
