@@ -101,3 +101,19 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 40. Name the app's package name explicitly in the Firebase help screen — users won't know it otherwise.
 
 41. I want to put this project on GitHub. Please write a comprehensive readme that explains the purpose and content of the project, and how the app works (with screenshots). Add a section that explains that this was all written by you — not a single line of code was edited by myself. If you can, include all the prompts I gave you for this project (including this one) in a file "prompts.md". I also want the tests to run on GitHub, as far as possible. Can you also add code coverage measurement?
+
+42. Push everything to this remote repo: https://github.com/danile42/fairelescourses.git I can enter credentials on the command line.
+
+43. How can I give user and password directly on the command line?
+
+44. Which configuration should I use in Codecov?
+
+45. CI is failing during "Verify formatting" with this output: [dart format reported 39 changed files]. Error: Process completed with exit code 1.
+
+46. Also, there is this warning: Node.js 20 actions are deprecated. The following actions are running on Node.js 20 and may not work as expected: actions/checkout@v4. [...]
+
+47. CI fails on "Analyze" with this output: [33 issues including 3 errors referencing the removed OsmShopsScreen and 1 warning for unused _DimensionCounter].
+
+48. Set the project's licence to Apache 2.0.
+
+49. Add the latest prompts (including this one) to the prompts file.
