@@ -28,6 +28,7 @@ typedef ShopPrefill = ({
   double? lat,
   double? lng,
   String? osmCategory,
+  List<String>? osmCategories,
 });
 
 /// Holds the editable state for one floor in the store editor.
@@ -485,6 +486,8 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       lat: lat,
       lng: lng,
       osmCategory: widget.existing?.osmCategory ?? widget.prefill?.osmCategory,
+      osmCategories:
+          widget.existing?.osmCategories ?? widget.prefill?.osmCategories,
       groundFloorName: floor0.name.isEmpty ? null : floor0.name,
     );
     if (_floorData.length > 1) {

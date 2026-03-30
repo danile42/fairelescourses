@@ -8,6 +8,7 @@ import '../providers/firebase_app_provider.dart';
 import '../providers/home_location_provider.dart';
 import '../providers/household_provider.dart';
 import '../providers/local_only_provider.dart';
+import '../providers/nav_view_mode_provider.dart';
 import '../providers/supermarket_provider.dart';
 import '../providers/shopping_list_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -297,6 +298,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final localOnly = ref.watch(localOnlyProvider);
+    final preferListView = ref.watch(navViewModeProvider);
     final hid = ref.watch(householdProvider);
     final homeLoc = ref.watch(homeLocationProvider);
     final theme = Theme.of(context);
@@ -374,6 +376,32 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                       : Text(l.setHomeLocation),
                 ),
               ],
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Divider(),
+            ),
+            // ── Default navigation view ───────────────────────────────────────
+            Text(l.navViewModeTitle, style: theme.textTheme.titleMedium),
+            const SizedBox(height: 4),
+            Text(l.navViewModeDesc, style: theme.textTheme.bodySmall),
+            const SizedBox(height: 8),
+            SegmentedButton<bool>(
+              segments: [
+                ButtonSegment(
+                  value: false,
+                  label: Text(l.navViewModeGrid),
+                  icon: const Icon(Icons.grid_view),
+                ),
+                ButtonSegment(
+                  value: true,
+                  label: Text(l.navViewModeList),
+                  icon: const Icon(Icons.list),
+                ),
+              ],
+              selected: {preferListView},
+              onSelectionChanged: (v) =>
+                  ref.read(navViewModeProvider.notifier).set(v.first),
             ),
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),

@@ -384,4 +384,72 @@ void main() {
       expect(restored.additionalFloors, isEmpty);
     });
   });
+
+  group('categories', () {
+    test('categories returns osmCategories when set', () {
+      final s = Supermarket(
+        id: 'x',
+        name: 'X',
+        rows: ['A'],
+        cols: ['1'],
+        entrance: 'A1',
+        exit: 'A1',
+        cells: {},
+        osmCategory: 'supermarket',
+        osmCategories: ['supermarket', 'convenience'],
+      );
+      expect(s.categories, ['supermarket', 'convenience']);
+    });
+
+    test('categories falls back to osmCategory when osmCategories is null', () {
+      final s = Supermarket(
+        id: 'x',
+        name: 'X',
+        rows: ['A'],
+        cols: ['1'],
+        entrance: 'A1',
+        exit: 'A1',
+        cells: {},
+        osmCategory: 'bakery',
+      );
+      expect(s.categories, ['bakery']);
+    });
+
+    test('categories returns empty list when both fields are null', () {
+      final s = makeStore();
+      expect(s.categories, isEmpty);
+    });
+
+    test('osmCategories roundtrip via toMap/fromMap', () {
+      final s = Supermarket(
+        id: 'x',
+        name: 'X',
+        rows: ['A'],
+        cols: ['1'],
+        entrance: 'A1',
+        exit: 'A1',
+        cells: {},
+        osmCategories: ['electronics', 'computer'],
+      );
+      final restored = Supermarket.fromMap(s.toMap());
+      expect(restored.osmCategories, ['electronics', 'computer']);
+      expect(restored.categories, ['electronics', 'computer']);
+    });
+
+    test('fromMap tolerates missing osmCategories', () {
+      final map = {
+        'id': 'x',
+        'name': 'X',
+        'rows': ['A'],
+        'cols': ['1'],
+        'entrance': 'A1',
+        'exit': 'A1',
+        'cells': <String, dynamic>{},
+        'osmCategory': 'bakery',
+      };
+      final s = Supermarket.fromMap(map);
+      expect(s.osmCategories, isNull);
+      expect(s.categories, ['bakery']);
+    });
+  });
 }

@@ -667,7 +667,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get shopEditorHelpGridBody =>
-      'Zeichne das Layout des Markts als Raster. Verwende die +-Schaltflächen, um Reihen und Spalten hinzuzufügen.';
+      'Zeichne das Layout des Markts als Raster. Verwende die +-Schaltflächen, um Reihen und Spalten hinzuzufügen. Du kannst mit einem groben Raster beginnen und es später verfeinern, indem du einzelne Felder in zwei Hälften teilst.';
 
   @override
   String get shopEditorHelpGoodsTitle => 'Waren zuweisen';
@@ -747,4 +747,20 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get firebaseHelpClose => 'Verstanden';
+
+  @override
+  String get localShopsSection => 'Deine Märkte';
+
+  @override
+  String get navViewModeTitle => 'Standard-Navigationsansicht';
+
+  @override
+  String get navViewModeDesc =>
+      'Welche Ansicht beim Navigieren einer Liste standardmäßig geöffnet wird.';
+
+  @override
+  String get navViewModeGrid => 'Raster';
+
+  @override
+  String get navViewModeList => 'Liste';
 }

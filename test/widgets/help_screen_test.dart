@@ -84,6 +84,12 @@ void main() {
       expect(find.text('Verstanden'), findsOneWidget);
     });
 
+    testWidgets('grid body mentions coarse grid and splits', (tester) async {
+      await tester.pumpWidget(_app(const ShopEditorHelpScreen()));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('coarse grid'), findsOneWidget);
+    });
+
     testWidgets('Got it button dismisses the screen', (tester) async {
       await tester.pumpWidget(
         MaterialApp(

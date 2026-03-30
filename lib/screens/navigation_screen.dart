@@ -7,6 +7,7 @@ import '../models/navigation_plan.dart';
 import '../models/shopping_list.dart';
 import '../models/supermarket.dart';
 import '../providers/household_provider.dart';
+import '../providers/nav_view_mode_provider.dart';
 import '../providers/shopping_list_provider.dart';
 import '../providers/supermarket_provider.dart';
 import '../providers/firestore_sync_provider.dart';
@@ -42,7 +43,7 @@ class NavigationScreen extends ConsumerStatefulWidget {
 class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   late List<Set<String>> _checkedPerStore;
   int _storeIndex = 0;
-  _ViewMode _viewMode = _ViewMode.grid;
+  late _ViewMode _viewMode;
   late Set<String> _resolvedUnmatched;
   late Set<String> _navigatedUnmatched;
 
@@ -64,6 +65,8 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   @override
   void initState() {
     super.initState();
+    final preferList = ref.read(navViewModeProvider);
+    _viewMode = preferList ? _ViewMode.list : _ViewMode.grid;
     _checkedPerStore = List.generate(widget.plan.storePlans.length, (_) => {});
     _resolvedUnmatched = {};
     _navigatedUnmatched = {};

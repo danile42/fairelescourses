@@ -658,7 +658,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shopEditorHelpGridBody =>
-      'Draw the shop layout as a grid of cells. Use the + buttons to add rows and columns.';
+      'Draw the shop layout as a grid of cells. Use the + buttons to add rows and columns. You can start with a coarse grid and refine it later by splitting individual cells into halves.';
 
   @override
   String get shopEditorHelpGoodsTitle => 'Assigning goods';
@@ -738,4 +738,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get firebaseHelpClose => 'Got it';
+
+  @override
+  String get localShopsSection => 'Your shops';
+
+  @override
+  String get navViewModeTitle => 'Default navigation view';
+
+  @override
+  String get navViewModeDesc =>
+      'Which view opens by default when navigating a list.';
+
+  @override
+  String get navViewModeGrid => 'Grid';
+
+  @override
+  String get navViewModeList => 'List';
 }

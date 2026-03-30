@@ -49,9 +49,15 @@ class Supermarket extends HiveObject {
   Map<String, List<String>> subcells;
 
   /// OSM shop category value (e.g. "supermarket", "bakery") set when the shop
-  /// is created by importing from OpenStreetMap. Used for category filtering.
+  /// is created by importing from OpenStreetMap. Kept for backwards compat;
+  /// prefer [osmCategories] for new code.
   @HiveField(12)
   String? osmCategory;
+
+  /// All OSM category values this shop belongs to (e.g. ["supermarket"]).
+  /// Supersedes [osmCategory] — use the [categories] getter which merges both.
+  @HiveField(13)
+  List<String>? osmCategories;
 
   /// Additional floors beyond the ground floor (index 0).
   /// Stored as raw List<Map> so Hive can persist it without a custom adapter.
@@ -81,10 +87,21 @@ class Supermarket extends HiveObject {
     this.parentId,
     this.ownerUid,
     this.osmCategory,
+    this.osmCategories,
     this.floorsRaw,
     this.groundFloorName,
     Map<String, List<String>>? subcells,
   }) : subcells = subcells ?? {};
+
+  /// All OSM category values for this shop, merging [osmCategories] and
+  /// the legacy [osmCategory] field.
+  List<String> get categories {
+    if (osmCategories != null && osmCategories!.isNotEmpty) {
+      return osmCategories!;
+    }
+    if (osmCategory != null) return [osmCategory!];
+    return [];
+  }
 
   // ---------------------------------------------------------------------------
   // Grid helpers
@@ -295,6 +312,8 @@ class Supermarket extends HiveObject {
     if (subcells.isNotEmpty)
       'subcells': subcells.map((k, v) => MapEntry(k, List<String>.from(v))),
     if (osmCategory != null) 'osmCategory': osmCategory,
+    if (osmCategories != null && osmCategories!.isNotEmpty)
+      'osmCategories': osmCategories,
     if (floorsRaw != null && floorsRaw!.isNotEmpty)
       'floors': additionalFloors.map((f) => f.toMap()).toList(),
     if (groundFloorName != null) 'groundFloorName': groundFloorName,
@@ -320,6 +339,9 @@ class Supermarket extends HiveObject {
           )
         : null,
     osmCategory: m['osmCategory'] as String?,
+    osmCategories: m['osmCategories'] != null
+        ? List<String>.from(m['osmCategories'] as List)
+        : null,
     floorsRaw: m['floors'] != null ? (m['floors'] as List).toList() : null,
     groundFloorName: m['groundFloorName'] as String?,
   );
@@ -337,6 +359,7 @@ class Supermarket extends HiveObject {
     Object? lng = _sentinel,
     Object? parentId = _sentinel,
     Object? osmCategory = _sentinel,
+    Object? osmCategories = _sentinel,
     Object? floorsRaw = _sentinel,
     Object? groundFloorName = _sentinel,
   }) => Supermarket(
@@ -355,6 +378,9 @@ class Supermarket extends HiveObject {
     osmCategory: osmCategory == _sentinel
         ? this.osmCategory
         : osmCategory as String?,
+    osmCategories: osmCategories == _sentinel
+        ? this.osmCategories
+        : osmCategories as List<String>?,
     floorsRaw: floorsRaw == _sentinel
         ? this.floorsRaw
         : floorsRaw as List<dynamic>?,

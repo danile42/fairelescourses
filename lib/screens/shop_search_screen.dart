@@ -359,6 +359,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       lng: source.lng,
       parentId: source.id,
       osmCategory: source.osmCategory,
+      osmCategories: source.osmCategories ?? source.categories,
     );
     await ref.read(supermarketsProvider.notifier).add(copy);
     if (!mounted) return;
@@ -393,6 +394,20 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
             .toList()
           ..sort();
     final theme = Theme.of(context);
+
+    // Local shops filtered by selected categories (byLocation mode only).
+    // Shows stores whose categories intersect with the active selection.
+    final selectedOsmValues = _selectedCategories
+        .map((c) => c.osmValue)
+        .toSet();
+    final filteredLocalStores = _mode == _SearchMode.byLocation
+        ? stores
+              .where(
+                (s) =>
+                    s.categories.any((cat) => selectedOsmValues.contains(cat)),
+              )
+              .toList()
+        : <Supermarket>[];
 
     // Apply brand filter (empty selection = show all)
     final filteredFirestore = _selectedBrands.isEmpty
@@ -578,6 +593,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                 theme,
                 filteredFirestore,
                 filteredOsm,
+                filteredLocalStores,
               ),
             ),
         ],
@@ -594,8 +610,9 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     List<Supermarket> stores,
     ThemeData theme,
     List<ShopSearchResult> filteredFirestore,
-    List<OsmShop> filteredOsm,
-  ) {
+    List<OsmShop> filteredOsm, [
+    List<Supermarket> filteredLocalStores = const [],
+  ]) {
     if (_mode == _SearchMode.byLocation) {
       final homeLoc = ref.read(homeLocationProvider);
       if (_nearMe && homeLoc == null && !_searched) {
@@ -636,7 +653,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       );
     }
 
-    if (!_searched) {
+    if (!_searched && filteredLocalStores.isEmpty) {
       if (_mode == _SearchMode.byLocation && _nearMe) {
         return const SizedBox.shrink();
       }
@@ -648,11 +665,12 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       );
     }
 
+    final hasLocal = filteredLocalStores.isNotEmpty;
     final hasFirestore = filteredFirestore.isNotEmpty;
     final hasOsm = filteredOsm.isNotEmpty;
     final showOsmSection = hasOsm || _osmLoading || _osmError != null;
 
-    if (!hasFirestore && !showOsmSection) {
+    if (!hasLocal && !hasFirestore && !showOsmSection) {
       return Center(
         child: Text(
           _selectedBrands.isNotEmpty ? l.noShopsMatchFilter : l.noShopsFound,
@@ -661,11 +679,20 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       );
     }
 
+    // Section layout:
+    //   [local header?] [local items] [firestore items] [osm divider?] [osm items] [attribution?]
+    final localCount = filteredLocalStores.length;
+    final localHeaderCount = hasLocal ? 1 : 0;
+    final localSectionEnd = localHeaderCount + localCount;
+    final firestoreStart = localSectionEnd;
     final firestoreCount = filteredFirestore.length;
-    final showDivider = hasFirestore && showOsmSection;
-    final osmCount = filteredOsm.length;
-    final osmSectionStart = firestoreCount + (showDivider ? 1 : 0);
-    final osmItemCount = _osmLoading || _osmError != null ? 1 : osmCount;
+    final osmDividerCount = (hasFirestore || hasLocal) && showOsmSection
+        ? 1
+        : 0;
+    final osmSectionStart = firestoreStart + firestoreCount + osmDividerCount;
+    final osmItemCount = _osmLoading || _osmError != null
+        ? 1
+        : filteredOsm.length;
     final showAttribution = showOsmSection;
     final totalItems = osmSectionStart + osmItemCount;
 
@@ -683,7 +710,56 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
           );
         }
 
-        if (showDivider && i == firestoreCount) {
+        // Local shops header
+        if (hasLocal && i == 0) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+            child: Row(
+              children: [
+                const Expanded(child: Divider()),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    l.localShopsSection,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+                const Expanded(child: Divider()),
+              ],
+            ),
+          );
+        }
+
+        // Local shop cards
+        if (hasLocal && i >= localHeaderCount && i < localSectionEnd) {
+          final store = filteredLocalStores[i - localHeaderCount];
+          return Card(
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            child: ListTile(
+              leading: const Icon(Icons.store),
+              title: Text(store.name),
+              subtitle: store.address != null ? Text(store.address!) : null,
+              trailing: const Icon(Icons.check_circle, color: Colors.green),
+            ),
+          );
+        }
+
+        // Firestore cards
+        if (i >= firestoreStart && i < firestoreStart + firestoreCount) {
+          return _buildFirestoreCard(
+            context,
+            l,
+            filteredFirestore[i - firestoreStart],
+            knownNames,
+            theme,
+          );
+        }
+
+        // OSM section divider
+        final osmDividerIndex = firestoreStart + firestoreCount;
+        if (osmDividerCount > 0 && i == osmDividerIndex) {
           return Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
             child: Row(
@@ -701,16 +777,6 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                 const Expanded(child: Divider()),
               ],
             ),
-          );
-        }
-
-        if (i < firestoreCount) {
-          return _buildFirestoreCard(
-            context,
-            l,
-            filteredFirestore[i],
-            knownNames,
-            theme,
           );
         }
 
@@ -822,6 +888,9 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                           lat: osm.lat,
                           lng: osm.lng,
                           osmCategory: osm.osmCategory,
+                          osmCategories: osm.osmCategory != null
+                              ? [osm.osmCategory!]
+                              : null,
                         ),
                         focusItems: widget.focusItem != null
                             ? [widget.focusItem!]
@@ -1042,6 +1111,9 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                                   lat: osm.lat,
                                   lng: osm.lng,
                                   osmCategory: osm.osmCategory,
+                                  osmCategories: osm.osmCategory != null
+                                      ? [osm.osmCategory!]
+                                      : null,
                                 ),
                                 focusItems: widget.focusItem != null
                                     ? [widget.focusItem!]

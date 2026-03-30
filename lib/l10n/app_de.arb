@@ -272,7 +272,7 @@
   "helpDataLocalOnly": "Im Nur-Lokal-Modus verlässt nichts dein Gerät.",
   "shopEditorHelpTitle": "So funktioniert der Markt-Editor",
   "shopEditorHelpGridTitle": "Das Raster",
-  "shopEditorHelpGridBody": "Zeichne das Layout des Markts als Raster. Verwende die +-Schaltflächen, um Reihen und Spalten hinzuzufügen.",
+  "shopEditorHelpGridBody": "Zeichne das Layout des Markts als Raster. Verwende die +-Schaltflächen, um Reihen und Spalten hinzuzufügen. Du kannst mit einem groben Raster beginnen und es später verfeinern, indem du einzelne Felder in zwei Hälften teilst.",
   "shopEditorHelpGoodsTitle": "Waren zuweisen",
   "shopEditorHelpGoodsBody": "Tippe auf ein Feld, um Waren zuzuweisen. Die App plant den kürzesten Weg durch alle passenden Felder.",
   "shopEditorHelpEntranceTitle": "Eingang & Ausgang",
@@ -295,5 +295,10 @@
   "firebaseHelpCredsBody": "Lade in Projekteinstellungen → Deine Apps die google-services.json herunter und füge sie hier ein, oder trage die Felder manuell ein.",
   "firebaseAdvancedWarningBody": "Die Konfiguration einer eigenen Firebase-Instanz ist ein fortgeschrittenes Feature. Du benötigst ein selbst verwaltetes Firebase-Projekt. Die eingebaute Instanz reicht für die meisten Nutzer aus.\n\nFortfahren?",
   "firebaseAdvancedContinue": "Fortfahren",
-  "firebaseHelpClose": "Verstanden"
+  "firebaseHelpClose": "Verstanden",
+  "localShopsSection": "Deine Märkte",
+  "navViewModeTitle": "Standard-Navigationsansicht",
+  "navViewModeDesc": "Welche Ansicht beim Navigieren einer Liste standardmäßig geöffnet wird.",
+  "navViewModeGrid": "Raster",
+  "navViewModeList": "Liste"
 }

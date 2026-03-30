@@ -127,3 +127,8 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 53. Verify formatting failed again on CI. Fix this, add this prompt to prompts.md, and commit.
 
 54. "Analyze" in CI fails: [32 lint issues]. Fix these, add this prompt to prompts.md, and commit.
+
+55. Implement the following, add tests, format, analyze, update prompts, and commit:
+    - Allow to set a preferred navigation mode — grid or list — which displays this view by default (the other can still be selected, as now). This should be available in "local-only" mode, too.
+    - In the help screen of the shop editor, mention that a shop can be modelled with a coarse grid first, which can later be refined (using splits).
+    - Searching for shops by category (e.g. electronics) brings up all locally stored shops. Only those which are known to belong to this category should be listed. Also, if OSM allows one shop to belong to multiple categories, so should our data model.

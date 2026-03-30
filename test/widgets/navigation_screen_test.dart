@@ -6,11 +6,22 @@ import 'package:fairelescourses/l10n/app_localizations.dart';
 import 'package:fairelescourses/models/navigation_plan.dart';
 import 'package:fairelescourses/models/shopping_list.dart';
 import 'package:fairelescourses/models/supermarket.dart';
+import 'package:fairelescourses/providers/nav_view_mode_provider.dart';
 import 'package:fairelescourses/providers/shopping_list_provider.dart';
 import 'package:fairelescourses/providers/supermarket_provider.dart';
 import 'package:fairelescourses/screens/navigation_screen.dart';
 
 // ── fake notifiers ────────────────────────────────────────────────────────────
+
+class _FakeNavViewModeNotifier extends NavViewModeNotifier {
+  @override
+  bool build() => false; // default: grid view
+}
+
+class _FakeNavViewModeListNotifier extends NavViewModeNotifier {
+  @override
+  bool build() => true; // prefer list view
+}
 
 class _FakeListsNotifier extends ShoppingListNotifier {
   _FakeListsNotifier(this._items);
@@ -114,6 +125,7 @@ Widget _wrap(
           .toList();
   return ProviderScope(
     overrides: [
+      navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
       shoppingListsProvider.overrideWith(() => _FakeListsNotifier(items)),
       if (stores != null)
         supermarketsProvider.overrideWith(() => _FakeStoresNotifierWith(stores))
@@ -602,6 +614,9 @@ void main() {
                   MaterialPageRoute(
                     builder: (_) => ProviderScope(
                       overrides: [
+                        navViewModeProvider.overrideWith(
+                          () => _FakeNavViewModeNotifier(),
+                        ),
                         shoppingListsProvider.overrideWith(
                           () =>
                               _FakeListsNotifier([ShoppingItem(name: 'Milk')]),
@@ -700,6 +715,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
             shoppingListsProvider.overrideWith(
               () => _FakeListsNotifier([ShoppingItem(name: 'Milch')]),
             ),
@@ -743,6 +759,43 @@ void main() {
       await tester.tap(find.byIcon(Icons.list));
       await tester.pumpAndSettle();
 
+      expect(find.text('Milk'), findsOneWidget);
+      expect(find.text('Bread'), findsOneWidget);
+    });
+
+    testWidgets('starts in list view when preferred mode is list', (
+      tester,
+    ) async {
+      // Override the provider to prefer list view.
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            navViewModeProvider.overrideWith(
+              () => _FakeNavViewModeListNotifier(),
+            ),
+            shoppingListsProvider.overrideWith(
+              () => _FakeListsNotifier([
+                ShoppingItem(name: 'Milk'),
+                ShoppingItem(name: 'Bread'),
+              ]),
+            ),
+            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: NavigationScreen(
+              plan: _singleStorePlan(['Milk', 'Bread']),
+              listId: _listId,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // In list view, the toggle icon is Icons.grid_view (to switch to grid).
+      expect(find.byIcon(Icons.grid_view), findsOneWidget);
+      // Items are visible.
       expect(find.text('Milk'), findsOneWidget);
       expect(find.text('Bread'), findsOneWidget);
     });

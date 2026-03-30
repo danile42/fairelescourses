@@ -272,7 +272,7 @@
   "helpDataLocalOnly": "In local-only mode, nothing leaves your device.",
   "shopEditorHelpTitle": "How the shop editor works",
   "shopEditorHelpGridTitle": "The grid",
-  "shopEditorHelpGridBody": "Draw the shop layout as a grid of cells. Use the + buttons to add rows and columns.",
+  "shopEditorHelpGridBody": "Draw the shop layout as a grid of cells. Use the + buttons to add rows and columns. You can start with a coarse grid and refine it later by splitting individual cells into halves.",
   "shopEditorHelpGoodsTitle": "Assigning goods",
   "shopEditorHelpGoodsBody": "Tap a cell to assign which goods are found there. The app uses this to plan the shortest route through your list.",
   "shopEditorHelpEntranceTitle": "Entrance & exit",
@@ -295,5 +295,10 @@
   "firebaseHelpCredsBody": "In Project settings → Your apps, download google-services.json and paste it here, or enter the values manually.",
   "firebaseAdvancedWarningBody": "Configuring a custom Firebase instance requires creating and managing your own Firebase project. The built-in instance works for most users.\n\nContinue?",
   "firebaseAdvancedContinue": "Continue",
-  "firebaseHelpClose": "Got it"
+  "firebaseHelpClose": "Got it",
+  "localShopsSection": "Your shops",
+  "navViewModeTitle": "Default navigation view",
+  "navViewModeDesc": "Which view opens by default when navigating a list.",
+  "navViewModeGrid": "Grid",
+  "navViewModeList": "List"
 }

@@ -1307,7 +1307,7 @@ abstract class AppLocalizations {
   /// No description provided for @shopEditorHelpGridBody.
   ///
   /// In en, this message translates to:
-  /// **'Draw the shop layout as a grid of cells. Use the + buttons to add rows and columns.'**
+  /// **'Draw the shop layout as a grid of cells. Use the + buttons to add rows and columns. You can start with a coarse grid and refine it later by splitting individual cells into halves.'**
   String get shopEditorHelpGridBody;
 
   /// No description provided for @shopEditorHelpGoodsTitle.
@@ -1447,6 +1447,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Got it'**
   String get firebaseHelpClose;
+
+  /// No description provided for @localShopsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Your shops'**
+  String get localShopsSection;
+
+  /// No description provided for @navViewModeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Default navigation view'**
+  String get navViewModeTitle;
+
+  /// No description provided for @navViewModeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Which view opens by default when navigating a list.'**
+  String get navViewModeDesc;
+
+  /// No description provided for @navViewModeGrid.
+  ///
+  /// In en, this message translates to:
+  /// **'Grid'**
+  String get navViewModeGrid;
+
+  /// No description provided for @navViewModeList.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get navViewModeList;
 }
 
 class _AppLocalizationsDelegate

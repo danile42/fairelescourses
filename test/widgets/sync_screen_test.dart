@@ -92,6 +92,14 @@ void main() {
       expect(find.text('Home location'), findsOneWidget);
     });
 
+    testWidgets('shows nav view mode setting', (tester) async {
+      await tester.pumpWidget(_wrap());
+      await tester.pumpAndSettle();
+      expect(find.text('Default navigation view'), findsOneWidget);
+      expect(find.text('Grid'), findsOneWidget);
+      expect(find.text('List'), findsOneWidget);
+    });
+
     testWidgets('shows create and join household buttons when no household', (
       tester,
     ) async {
@@ -205,6 +213,7 @@ void main() {
       await tester.pumpWidget(_wrap(hasHousehold: true));
       await tester.pumpAndSettle();
 
+      await tester.ensureVisible(find.text('Leave household'));
       await tester.tap(find.text('Leave household'));
       await tester.pumpAndSettle();
 
@@ -221,7 +230,8 @@ void main() {
         TextField,
         'Enter 6-character code',
       );
-      await tester.tap(joinField);
+      await tester.ensureVisible(joinField);
+      await tester.tap(joinField, warnIfMissed: false);
       await tester.enterText(joinField, 'BAD');
       await tester.pump();
 
