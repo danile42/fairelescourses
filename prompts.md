@@ -125,3 +125,5 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 52. Add the latest prompts that are not already in prompts.md to that file (including this one). Then commit.
 
 53. Verify formatting failed again on CI. Fix this, add this prompt to prompts.md, and commit.
+
+54. "Analyze" in CI fails: [32 lint issues]. Fix these, add this prompt to prompts.md, and commit.

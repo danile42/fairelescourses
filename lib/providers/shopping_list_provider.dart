@@ -33,24 +33,27 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
     await _box.put(l.id, l);
     _sync();
     final hid = _hid;
-    if (hid != null)
+    if (hid != null) {
       ref.read(firestoreServiceProvider).upsertList(hid, l).ignore();
+    }
   }
 
   Future<void> update(ShoppingList l) async {
     await _box.put(l.id, l);
     _sync();
     final hid = _hid;
-    if (hid != null)
+    if (hid != null) {
       ref.read(firestoreServiceProvider).upsertList(hid, l).ignore();
+    }
   }
 
   Future<void> remove(String id) async {
     await _box.delete(id);
     _sync();
     final hid = _hid;
-    if (hid != null)
+    if (hid != null) {
       ref.read(firestoreServiceProvider).deleteList(hid, id).ignore();
+    }
   }
 
   Future<void> toggleItem(String listId, int index) async {
@@ -62,8 +65,9 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
     await _box.put(listId, updated);
     _sync();
     final hid = _hid;
-    if (hid != null)
+    if (hid != null) {
       ref.read(firestoreServiceProvider).upsertList(hid, updated).ignore();
+    }
   }
 
   /// Toggle a list item by name (case-insensitive). Used by collaborative navigation.
@@ -137,8 +141,9 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
     await _box.put(listId, updated);
     _sync();
     final hid = _hid;
-    if (hid != null)
+    if (hid != null) {
       ref.read(firestoreServiceProvider).upsertList(hid, updated).ignore();
+    }
   }
 
   /// Upload all local lists to Firestore (called when joining a household).

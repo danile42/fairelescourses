@@ -31,8 +31,9 @@ class SupermarketNotifier extends Notifier<List<Supermarket>> {
     await _box.put(s.id, s);
     state = [...state, s];
     final hid = _hid;
-    if (hid != null)
+    if (hid != null) {
       ref.read(firestoreServiceProvider).upsertShop(hid, s).ignore();
+    }
   }
 
   Future<void> update(Supermarket s) async {
@@ -42,16 +43,18 @@ class SupermarketNotifier extends Notifier<List<Supermarket>> {
     await _box.put(s.id, s);
     state = [for (final e in state) e.id == s.id ? s : e];
     final hid = _hid;
-    if (hid != null)
+    if (hid != null) {
       ref.read(firestoreServiceProvider).upsertShop(hid, s).ignore();
+    }
   }
 
   Future<void> remove(String id) async {
     await _box.delete(id);
     state = state.where((s) => s.id != id).toList();
     final hid = _hid;
-    if (hid != null)
+    if (hid != null) {
       ref.read(firestoreServiceProvider).deleteShop(hid, id).ignore();
+    }
   }
 
   /// Called by the Firestore sync listener. Replaces state with remote data.

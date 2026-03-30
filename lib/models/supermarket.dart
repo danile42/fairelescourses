@@ -189,8 +189,9 @@ class Supermarket extends HiveObject {
       }
       for (final entry in extra[fi].subcells.entries) {
         for (final tag in entry.value) {
-          if (tag.toLowerCase() == q)
+          if (tag.toLowerCase() == q) {
             return (fi + 1, entry.key.split(':').first);
+          }
         }
       }
     }
@@ -208,8 +209,9 @@ class Supermarket extends HiveObject {
       for (final entry in subcells.entries) {
         for (final tag in entry.value) {
           final t = tag.toLowerCase();
-          if (words.every((w) => t.contains(w)))
+          if (words.every((w) => t.contains(w))) {
             return (0, entry.key.split(':').first);
+          }
         }
       }
       for (var fi = 0; fi < extra.length; fi++) {
@@ -222,8 +224,9 @@ class Supermarket extends HiveObject {
         for (final entry in extra[fi].subcells.entries) {
           for (final tag in entry.value) {
             final t = tag.toLowerCase();
-            if (words.every((w) => t.contains(w)))
+            if (words.every((w) => t.contains(w))) {
               return (fi + 1, entry.key.split(':').first);
+            }
           }
         }
       }
@@ -239,8 +242,9 @@ class Supermarket extends HiveObject {
     for (final entry in subcells.entries) {
       for (final tag in entry.value) {
         final t = tag.toLowerCase();
-        if (t.contains(q) || q.contains(t))
+        if (t.contains(q) || q.contains(t)) {
           return (0, entry.key.split(':').first);
+        }
       }
     }
     for (var fi = 0; fi < extra.length; fi++) {

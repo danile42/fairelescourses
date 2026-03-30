@@ -762,8 +762,9 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                       for (final item in stop.items) {
                         if (checked.contains(item) ||
                             _deferNextShop.contains(item) ||
-                            _forNewList.contains(item))
+                            _forNewList.contains(item)) {
                           c++;
+                        }
                       }
                     }
                   }

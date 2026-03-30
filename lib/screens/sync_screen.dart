@@ -441,7 +441,8 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                       IconButton(
                         icon: const Icon(Icons.share_outlined),
                         tooltip: l.shareHouseholdId,
-                        onPressed: () => Share.share(hid),
+                        onPressed: () =>
+                            SharePlus.instance.share(ShareParams(text: hid)),
                       ),
                     ],
                   ),

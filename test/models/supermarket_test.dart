@@ -248,7 +248,7 @@ void main() {
   });
 
   group('multi-floor', () {
-    ShopFloor _floor1({Map<String, List<String>>? cells}) => ShopFloor(
+    ShopFloor floor1({Map<String, List<String>>? cells}) => ShopFloor(
       name: 'Upper',
       rows: ['A', 'B'],
       cols: ['1', '2'],
@@ -281,7 +281,7 @@ void main() {
 
     test('additionalFloors setter and getter roundtrip', () {
       final s = makeStore();
-      s.additionalFloors = [_floor1()];
+      s.additionalFloors = [floor1()];
       expect(s.additionalFloors.length, 1);
       expect(s.additionalFloors.first.name, 'Upper');
       expect(s.allFloors.length, 2);
@@ -290,7 +290,7 @@ void main() {
     test('floorAt(1) returns first additional floor', () {
       final s = makeStore();
       s.additionalFloors = [
-        _floor1(
+        floor1(
           cells: {
             'B1': ['Books'],
           },
@@ -313,7 +313,7 @@ void main() {
     test('findCellWithFloor returns (1, cell) for upper-floor item', () {
       final s = makeStore();
       s.additionalFloors = [
-        _floor1(
+        floor1(
           cells: {
             'B2': ['Cheese'],
           },
@@ -332,7 +332,7 @@ void main() {
         },
       );
       s.additionalFloors = [
-        _floor1(
+        floor1(
           cells: {
             'A2': ['Brotaufstrich'],
           },
@@ -350,7 +350,7 @@ void main() {
         },
       );
       s.additionalFloors = [
-        _floor1(
+        floor1(
           cells: {
             'B2': ['Cheese'],
           },
@@ -366,7 +366,7 @@ void main() {
         },
       );
       s.additionalFloors = [
-        _floor1(
+        floor1(
           cells: {
             'B2': ['Electronics'],
           },

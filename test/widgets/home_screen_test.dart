@@ -189,7 +189,7 @@ void main() {
   });
 
   group('HomeScreen shops tab', () {
-    Supermarket _makeStore({int extraFloors = 0}) {
+    Supermarket makeStore({int extraFloors = 0}) {
       final s = Supermarket(
         id: 'store-1',
         name: 'Test Market',
@@ -217,7 +217,7 @@ void main() {
     testWidgets('single-floor store shows grid size without floor count', (
       tester,
     ) async {
-      await tester.pumpWidget(_wrap(lists: [], stores: [_makeStore()]));
+      await tester.pumpWidget(_wrap(lists: [], stores: [makeStore()]));
       await tester.pumpAndSettle();
 
       // Navigate to the Shops tab.
@@ -232,7 +232,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        _wrap(lists: [], stores: [_makeStore(extraFloors: 1)]),
+        _wrap(lists: [], stores: [makeStore(extraFloors: 1)]),
       );
       await tester.pumpAndSettle();
 
@@ -245,7 +245,7 @@ void main() {
 
     testWidgets('three-floor store shows correct count', (tester) async {
       await tester.pumpWidget(
-        _wrap(lists: [], stores: [_makeStore(extraFloors: 2)]),
+        _wrap(lists: [], stores: [makeStore(extraFloors: 2)]),
       );
       await tester.pumpAndSettle();
 

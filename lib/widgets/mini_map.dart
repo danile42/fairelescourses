@@ -109,8 +109,9 @@ class MiniMap extends ConsumerWidget {
                 Color bg = Colors.grey.shade200;
                 if (isEntrance) bg = Colors.green.shade200;
                 if (isExit) bg = Colors.red.shade200;
-                if (isStop)
+                if (isStop) {
                   bg = isDone ? Colors.green.shade100 : Colors.blue.shade200;
+                }
                 if (isCurrent) bg = theme.colorScheme.primary;
 
                 Widget? child;

@@ -343,6 +343,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
   Future<void> _import(BuildContext context, Supermarket source) async {
     final l = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
+    final nav = Navigator.of(context);
     final copy = Supermarket(
       id: _uuid.v4(),
       name: source.name,
@@ -362,8 +363,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     await ref.read(supermarketsProvider.notifier).add(copy);
     if (!mounted) return;
     if (widget.focusItem != null) {
-      await Navigator.push(
-        context,
+      await nav.push(
         MaterialPageRoute(
           builder: (_) => StoreEditorScreen(
             existing: copy,
@@ -371,7 +371,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
           ),
         ),
       );
-      if (mounted) Navigator.pop(context);
+      if (mounted) nav.pop();
     } else {
       messenger.showSnackBar(SnackBar(content: Text(l.shopImported)));
       setState(() {});
@@ -405,11 +405,13 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
               .toList();
     final filteredOsm = _osmResults.where((osm) {
       if (_osmNameFilter != null &&
-          !osm.name.toLowerCase().contains(_osmNameFilter!))
+          !osm.name.toLowerCase().contains(_osmNameFilter!)) {
         return false;
+      }
       if (_selectedBrands.isNotEmpty &&
-          !_selectedBrands.contains(_extractBrand(osm.name, osm.brand)))
+          !_selectedBrands.contains(_extractBrand(osm.name, osm.brand))) {
         return false;
+      }
       return true;
     }).toList();
 
@@ -635,8 +637,9 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     }
 
     if (!_searched) {
-      if (_mode == _SearchMode.byLocation && _nearMe)
+      if (_mode == _SearchMode.byLocation && _nearMe) {
         return const SizedBox.shrink();
+      }
       return Center(
         child: Text(
           l.searchShopsMinChars,
@@ -808,6 +811,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
               )
             : FilledButton(
                 onPressed: () async {
+                  final nav = Navigator.of(context);
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -826,7 +830,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                     ),
                   );
                   if (widget.focusItem != null && mounted) {
-                    Navigator.pop(context);
+                    nav.pop();
                   }
                 },
                 child: Text(l.createShop),
@@ -1026,6 +1030,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                       )
                     : FilledButton(
                         onPressed: () async {
+                          final nav = Navigator.of(pageContext);
                           Navigator.pop(sheetCtx);
                           await Navigator.push(
                             pageContext,
@@ -1045,7 +1050,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                             ),
                           );
                           if (widget.focusItem != null && mounted) {
-                            Navigator.pop(pageContext);
+                            nav.pop();
                           }
                         },
                         child: Text(l.createShop),

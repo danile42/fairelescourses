@@ -279,7 +279,7 @@ void main() {
   });
 
   group('StoreEditorScreen – multi-floor store', () {
-    Supermarket _multiFloorStore() {
+    Supermarket multiFloorStore() {
       final s = Supermarket(
         id: 'S1',
         name: 'Multi Floor',
@@ -302,7 +302,7 @@ void main() {
     }
 
     testWidgets('two-floor store shows two floor tabs', (tester) async {
-      final store = _multiFloorStore();
+      final store = multiFloorStore();
       await tester.pumpWidget(
         _wrap(StoreEditorScreen(existing: store), existingStores: [store]),
       );
@@ -314,7 +314,7 @@ void main() {
     });
 
     testWidgets('tapping second floor tab switches floor', (tester) async {
-      final store = _multiFloorStore();
+      final store = multiFloorStore();
       await tester.pumpWidget(
         _wrap(StoreEditorScreen(existing: store), existingStores: [store]),
       );

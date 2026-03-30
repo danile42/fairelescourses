@@ -306,8 +306,9 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       final row = cellId[0];
       final colPart = cellId.substring(1);
       final idx = oldRows.indexOf(row);
-      if (idx < 0 || idx == rowIndex)
+      if (idx < 0 || idx == rowIndex) {
         return '${newRows.first}${currentCols.first}';
+      }
       if (idx > rowIndex) return '${newRows[idx - 1]}$colPart';
       return cellId;
     }
@@ -388,8 +389,9 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       final row = cellId[0];
       final col = cellId.substring(1);
       final idx = oldCols.indexOf(col);
-      if (idx < 0 || idx == colIndex)
+      if (idx < 0 || idx == colIndex) {
         return '${currentRows.first}${newCols.first}';
+      }
       if (idx > colIndex) return '$row${newCols[idx - 1]}';
       return cellId;
     }

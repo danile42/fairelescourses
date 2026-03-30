@@ -393,7 +393,7 @@ void main() {
   // ── Floor headers ──────────────────────────────────────────────────────────
 
   group('NavigationScreen – floor headers', () {
-    NavigationPlan _multiFloorPlan() => NavigationPlan(
+    NavigationPlan multiFloorPlan() => NavigationPlan(
       storePlans: [
         StorePlan(
           storeId: 's1',
@@ -411,13 +411,13 @@ void main() {
     testWidgets('floor header with stairs icon appears before floor-1 stop', (
       tester,
     ) async {
-      await tester.pumpWidget(_wrap(_multiFloorPlan()));
+      await tester.pumpWidget(_wrap(multiFloorPlan()));
       await tester.pumpAndSettle();
       expect(find.byIcon(Icons.stairs), findsOneWidget);
     });
 
     testWidgets('floor header shows "Floor 1" label', (tester) async {
-      await tester.pumpWidget(_wrap(_multiFloorPlan()));
+      await tester.pumpWidget(_wrap(multiFloorPlan()));
       await tester.pumpAndSettle();
       // The floor label appears in both the header divider and the stop badge.
       expect(find.text('Floor 1'), findsAtLeastNWidgets(1));
@@ -436,7 +436,7 @@ void main() {
 
   group('NavigationScreen – carried-over item availability', () {
     // Helper: defer 'Milk' from store 1 and advance to store 2.
-    Future<void> _deferAndAdvance(WidgetTester tester) async {
+    Future<void> deferAndAdvance(WidgetTester tester) async {
       await tester.tap(find.byIcon(Icons.schedule).first);
       await tester.pumpAndSettle();
       await tester.tap(find.byIcon(Icons.skip_next));
@@ -465,7 +465,7 @@ void main() {
         await tester.pumpWidget(_wrap(plan, stores: stores));
         await tester.pumpAndSettle();
 
-        await _deferAndAdvance(tester);
+        await deferAndAdvance(tester);
 
         // Find the Checkbox for the carried-over 'Milk' item.
         // It appears inside the carried-over section above the regular stop.
@@ -495,7 +495,7 @@ void main() {
         await tester.pumpWidget(_wrap(plan, stores: stores));
         await tester.pumpAndSettle();
 
-        await _deferAndAdvance(tester);
+        await deferAndAdvance(tester);
 
         final checkboxes = tester.widgetList<Checkbox>(find.byType(Checkbox));
         final milkCheckbox = checkboxes.first;
@@ -518,7 +518,7 @@ void main() {
       await tester.pumpWidget(_wrap(plan, stores: stores));
       await tester.pumpAndSettle();
 
-      await _deferAndAdvance(tester);
+      await deferAndAdvance(tester);
 
       // Both carried-over 'Milk' (unavailable) and regular 'Bread' show schedule.
       expect(find.byIcon(Icons.schedule), findsNWidgets(2));
@@ -639,7 +639,7 @@ void main() {
   // ── Unmatched items ───────────────────────────────────────────────────────
 
   group('NavigationScreen – unmatched items', () {
-    NavigationPlan _planWithUnmatched() => NavigationPlan(
+    NavigationPlan planWithUnmatched() => NavigationPlan(
       storePlans: [
         StorePlan(
           storeId: 's1',
@@ -654,7 +654,7 @@ void main() {
     );
 
     testWidgets('list view shows unmatched section', (tester) async {
-      await tester.pumpWidget(_wrap(_planWithUnmatched()));
+      await tester.pumpWidget(_wrap(planWithUnmatched()));
       await tester.pumpAndSettle();
 
       // Switch to list view to see unmatched section.
@@ -667,7 +667,7 @@ void main() {
     testWidgets('done view with unmatched shows warning section', (
       tester,
     ) async {
-      await tester.pumpWidget(_wrap(_planWithUnmatched()));
+      await tester.pumpWidget(_wrap(planWithUnmatched()));
       await tester.pumpAndSettle();
 
       // Check the only matched item to reach done view.
