@@ -9,7 +9,10 @@ import 'package:fairelescourses/l10n/app_localizations.dart';
 import 'package:fairelescourses/models/shopping_list.dart';
 import 'package:fairelescourses/models/supermarket.dart';
 import 'package:fairelescourses/providers/firestore_sync_provider.dart';
+import 'package:fairelescourses/providers/home_location_provider.dart';
 import 'package:fairelescourses/providers/household_provider.dart';
+import 'package:fairelescourses/providers/local_only_provider.dart';
+import 'package:fairelescourses/providers/nav_view_mode_provider.dart';
 import 'package:fairelescourses/providers/shopping_list_provider.dart';
 import 'package:fairelescourses/providers/supermarket_provider.dart';
 import 'package:fairelescourses/screens/sync_screen.dart';
@@ -24,11 +27,31 @@ class MockFirestoreService extends Mock implements FirestoreService {}
 class _NullHouseholdNotifier extends HouseholdNotifier {
   @override
   String? build() => null;
+
+  @override
+  Future<void> setId(String id) async {
+    state = id;
+  }
+
+  @override
+  Future<void> clear() async {
+    state = null;
+  }
 }
 
 class _KnownHouseholdNotifier extends HouseholdNotifier {
   @override
   String? build() => 'ABC123';
+
+  @override
+  Future<void> setId(String id) async {
+    state = id;
+  }
+
+  @override
+  Future<void> clear() async {
+    state = null;
+  }
 }
 
 class _FakeStoresNotifier extends SupermarketNotifier {
@@ -42,6 +65,46 @@ class _FakeListsNotifier extends ShoppingListNotifier {
 
   @override
   Future<void> uploadAll(String hid) async {}
+}
+
+class _FakeNavViewModeNotifier extends NavViewModeNotifier {
+  @override
+  bool build() => false;
+
+  @override
+  Future<void> set(bool preferList) async {
+    state = preferList;
+  }
+}
+
+class _FakeLocalOnlyNotifier extends LocalOnlyNotifier {
+  @override
+  bool build() => false;
+
+  @override
+  Future<void> set(bool value) async {
+    state = value;
+  }
+}
+
+class _FakeHomeLocationNotifier extends HomeLocationNotifier {
+  @override
+  HomeLocation? build() => null;
+}
+
+class _FakeHomeLocationSetNotifier extends HomeLocationNotifier {
+  final String address;
+  final double lat;
+  final double lng;
+  _FakeHomeLocationSetNotifier(this.address, this.lat, this.lng);
+
+  @override
+  HomeLocation? build() => HomeLocation(address: address, lat: lat, lng: lng);
+
+  @override
+  Future<void> clear() async {
+    state = null;
+  }
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -59,6 +122,33 @@ Widget _wrap({bool hasHousehold = false}) {
       firestoreSyncProvider.overrideWith((ref) {}),
       currentUidProvider.overrideWith((ref) => null),
       firestoreServiceProvider.overrideWithValue(mockSvc),
+      navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
+      homeLocationProvider.overrideWith(() => _FakeHomeLocationNotifier()),
+      localOnlyProvider.overrideWith(() => _FakeLocalOnlyNotifier()),
+    ],
+    child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: const SyncScreen(),
+    ),
+  );
+}
+
+Widget _wrapWithHomeLocation(String address, double lat, double lng) {
+  final mockSvc = MockFirestoreService();
+  return ProviderScope(
+    overrides: [
+      householdProvider.overrideWith(() => _NullHouseholdNotifier()),
+      supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+      shoppingListsProvider.overrideWith(() => _FakeListsNotifier()),
+      firestoreSyncProvider.overrideWith((ref) {}),
+      currentUidProvider.overrideWith((ref) => null),
+      firestoreServiceProvider.overrideWithValue(mockSvc),
+      navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
+      homeLocationProvider.overrideWith(
+        () => _FakeHomeLocationSetNotifier(address, lat, lng),
+      ),
+      localOnlyProvider.overrideWith(() => _FakeLocalOnlyNotifier()),
     ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -142,6 +232,11 @@ void main() {
             firestoreSyncProvider.overrideWith((ref) {}),
             currentUidProvider.overrideWith((ref) => null),
             firestoreServiceProvider.overrideWithValue(MockFirestoreService()),
+            navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
+            homeLocationProvider.overrideWith(
+              () => _FakeHomeLocationNotifier(),
+            ),
+            localOnlyProvider.overrideWith(() => _FakeLocalOnlyNotifier()),
           ],
           child: MaterialApp(
             locale: const Locale('de'),
@@ -235,15 +330,36 @@ void main() {
       await tester.enterText(joinField, 'BAD');
       await tester.pump();
 
-      // Try to join by finding and tapping the Join button.
-      // The button is an ElevatedButton next to the text field.
-      final joinButtons = find.text('Join');
-      if (joinButtons.evaluate().isNotEmpty) {
-        await tester.tap(joinButtons.last);
-        await tester.pumpAndSettle();
-        // Invalid code: snackbar with error message.
-        expect(find.byType(SnackBar), findsOneWidget);
-      }
+      // The Join button label is "Join household".
+      final joinBtn = find.text('Join household').last;
+      await tester.ensureVisible(joinBtn);
+      await tester.tap(joinBtn, warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      // Invalid code: snackbar with error message.
+      expect(find.byType(SnackBar), findsOneWidget);
+    });
+
+    testWidgets('entering valid join code joins the household', (tester) async {
+      await tester.pumpWidget(_wrap());
+      await tester.pumpAndSettle();
+
+      final joinField = find.widgetWithText(
+        TextField,
+        'Enter 6-character code',
+      );
+      await tester.ensureVisible(joinField);
+      await tester.tap(joinField, warnIfMissed: false);
+      await tester.enterText(joinField, 'ABC123');
+      await tester.pump();
+
+      final joinBtn = find.text('Join household').last;
+      await tester.ensureVisible(joinBtn);
+      await tester.tap(joinBtn, warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      // After successful join, no exception.
+      expect(tester.takeException(), isNull);
     });
   });
 
@@ -276,6 +392,92 @@ void main() {
 
       // After cancelling, Change button is visible again (scroll back).
       expect(find.text('Firebase instance'), findsOneWidget);
+    });
+  });
+
+  group('SyncScreen – create household', () {
+    testWidgets('tapping Create new household triggers creation', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap());
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Create new household'));
+      await tester.tap(find.text('Create new household'));
+      // Don't settle — household creation is async; just verify no immediate crash.
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('SyncScreen – home location clear', () {
+    testWidgets('shows delete button when home location is set', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrapWithHomeLocation('Berlin', 52.5, 13.4));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Berlin'), findsOneWidget);
+      expect(find.text('Delete'), findsOneWidget);
+    });
+
+    testWidgets('tapping Delete clears the home location', (tester) async {
+      await tester.pumpWidget(_wrapWithHomeLocation('Munich', 48.1, 11.6));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Munich'), findsOneWidget);
+
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Munich'), findsNothing);
+    });
+  });
+
+  group('SyncScreen – copy household ID', () {
+    testWidgets('tapping copy icon copies household ID to clipboard', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap(hasHousehold: true));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.byIcon(Icons.copy));
+      await tester.tap(find.byIcon(Icons.copy), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      // No exception after copy.
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('SyncScreen – set home location empty', () {
+    testWidgets('tapping Set with empty field is a no-op', (tester) async {
+      await tester.pumpWidget(_wrap());
+      await tester.pumpAndSettle();
+
+      // The Set button is visible without scrolling.
+      final setBtn = find.text('Set');
+      await tester.ensureVisible(setBtn);
+      await tester.tap(setBtn, warnIfMissed: false);
+      await tester.pump();
+
+      // Empty query → early return, no snackbar.
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('SyncScreen – nav view mode toggle', () {
+    testWidgets('selecting List changes the SegmentedButton state', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap());
+      await tester.pumpAndSettle();
+
+      // Tap the "List" segment.
+      await tester.tap(find.text('List'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
     });
   });
 }

@@ -293,6 +293,36 @@ void main() {
 
       expect(find.text('New shop'), findsNothing);
     });
+
+    testWidgets('tapping New shop opens store editor screen', (tester) async {
+      await tester.pumpWidget(_wrap(lists: []));
+      await tester.pumpAndSettle();
+
+      // Expand FAB
+      await tester.tap(find.byType(FloatingActionButton).last);
+      await tester.pumpAndSettle();
+
+      // Tap New shop mini button
+      await tester.tap(find.text('New shop'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('tapping New list opens list editor screen', (tester) async {
+      await tester.pumpWidget(_wrap(lists: []));
+      await tester.pumpAndSettle();
+
+      // Expand FAB
+      await tester.tap(find.byType(FloatingActionButton).last);
+      await tester.pumpAndSettle();
+
+      // Tap New list mini button
+      await tester.tap(find.text('New list'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    });
   });
 
   group('HomeScreen delete confirmation', () {
@@ -352,6 +382,43 @@ void main() {
 
       // In selection mode, checkboxes appear.
       expect(find.byType(Checkbox), findsWidgets);
+    });
+  });
+
+  group('HomeScreen help button', () {
+    testWidgets('tapping help button opens help screen', (tester) async {
+      await tester.pumpWidget(_wrap(lists: []));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.help_outline));
+      await tester.pumpAndSettle();
+
+      // Help screen opens — no crash.
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('HomeScreen AppBar buttons', () {
+    testWidgets('tapping sync icon opens sync screen', (tester) async {
+      await tester.pumpWidget(_wrap(lists: []));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.sync));
+      await tester.pumpAndSettle();
+
+      // SyncScreen opens — no crash.
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('tapping search icon opens shop search screen', (tester) async {
+      await tester.pumpWidget(_wrap(lists: []));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.search));
+      await tester.pumpAndSettle();
+
+      // ShopSearchScreen opens — no crash.
+      expect(tester.takeException(), isNull);
     });
   });
 

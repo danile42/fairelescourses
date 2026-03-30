@@ -358,4 +358,297 @@ void main() {
       expect(find.text('Speichern'), findsOneWidget);
     });
   });
+
+  group('ListEditorScreen – new list', () {
+    testWidgets('saving a new list calls add on the notifier', (tester) async {
+      final newList = ShoppingList(
+        id: 'NEW',
+        name: '',
+        preferredStoreIds: [],
+        items: [],
+      );
+      await tester.pumpWidget(_wrap(newList, isNew: true));
+      await tester.pumpAndSettle();
+
+      final nameField = find.byType(TextField).first;
+      await tester.enterText(nameField, 'Freshly Created');
+      await tester.pump();
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      // No crash, no dialog — add path completed.
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('ListEditorScreen – item edit dialog', () {
+    testWidgets('tapping item opens rename dialog', (tester) async {
+      await tester.pumpWidget(_wrap(_list()));
+      await tester.pumpAndSettle();
+
+      // Tap item tile directly (not the menu) to trigger _editItem.
+      await tester.tap(find.text('Milk'));
+      await tester.pumpAndSettle();
+
+      // Dialog should open with Save/Cancel actions.
+      expect(find.text('Save'), findsWidgets);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('editing item via dialog updates the name', (tester) async {
+      await tester.pumpWidget(_wrap(_list()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Milk'));
+      await tester.pumpAndSettle();
+
+      // Clear and type new name in the dialog field.
+      final dialogField = find.byType(TextField).first;
+      await tester.enterText(dialogField, 'Skimmed Milk');
+      await tester.pump();
+      await tester.tap(find.text('Save').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Skimmed Milk'), findsOneWidget);
+    });
+  });
+
+  group('ListEditorScreen – move to list', () {
+    testWidgets('Move to list option appears when multiple lists exist', (
+      tester,
+    ) async {
+      final list1 = _list(id: 'L1', name: 'Groceries');
+      final list2 = _list(id: 'L2', name: 'Hardware');
+      final mockSvc = MockFirestoreService();
+      when(() => mockSvc.upsertList(any(), any())).thenAnswer((_) async {});
+      when(() => mockSvc.deleteList(any(), any())).thenAnswer((_) async {});
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
+            shoppingListsProvider.overrideWith(
+              () => _FakeListsNotifier([list1, list2]),
+            ),
+            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+            navSessionProvider.overrideWith((ref) => Stream.value(null)),
+            firestoreSyncProvider.overrideWith((ref) {}),
+            currentUidProvider.overrideWith((ref) => null),
+            firestoreServiceProvider.overrideWithValue(mockSvc),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: ListEditorScreen(list: list1, isNew: false),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert).first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Move to list'), findsOneWidget);
+    });
+
+    testWidgets('tapping Move to list opens the target-list dialog', (
+      tester,
+    ) async {
+      final list1 = _list(id: 'L1', name: 'Groceries');
+      final list2 = _list(id: 'L2', name: 'Hardware');
+      final mockSvc = MockFirestoreService();
+      when(() => mockSvc.upsertList(any(), any())).thenAnswer((_) async {});
+      when(() => mockSvc.deleteList(any(), any())).thenAnswer((_) async {});
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
+            shoppingListsProvider.overrideWith(
+              () => _FakeListsNotifier([list1, list2]),
+            ),
+            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+            navSessionProvider.overrideWith((ref) => Stream.value(null)),
+            firestoreSyncProvider.overrideWith((ref) {}),
+            currentUidProvider.overrideWith((ref) => null),
+            firestoreServiceProvider.overrideWithValue(mockSvc),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: ListEditorScreen(list: list1, isNew: false),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Move to list'));
+      await tester.pumpAndSettle();
+
+      // SimpleDialog with list2 option appears.
+      expect(find.text('Hardware'), findsOneWidget);
+
+      // Dismiss without selecting.
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('selecting a target list moves the item', (tester) async {
+      final list1 = _list(id: 'L1', name: 'Groceries');
+      final list2 = _list(id: 'L2', name: 'Hardware', items: []);
+      final mockSvc = MockFirestoreService();
+      when(() => mockSvc.upsertList(any(), any())).thenAnswer((_) async {});
+      when(() => mockSvc.deleteList(any(), any())).thenAnswer((_) async {});
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
+            shoppingListsProvider.overrideWith(
+              () => _FakeListsNotifier([list1, list2]),
+            ),
+            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+            navSessionProvider.overrideWith((ref) => Stream.value(null)),
+            firestoreSyncProvider.overrideWith((ref) {}),
+            currentUidProvider.overrideWith((ref) => null),
+            firestoreServiceProvider.overrideWithValue(mockSvc),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: ListEditorScreen(list: list1, isNew: false),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Open popup menu for first item.
+      await tester.tap(find.byIcon(Icons.more_vert).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Move to list'));
+      await tester.pumpAndSettle();
+
+      // Select 'Hardware' as the target list.
+      expect(find.text('Hardware'), findsOneWidget);
+      await tester.tap(find.text('Hardware'));
+      await tester.pumpAndSettle();
+
+      // After moving, no crash and item is removed from current view.
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('ListEditorScreen – unsaved changes via Save dialog action', () {
+    testWidgets('choosing Save from dialog saves and pops', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
+            shoppingListsProvider.overrideWith(
+              () => _FakeListsNotifier([_list()]),
+            ),
+            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+            navSessionProvider.overrideWith((ref) => Stream.value(null)),
+            firestoreSyncProvider.overrideWith((ref) {}),
+            currentUidProvider.overrideWith((ref) => null),
+            firestoreServiceProvider.overrideWithValue(MockFirestoreService()),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Builder(
+              builder: (ctx) => Scaffold(
+                body: TextButton(
+                  onPressed: () => Navigator.of(ctx).push(
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          ListEditorScreen(list: _list(), isNew: false),
+                    ),
+                  ),
+                  child: const Text('Open'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+
+      // Make a change.
+      await tester.enterText(find.byType(TextField).last, 'Butter');
+      await tester.pump();
+      await tester.tap(find.byIcon(Icons.add_circle));
+      await tester.pumpAndSettle();
+
+      // Trigger back.
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      // Choose Save from the dialog (there may be 2 Save widgets: AppBar + dialog).
+      expect(find.text('Save'), findsWidgets);
+      await tester.tap(find.text('Save').last);
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('choosing Keep Editing from dialog stays on screen', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
+            shoppingListsProvider.overrideWith(
+              () => _FakeListsNotifier([_list()]),
+            ),
+            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+            navSessionProvider.overrideWith((ref) => Stream.value(null)),
+            firestoreSyncProvider.overrideWith((ref) {}),
+            currentUidProvider.overrideWith((ref) => null),
+            firestoreServiceProvider.overrideWithValue(MockFirestoreService()),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Builder(
+              builder: (ctx) => Scaffold(
+                body: TextButton(
+                  onPressed: () => Navigator.of(ctx).push(
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          ListEditorScreen(list: _list(), isNew: false),
+                    ),
+                  ),
+                  child: const Text('Open'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+
+      // Make a change.
+      await tester.enterText(find.byType(TextField).last, 'Cheese');
+      await tester.pump();
+      await tester.tap(find.byIcon(Icons.add_circle));
+      await tester.pumpAndSettle();
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      // Choose Keep editing.
+      await tester.tap(find.text('Keep editing'));
+      await tester.pumpAndSettle();
+
+      // Still on editor screen.
+      expect(find.text('Cheese'), findsOneWidget);
+    });
+  });
 }

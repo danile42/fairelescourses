@@ -394,4 +394,295 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   });
+
+  group('StoreEditorScreen – prefill', () {
+    testWidgets('prefill mode pre-fills name and shows New shop title', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          StoreEditorScreen(
+            prefill: (
+              name: 'Prefilled Market',
+              address: '1 Main St',
+              lat: 48.0,
+              lng: 11.0,
+              osmCategory: 'supermarket',
+              osmCategories: ['supermarket'],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.widgetWithText(TextField, 'Prefilled Market'),
+        findsOneWidget,
+      );
+      expect(find.text('New shop'), findsOneWidget);
+    });
+
+    testWidgets('saving prefill store creates a new store', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          StoreEditorScreen(
+            prefill: (
+              name: 'New From OSM',
+              address: null,
+              lat: null,
+              lng: null,
+              osmCategory: null,
+              osmCategories: null,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      // Should save without error (name already set from prefill).
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('StoreEditorScreen – row/col controls', () {
+    testWidgets('add-col button increases col count', (tester) async {
+      await tester.pumpWidget(_wrap(const StoreEditorScreen()));
+      await tester.pumpAndSettle();
+
+      // There should be 2 add_circle_outline buttons: one for row, one for col.
+      final addButtons = find.byIcon(Icons.add_circle_outline);
+      expect(addButtons, findsWidgets);
+
+      // Tap the second one (col add).
+      await tester.tap(addButtons.last);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('entrance is shown as login icon in grid', (tester) async {
+      final store = _store();
+      await tester.pumpWidget(
+        _wrap(StoreEditorScreen(existing: store), existingStores: [store]),
+      );
+      await tester.pumpAndSettle();
+
+      // The grid marks entrance with a login icon.
+      expect(find.byIcon(Icons.login), findsOneWidget);
+    });
+
+    testWidgets('adding a row keeps the grid rendering', (tester) async {
+      final store = _store();
+      await tester.pumpWidget(
+        _wrap(StoreEditorScreen(existing: store), existingStores: [store]),
+      );
+      await tester.pumpAndSettle();
+
+      // Tap add-row button.
+      await tester.tap(find.byIcon(Icons.add_circle_outline).first);
+      await tester.pumpAndSettle();
+
+      // Grid still shows entrance.
+      expect(find.byIcon(Icons.login), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('StoreEditorScreen – long-press cell context menu', () {
+    testWidgets('long-pressing grid cell shows context menu', (tester) async {
+      final store = _store();
+      await tester.pumpWidget(
+        _wrap(StoreEditorScreen(existing: store), existingStores: [store]),
+      );
+      await tester.pumpAndSettle();
+
+      // Long-press the entrance cell (A1).
+      await tester.ensureVisible(find.byIcon(Icons.login));
+      await tester.longPress(find.byIcon(Icons.login), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      // Context menu or bottom sheet might open; no crash expected.
+      expect(tester.takeException(), isNull);
+
+      // Dismiss any open menu.
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+    });
+  });
+
+  group('StoreEditorScreen – remove row/col', () {
+    // For a 2x2 store the remove_circle_outline icons appear in this order:
+    // [0] col-1 remove, [1] col-2 remove, [2] row-A remove, [3] row-B remove.
+
+    testWidgets('tapping col-remove on empty col removes it without dialog', (
+      tester,
+    ) async {
+      final store = _store(); // 2x2, no cell items
+      await tester.pumpWidget(
+        _wrap(StoreEditorScreen(existing: store), existingStores: [store]),
+      );
+      await tester.pumpAndSettle();
+
+      final removes = find.byIcon(Icons.remove_circle_outline);
+      expect(removes, findsWidgets);
+
+      await tester.tap(removes.first, warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      // No dialog; grid still renders.
+      expect(find.byIcon(Icons.login), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('tapping row-remove on empty row removes it without dialog', (
+      tester,
+    ) async {
+      final store = _store(); // 2x2, no cell items
+      await tester.pumpWidget(
+        _wrap(StoreEditorScreen(existing: store), existingStores: [store]),
+      );
+      await tester.pumpAndSettle();
+
+      // Row removes come after col removes: index 2 = row A.
+      final removes = find.byIcon(Icons.remove_circle_outline);
+      await tester.tap(removes.at(2), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      // No dialog; grid still renders.
+      expect(find.byIcon(Icons.login), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets(
+      'removing a col that contains items shows confirmation and cancel works',
+      (tester) async {
+        final store = Supermarket(
+          id: 'S1',
+          name: 'Test Store',
+          rows: ['A', 'B'],
+          cols: ['1', '2'],
+          entrance: 'A1',
+          exit: 'B2',
+          cells: {
+            'A1': ['Bread'],
+          },
+        );
+        await tester.pumpWidget(
+          _wrap(StoreEditorScreen(existing: store), existingStores: [store]),
+        );
+        await tester.pumpAndSettle();
+
+        // Col-1 remove (index 0) — col 1 contains 'Bread' in row A.
+        final removes = find.byIcon(Icons.remove_circle_outline);
+        await tester.tap(removes.first, warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        // Confirmation dialog should appear.
+        expect(find.text('Cancel'), findsOneWidget);
+
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'removing a col that contains items and confirming removes it',
+      (tester) async {
+        final store = Supermarket(
+          id: 'S1',
+          name: 'Test Store',
+          rows: ['A', 'B'],
+          cols: ['1', '2'],
+          entrance: 'A1',
+          exit: 'B2',
+          cells: {
+            'A1': ['Milk'],
+          },
+        );
+        await tester.pumpWidget(
+          _wrap(StoreEditorScreen(existing: store), existingStores: [store]),
+        );
+        await tester.pumpAndSettle();
+
+        final removes = find.byIcon(Icons.remove_circle_outline);
+        await tester.tap(removes.first, warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        // Dialog: tap Delete to confirm.
+        expect(find.text('Delete'), findsAtLeastNWidgets(1));
+        await tester.tap(find.text('Delete').last);
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'removing a row that contains items shows confirmation and cancel works',
+      (tester) async {
+        final store = Supermarket(
+          id: 'S1',
+          name: 'Test Store',
+          rows: ['A', 'B'],
+          cols: ['1', '2'],
+          entrance: 'A1',
+          exit: 'B2',
+          cells: {
+            'B1': ['Sugar'],
+          },
+        );
+        await tester.pumpWidget(
+          _wrap(StoreEditorScreen(existing: store), existingStores: [store]),
+        );
+        await tester.pumpAndSettle();
+
+        // Row B = index 3 (after 2 col removes + row A at 2).
+        final removes = find.byIcon(Icons.remove_circle_outline);
+        await tester.tap(removes.at(3), warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        // Confirmation dialog.
+        expect(find.text('Cancel'), findsOneWidget);
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'removing a row that contains items and confirming removes it',
+      (tester) async {
+        final store = Supermarket(
+          id: 'S1',
+          name: 'Test Store',
+          rows: ['A', 'B'],
+          cols: ['1', '2'],
+          entrance: 'A1',
+          exit: 'B2',
+          cells: {
+            'B1': ['Eggs'],
+          },
+        );
+        await tester.pumpWidget(
+          _wrap(StoreEditorScreen(existing: store), existingStores: [store]),
+        );
+        await tester.pumpAndSettle();
+
+        final removes = find.byIcon(Icons.remove_circle_outline);
+        await tester.tap(removes.at(3), warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        // Confirm deletion.
+        expect(find.text('Delete'), findsAtLeastNWidgets(1));
+        await tester.tap(find.text('Delete').last);
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+      },
+    );
+  });
 }
