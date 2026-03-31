@@ -57,6 +57,16 @@ bool isKnownFirestore(Supermarket shop, List<Supermarket> stores) {
   return stores.any((s) => s.name.toLowerCase() == shop.name.toLowerCase());
 }
 
+/// Returns true if an OSM shop result is already represented in [stores].
+/// OSM shops always have coordinates, so only proximity (< 0.2 km) is used.
+bool isKnownOsm(double osmLat, double osmLng, List<Supermarket> stores) =>
+    stores.any(
+      (s) =>
+          s.lat != null &&
+          s.lng != null &&
+          shopSearchHaversineKm(osmLat, osmLng, s.lat!, s.lng!) < 0.2,
+    );
+
 class ShopSearchScreen extends ConsumerStatefulWidget {
   /// When set, importing or creating a shop will open it immediately in the
   /// store editor with this item pre-focused, then return to the caller.
@@ -413,7 +423,6 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     final l = AppLocalizations.of(context)!;
     final stores = ref.watch(supermarketsProvider);
     final homeLoc = ref.watch(homeLocationProvider);
-    final knownNames = stores.map((s) => s.name.toLowerCase()).toSet();
     final itemSuggestions =
         stores
             .expand((s) => s.cells.values.expand((goods) => goods))
@@ -603,7 +612,6 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
               child: _buildMapView(
                 context,
                 l,
-                knownNames,
                 stores,
                 theme,
                 filteredFirestore,
@@ -615,7 +623,6 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
               child: _buildResults(
                 context,
                 l,
-                knownNames,
                 stores,
                 theme,
                 filteredFirestore,
@@ -633,7 +640,6 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
   Widget _buildResults(
     BuildContext context,
     AppLocalizations l,
-    Set<String> knownNames,
     List<Supermarket> stores,
     ThemeData theme,
     List<ShopSearchResult> filteredFirestore,
@@ -812,14 +818,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
         }
 
         final osmIndex = i - osmSectionStart;
-        return _buildOsmCard(
-          context,
-          l,
-          filteredOsm[osmIndex],
-          stores,
-          knownNames,
-          theme,
-        );
+        return _buildOsmCard(context, l, filteredOsm[osmIndex], stores, theme);
       },
     );
   }
@@ -876,17 +875,9 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     AppLocalizations l,
     OsmShop osm,
     List<Supermarket> stores,
-    Set<String> knownNames,
     ThemeData theme,
   ) {
-    final alreadyLocal =
-        knownNames.contains(osm.name.toLowerCase()) ||
-        stores.any(
-          (s) =>
-              s.lat != null &&
-              s.lng != null &&
-              _haversine(osm.lat, osm.lng, s.lat!, s.lng!) < 0.2,
-        );
+    final alreadyLocal = isKnownOsm(osm.lat, osm.lng, stores);
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: ListTile(
@@ -943,7 +934,6 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
   Widget _buildMapView(
     BuildContext context,
     AppLocalizations l,
-    Set<String> knownNames,
     List<Supermarket> stores,
     ThemeData theme,
     List<ShopSearchResult> filteredFirestore,
@@ -974,29 +964,15 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     }
 
     for (final osm in filteredOsm) {
-      final alreadyLocal =
-          knownNames.contains(osm.name.toLowerCase()) ||
-          stores.any(
-            (s) =>
-                s.lat != null &&
-                s.lng != null &&
-                _haversine(osm.lat, osm.lng, s.lat!, s.lng!) < 0.2,
-          );
+      final alreadyLocal = isKnownOsm(osm.lat, osm.lng, stores);
       markers.add(
         Marker(
           point: LatLng(osm.lat, osm.lng),
           width: 36,
           height: 36,
           child: GestureDetector(
-            onTap: () => _showOsmSheet(
-              context,
-              l,
-              osm,
-              alreadyLocal,
-              stores,
-              knownNames,
-              theme,
-            ),
+            onTap: () =>
+                _showOsmSheet(context, l, osm, alreadyLocal, stores, theme),
             child: Icon(
               Icons.location_pin,
               size: 36,
@@ -1102,7 +1078,6 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     OsmShop osm,
     bool alreadyLocal,
     List<Supermarket> stores,
-    Set<String> knownNames,
     ThemeData theme,
   ) {
     showModalBottomSheet(

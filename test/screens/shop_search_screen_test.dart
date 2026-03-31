@@ -91,6 +91,42 @@ void main() {
     });
   });
 
+  group('isKnownOsm', () {
+    test('returns true for a local shop within 0.2 km', () {
+      final local = _makeShop(id: 'local-1', lat: 52.5209, lng: 13.4050);
+      expect(isKnownOsm(52.5200, 13.4050, [local]), isTrue);
+    });
+
+    test('returns false for a local shop further than 0.2 km away', () {
+      final local = _makeShop(id: 'local-1', lat: 52.5290, lng: 13.4050);
+      expect(isKnownOsm(52.5200, 13.4050, [local]), isFalse);
+    });
+
+    test(
+      'same-name shop in different city is not considered known (regression)',
+      () {
+        // The bug: Rewe Berlin was marked as known when only Rewe Munich was local.
+        final munichRewe = _makeShop(
+          id: 'local-1',
+          name: 'Rewe',
+          lat: 48.1351,
+          lng: 11.5820,
+        );
+        // OSM result for a Rewe in Berlin — should NOT be "already known"
+        expect(isKnownOsm(52.5200, 13.4050, [munichRewe]), isFalse);
+      },
+    );
+
+    test('returns false when local shops have no coordinates', () {
+      final local = _makeShop(id: 'local-1', name: 'Rewe'); // no lat/lng
+      expect(isKnownOsm(52.5200, 13.4050, [local]), isFalse);
+    });
+
+    test('returns false with empty stores list', () {
+      expect(isKnownOsm(52.5200, 13.4050, []), isFalse);
+    });
+  });
+
   group('shopSearchHaversineKm', () {
     test('same point is 0', () {
       expect(shopSearchHaversineKm(52.0, 13.0, 52.0, 13.0), 0.0);
