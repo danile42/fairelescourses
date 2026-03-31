@@ -136,3 +136,11 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 56. Now add code coverage in 10 per cent badges. Ask me to continue after each 10 per cent.
 
 57. Currently, the identity of a shop seems to be based only on its name. I observe that shops of the same name (brand) are listed as "Already known", even if they are in a totally different place. The location of a shop must be part of its identity. Make sure there are tests for these changes. Check coverage, update prompts.md, and commit.
+
+58. You repeatedly stumbled upon a Hive adapter that was manually managed, not with something called build_runner. Can you fix that?
+
+59. Shops with the same name are still listed as "known", even if they are in a different location.
+
+60. [Emulator log with GoogleApiManager SecurityException and Firestore offline warning.] — Diagnosed as pre-existing emulator issues: SHA-1 debug fingerprint not registered in Firebase Console (causes GMS broker rejection and Firestore offline fallback). The userfaultfd warning is a harmless ART GC message. No code changes required.
+
+61. Update prompts.md if needed, and commit.
