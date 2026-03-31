@@ -100,7 +100,7 @@
   "homeLocationSaved": "Heimatort gespeichert.",
   "homeLocationCleared": "Heimatort gelöscht.",
   "geocodeFailed": "Ort nicht gefunden. Bitte anderen Begriff eingeben.",
-  "nearMe": "In der Nähe",
+  "nearMe": "Zuhause",
   "distanceKm": "{distance} km",
   "@distanceKm": {
     "placeholders": {

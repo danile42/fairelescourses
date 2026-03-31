@@ -22,6 +22,41 @@ const _uuid = Uuid();
 
 enum _SearchMode { byName, byItem, byLocation }
 
+double shopSearchHaversineKm(
+  double lat1,
+  double lng1,
+  double lat2,
+  double lng2,
+) {
+  const r = 6371.0;
+  final dLat = (lat2 - lat1) * pi / 180;
+  final dLng = (lng2 - lng1) * pi / 180;
+  final a =
+      sin(dLat / 2) * sin(dLat / 2) +
+      cos(lat1 * pi / 180) *
+          cos(lat2 * pi / 180) *
+          sin(dLng / 2) *
+          sin(dLng / 2);
+  return r * 2 * atan2(sqrt(a), sqrt(1 - a));
+}
+
+/// Returns true if [shop] is already represented in [stores].
+/// When [shop] has coordinates, proximity (< 0.2 km) is used; otherwise
+/// falls back to a case-insensitive name match.
+bool isKnownFirestore(Supermarket shop, List<Supermarket> stores) {
+  final lat = shop.lat;
+  final lng = shop.lng;
+  if (lat != null && lng != null) {
+    return stores.any(
+      (s) =>
+          s.lat != null &&
+          s.lng != null &&
+          shopSearchHaversineKm(lat, lng, s.lat!, s.lng!) < 0.2,
+    );
+  }
+  return stores.any((s) => s.name.toLowerCase() == shop.name.toLowerCase());
+}
+
 class ShopSearchScreen extends ConsumerStatefulWidget {
   /// When set, importing or creating a shop will open it immediately in the
   /// store editor with this item pre-focused, then return to the caller.
@@ -298,18 +333,12 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     return false;
   }
 
-  static double _haversine(double lat1, double lng1, double lat2, double lng2) {
-    const r = 6371.0;
-    final dLat = (lat2 - lat1) * pi / 180;
-    final dLng = (lng2 - lng1) * pi / 180;
-    final a =
-        sin(dLat / 2) * sin(dLat / 2) +
-        cos(lat1 * pi / 180) *
-            cos(lat2 * pi / 180) *
-            sin(dLng / 2) *
-            sin(dLng / 2);
-    return r * 2 * atan2(sqrt(a), sqrt(1 - a));
-  }
+  static double _haversine(
+    double lat1,
+    double lng1,
+    double lat2,
+    double lng2,
+  ) => shopSearchHaversineKm(lat1, lng1, lat2, lng2);
 
   static String _extractBrand(String name, String? osmBrand) {
     if (osmBrand != null && osmBrand.isNotEmpty) return osmBrand;
@@ -478,7 +507,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
               child: Row(
                 children: [
                   FilterChip(
-                    avatar: const Icon(Icons.near_me, size: 16),
+                    avatar: const Icon(Icons.home, size: 16),
                     label: Text(l.nearMe),
                     selected: _nearMe,
                     onSelected: (val) {
@@ -492,10 +521,8 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                       }
                     },
                   ),
-                  if (_nearMe) ...[
-                    const SizedBox(width: 8),
-                    _buildRadiusPicker(theme),
-                  ],
+                  const SizedBox(width: 8),
+                  _buildRadiusPicker(theme),
                 ],
               ),
             ),
@@ -752,7 +779,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
             context,
             l,
             filteredFirestore[i - firestoreStart],
-            knownNames,
+            stores,
             theme,
           );
         }
@@ -797,15 +824,18 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     );
   }
 
+  bool _isKnownFirestore(Supermarket shop, List<Supermarket> stores) =>
+      isKnownFirestore(shop, stores);
+
   Widget _buildFirestoreCard(
     BuildContext context,
     AppLocalizations l,
     ShopSearchResult result,
-    Set<String> knownNames,
+    List<Supermarket> stores,
     ThemeData theme,
   ) {
     final shop = result.shop;
-    final known = knownNames.contains(shop.name.toLowerCase());
+    final known = _isKnownFirestore(shop, stores);
     final distText = result.distanceKm != null
         ? l.distanceKm(result.distanceKm!.toStringAsFixed(1))
         : null;
@@ -925,7 +955,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       final lat = r.shop.lat;
       final lng = r.shop.lng;
       if (lat == null || lng == null) continue;
-      final known = knownNames.contains(r.shop.name.toLowerCase());
+      final known = _isKnownFirestore(r.shop, stores);
       markers.add(
         Marker(
           point: LatLng(lat, lng),

@@ -257,7 +257,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get geocodeFailed => 'Location not found. Try a different address.';
 
   @override
-  String get nearMe => 'Near me';
+  String get nearMe => 'Near home';
 
   @override
   String distanceKm(String distance) {

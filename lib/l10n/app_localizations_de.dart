@@ -260,7 +260,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ort nicht gefunden. Bitte anderen Begriff eingeben.';
 
   @override
-  String get nearMe => 'In der Nähe';
+  String get nearMe => 'Zuhause';
 
   @override
   String distanceKm(String distance) {

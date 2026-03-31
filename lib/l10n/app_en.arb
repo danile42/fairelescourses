@@ -100,7 +100,7 @@
   "homeLocationSaved": "Home location saved.",
   "homeLocationCleared": "Home location cleared.",
   "geocodeFailed": "Location not found. Try a different address.",
-  "nearMe": "Near me",
+  "nearMe": "Near home",
   "distanceKm": "{distance} km",
   "@distanceKm": {
     "placeholders": {

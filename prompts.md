@@ -134,3 +134,5 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - Searching for shops by category (e.g. electronics) brings up all locally stored shops. Only those which are known to belong to this category should be listed. Also, if OSM allows one shop to belong to multiple categories, so should our data model.
 
 56. Now add code coverage in 10 per cent badges. Ask me to continue after each 10 per cent.
+
+57. Currently, the identity of a shop seems to be based only on its name. I observe that shops of the same name (brand) are listed as "Already known", even if they are in a totally different place. The location of a shop must be part of its identity. Make sure there are tests for these changes. Check coverage, update prompts.md, and commit.

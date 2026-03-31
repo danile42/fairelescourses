@@ -575,7 +575,7 @@ abstract class AppLocalizations {
   /// No description provided for @nearMe.
   ///
   /// In en, this message translates to:
-  /// **'Near me'**
+  /// **'Near home'**
   String get nearMe;
 
   /// No description provided for @distanceKm.
