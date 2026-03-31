@@ -274,6 +274,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        title: value ? null : const Text('Disable local-only mode'),
         content: Text(
           value ? l.localOnlyConfirmEnable : l.localOnlyConfirmDisable,
         ),

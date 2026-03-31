@@ -144,3 +144,7 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 60. [Emulator log with GoogleApiManager SecurityException and Firestore offline warning.] — Diagnosed as pre-existing emulator issues: SHA-1 debug fingerprint not registered in Firebase Console (causes GMS broker rejection and Firestore offline fallback). The userfaultfd warning is a harmless ART GC message. No code changes required.
 
 61. Update prompts.md if needed, and commit.
+
+62. [Tests were failing.] Check if all tests run now. If not, fix them, then commit (update prompts.md).
+    - Fixed `overpass_service.dart`: include postcode in address even when city is absent.
+    - Fixed `sync_screen.dart`: add "Disable local-only mode" title to the disable-confirmation dialog.

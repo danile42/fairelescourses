@@ -244,7 +244,7 @@ class OverpassService {
     final streetPart = street != null && num != null ? '$street $num' : street;
     final cityPart = postcode != null && city != null
         ? '$postcode $city'
-        : city;
+        : postcode ?? city;
     final parts = [?streetPart, ?cityPart];
     return parts.isEmpty ? null : parts.join(', ');
   }
