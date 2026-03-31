@@ -1,5 +1,6 @@
 import 'dart:io';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_ce_flutter.dart';
+import 'package:fairelescourses/hive_registrar.g.dart';
 import 'package:fairelescourses/models/shopping_list.dart';
 import 'package:fairelescourses/models/supermarket.dart';
 
@@ -8,9 +9,7 @@ import 'package:fairelescourses/models/supermarket.dart';
 Future<Directory> setUpHive() async {
   final dir = await Directory.systemTemp.createTemp('hive_test_');
   Hive.init(dir.path);
-  if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(SupermarketAdapter());
-  if (!Hive.isAdapterRegistered(1)) Hive.registerAdapter(ShoppingItemAdapter());
-  if (!Hive.isAdapterRegistered(2)) Hive.registerAdapter(ShoppingListAdapter());
+  if (!Hive.isAdapterRegistered(0)) Hive.registerAdapters();
   await Hive.openBox<ShoppingList>('shopping_lists');
   await Hive.openBox<Supermarket>('supermarkets');
   await Hive.openBox<String>('settings');

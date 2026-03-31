@@ -8,7 +8,7 @@ part of 'supermarket.dart';
 
 class SupermarketAdapter extends TypeAdapter<Supermarket> {
   @override
-  final int typeId = 0;
+  final typeId = 0;
 
   @override
   Supermarket read(BinaryReader reader) {
@@ -28,19 +28,17 @@ class SupermarketAdapter extends TypeAdapter<Supermarket> {
             MapEntry(k as String, (v as List).cast<String>()),
       ),
       address: fields[7] as String?,
-      lat: fields[8] as double?,
-      lng: fields[9] as double?,
+      lat: (fields[8] as num?)?.toDouble(),
+      lng: (fields[9] as num?)?.toDouble(),
       parentId: fields[10] as String?,
-      subcells: fields[11] != null
-          ? (fields[11] as Map).map(
-              (dynamic k, dynamic v) =>
-                  MapEntry(k as String, (v as List).cast<String>()),
-            )
-          : null,
       osmCategory: fields[12] as String?,
       osmCategories: (fields[13] as List?)?.cast<String>(),
-      floorsRaw: (fields[14] as List?)?.toList(),
+      floorsRaw: (fields[14] as List?)?.cast<dynamic>(),
       groundFloorName: fields[15] as String?,
+      subcells: (fields[11] as Map?)?.map(
+        (dynamic k, dynamic v) =>
+            MapEntry(k as String, (v as List).cast<String>()),
+      ),
     );
   }
 

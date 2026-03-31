@@ -8,7 +8,7 @@ part of 'shopping_list.dart';
 
 class ShoppingItemAdapter extends TypeAdapter<ShoppingItem> {
   @override
-  final int typeId = 1;
+  final typeId = 1;
 
   @override
   ShoppingItem read(BinaryReader reader) {
@@ -16,7 +16,10 @@ class ShoppingItemAdapter extends TypeAdapter<ShoppingItem> {
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return ShoppingItem(name: fields[0] as String, checked: fields[1] as bool);
+    return ShoppingItem(
+      name: fields[0] as String,
+      checked: fields[1] == null ? false : fields[1] as bool,
+    );
   }
 
   @override
@@ -42,7 +45,7 @@ class ShoppingItemAdapter extends TypeAdapter<ShoppingItem> {
 
 class ShoppingListAdapter extends TypeAdapter<ShoppingList> {
   @override
-  final int typeId = 2;
+  final typeId = 2;
 
   @override
   ShoppingList read(BinaryReader reader) {

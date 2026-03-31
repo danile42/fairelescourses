@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'hive_registrar.g.dart';
 
 import 'models/supermarket.dart';
 import 'models/shopping_list.dart';
@@ -17,9 +18,7 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   await Hive.initFlutter();
-  Hive.registerAdapter(SupermarketAdapter());
-  Hive.registerAdapter(ShoppingItemAdapter());
-  Hive.registerAdapter(ShoppingListAdapter());
+  Hive.registerAdapters();
 
   await Hive.openBox<Supermarket>('supermarkets');
   await Hive.openBox<ShoppingList>('shopping_lists');
