@@ -231,6 +231,70 @@ class _MiniButton extends StatelessWidget {
   }
 }
 
+class _EmptyState extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String body;
+  final List<Widget> actions;
+
+  const _EmptyState({
+    required this.icon,
+    required this.title,
+    required this.body,
+    required this.actions,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                size: 40,
+                color: theme.colorScheme.onPrimaryContainer,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              title,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              body,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 28),
+            ...actions.map(
+              (a) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: SizedBox(width: double.infinity, child: a),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _ListsTab extends ConsumerStatefulWidget {
   final List<ShoppingList> lists;
   const _ListsTab({required this.lists});
@@ -430,12 +494,31 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
     final hasActiveCollabSession = activeSession != null;
 
     if (lists.isEmpty) {
-      return Center(
-        child: Text(
-          l.noLists,
-          textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.grey),
-        ),
+      return _EmptyState(
+        icon: Icons.shopping_cart_outlined,
+        title: l.emptyListsTitle,
+        body: l.emptyListsBody,
+        actions: [
+          FilledButton.icon(
+            icon: const Icon(Icons.add),
+            label: Text(l.emptyListsCreate),
+            onPressed: () {
+              final newList = ShoppingList(
+                id: _uuid.v4(),
+                name: '',
+                preferredStoreIds: [],
+                items: [],
+              );
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      ListEditorScreen(list: newList, isNew: true),
+                ),
+              );
+            },
+          ),
+        ],
       );
     }
 
@@ -704,12 +787,32 @@ class _StoresTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
     if (stores.isEmpty) {
-      return Center(
-        child: Text(
-          l.noShops,
-          textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.grey),
-        ),
+      return _EmptyState(
+        icon: Icons.store_outlined,
+        title: l.emptyShopsTitle,
+        body: l.emptyShopsBody,
+        actions: [
+          FilledButton.icon(
+            icon: const Icon(Icons.add),
+            label: Text(l.emptyShopsCreate),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const StoreEditorScreen(),
+              ),
+            ),
+          ),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.search),
+            label: Text(l.emptyShopsFind),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ShopSearchScreen(),
+              ),
+            ),
+          ),
+        ],
       );
     }
     final currentUid = ref.watch(currentUidProvider);

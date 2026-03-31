@@ -148,3 +148,7 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 62. [Tests were failing.] Check if all tests run now. If not, fix them, then commit (update prompts.md).
     - Fixed `overpass_service.dart`: include postcode in address even when city is absent.
     - Fixed `sync_screen.dart`: add "Disable local-only mode" title to the disable-confirmation dialog.
+
+63. How could a tour for new users look like? → Yes, do B + C.
+    - Option C: Converted `HelpScreen` from a scrollable list into a 4-page `PageView` stepper (Shops → Lists → Navigation → Sync/Data) with dot indicators and Next/Get started buttons.
+    - Option B: Replaced plain-text empty states in the Lists and Shops tabs with rich `_EmptyState` widgets (icon, title, description, action buttons). Lists tab gets a "Create a list" button; Shops tab gets "Create a shop" and "Find a shop" buttons.

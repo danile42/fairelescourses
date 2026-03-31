@@ -128,6 +128,54 @@ abstract class AppLocalizations {
   /// **'No shops defined yet.'**
   String get noShops;
 
+  /// No description provided for @emptyListsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No shopping lists yet'**
+  String get emptyListsTitle;
+
+  /// No description provided for @emptyListsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a shopping list, then tap ▶ on it to navigate your shop.'**
+  String get emptyListsBody;
+
+  /// No description provided for @emptyListsCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a list'**
+  String get emptyListsCreate;
+
+  /// No description provided for @emptyShopsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No shops yet'**
+  String get emptyShopsTitle;
+
+  /// No description provided for @emptyShopsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw your shop as a grid and assign goods to cells.'**
+  String get emptyShopsBody;
+
+  /// No description provided for @emptyShopsCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a shop'**
+  String get emptyShopsCreate;
+
+  /// No description provided for @emptyShopsFind.
+  ///
+  /// In en, this message translates to:
+  /// **'Find a shop'**
+  String get emptyShopsFind;
+
+  /// No description provided for @tourNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get tourNext;
+
   /// No description provided for @shops.
   ///
   /// In en, this message translates to:

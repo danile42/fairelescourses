@@ -1,58 +1,72 @@
 import 'package:flutter/material.dart';
 import 'package:fairelescourses/l10n/app_localizations.dart';
 
-class HelpScreen extends StatelessWidget {
+class HelpScreen extends StatefulWidget {
   const HelpScreen({super.key});
+
+  @override
+  State<HelpScreen> createState() => _HelpScreenState();
+}
+
+class _HelpScreenState extends State<HelpScreen> {
+  final _controller = PageController();
+  int _page = 0;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _next(int total) {
+    if (_page < total - 1) {
+      _controller.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l.helpTitle),
-        backgroundColor: theme.colorScheme.primary,
-        foregroundColor: Colors.white,
+    final pages = [
+      _TourPage(
+        icon: Icons.store_outlined,
+        title: l.helpShopsTitle,
+        body: l.helpShopsBody,
+        theme: theme,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
+      _TourPage(
+        icon: Icons.shopping_cart_outlined,
+        title: l.helpListsTitle,
+        body: l.helpListsBody,
+        theme: theme,
+      ),
+      _TourPage(
+        icon: Icons.play_arrow_outlined,
+        title: l.helpNavTitle,
+        body: l.helpNavBody,
+        theme: theme,
+      ),
+      _TourPage(
+        icon: Icons.sync,
+        title: l.helpSyncTitle,
+        body: l.helpSyncBody,
+        theme: theme,
+        extra: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _Section(
-              icon: Icons.store_outlined,
-              title: l.helpShopsTitle,
-              body: l.helpShopsBody,
-              theme: theme,
-            ),
-            const SizedBox(height: 20),
-            _Section(
-              icon: Icons.shopping_cart_outlined,
-              title: l.helpListsTitle,
-              body: l.helpListsBody,
-              theme: theme,
-            ),
-            const SizedBox(height: 20),
-            _Section(
-              icon: Icons.play_arrow,
-              title: l.helpNavTitle,
-              body: l.helpNavBody,
-              theme: theme,
-            ),
-            const SizedBox(height: 20),
-            _Section(
-              icon: Icons.sync,
-              title: l.helpSyncTitle,
-              body: l.helpSyncBody,
-              theme: theme,
-            ),
             const SizedBox(height: 24),
             const Divider(),
             const SizedBox(height: 16),
             Text(
               l.helpDataTitle,
-              style: theme.textTheme.titleMedium?.copyWith(
+              style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -77,17 +91,113 @@ class HelpScreen extends StatelessWidget {
               color: theme.colorScheme.secondary,
               theme: theme,
             ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(l.helpClose),
-              ),
-            ),
-            const SizedBox(height: 8),
           ],
         ),
+      ),
+    ];
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l.helpTitle),
+        backgroundColor: theme.colorScheme.primary,
+        foregroundColor: Colors.white,
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: PageView(
+              controller: _controller,
+              onPageChanged: (i) => setState(() => _page = i),
+              children: pages,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: List.generate(pages.length, (i) {
+                    final active = i == _page;
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      width: active ? 20 : 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4),
+                        color: active
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.outlineVariant,
+                      ),
+                    );
+                  }),
+                ),
+                FilledButton(
+                  onPressed: () => _next(pages.length),
+                  child: Text(
+                    _page < pages.length - 1 ? l.tourNext : l.helpClose,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TourPage extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String body;
+  final ThemeData theme;
+  final Widget? extra;
+
+  const _TourPage({
+    required this.icon,
+    required this.title,
+    required this.body,
+    required this.theme,
+    this.extra,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(32, 48, 32, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              size: 48,
+              color: theme.colorScheme.onPrimaryContainer,
+            ),
+          ),
+          const SizedBox(height: 32),
+          Text(
+            title,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            body,
+            style: theme.textTheme.bodyLarge,
+            textAlign: TextAlign.center,
+          ),
+          if (extra != null) extra!,
+        ],
       ),
     );
   }

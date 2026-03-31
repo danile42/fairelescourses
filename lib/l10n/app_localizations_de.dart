@@ -25,6 +25,32 @@ class AppLocalizationsDe extends AppLocalizations {
   String get noShops => 'Noch keine Märkte definiert.';
 
   @override
+  String get emptyListsTitle => 'No shopping lists yet';
+
+  @override
+  String get emptyListsBody =>
+      'Create a shopping list, then tap ▶ on it to navigate your shop.';
+
+  @override
+  String get emptyListsCreate => 'Create a list';
+
+  @override
+  String get emptyShopsTitle => 'No shops yet';
+
+  @override
+  String get emptyShopsBody =>
+      'Draw your shop as a grid and assign goods to cells.';
+
+  @override
+  String get emptyShopsCreate => 'Create a shop';
+
+  @override
+  String get emptyShopsFind => 'Find a shop';
+
+  @override
+  String get tourNext => 'Weiter';
+
+  @override
   String get shops => 'Märkte';
 
   @override

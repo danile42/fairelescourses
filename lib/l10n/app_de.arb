@@ -258,6 +258,7 @@
   "localOnlyConfirmDisable": "Synchronisierung wieder aktivieren? Du kannst danach einem Haushalt beitreten.",
   "helpTitle": "So funktioniert Fairelescourses",
   "helpClose": "Los geht's",
+  "tourNext": "Weiter",
   "helpShopsTitle": "Märkte",
   "helpShopsBody": "Lege einen Markt an und zeichne sein Layout als Raster. Weise Waren den Feldern zu, damit die App weiß, wo jedes Produkt zu finden ist.",
   "helpListsTitle": "Einkaufslisten",
