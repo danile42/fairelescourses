@@ -41,7 +41,10 @@ class _FakeListsNotifier extends ShoppingListNotifier {
 
   @override
   Future<void> remove(String id) async {
-    state = [for (final e in state) if (e.id != id) e];
+    state = [
+      for (final e in state)
+        if (e.id != id) e,
+    ];
   }
 }
 

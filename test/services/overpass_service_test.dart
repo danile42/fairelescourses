@@ -270,12 +270,7 @@ void main() {
     test('osmCategory set to matched category value', () async {
       final client = _client(
         _overpassResponse([
-          _node(
-            1,
-            48.1,
-            11.5,
-            {'name': 'Pharma', 'amenity': 'pharmacy'},
-          ),
+          _node(1, 48.1, 11.5, {'name': 'Pharma', 'amenity': 'pharmacy'}),
         ]),
       );
       final results = await OverpassService.searchNearby(
@@ -287,33 +282,33 @@ void main() {
       expect(results.first.osmCategory, 'pharmacy');
     });
 
-    test('address with postcode only (no city) included in city part', () async {
-      final client = _client(
-        _overpassResponse([
-          _node(1, 48.1, 11.5, {
-            'name': 'Shop',
-            'addr:street': 'High St',
-            'addr:housenumber': '5',
-            'addr:postcode': '12345',
-          }),
-        ]),
-      );
-      final results = await OverpassService.searchNearby(
-        48.0,
-        11.0,
-        2000,
-        httpClient: client,
-      );
-      expect(results.first.address, 'High St 5, 12345');
-    });
+    test(
+      'address with postcode only (no city) included in city part',
+      () async {
+        final client = _client(
+          _overpassResponse([
+            _node(1, 48.1, 11.5, {
+              'name': 'Shop',
+              'addr:street': 'High St',
+              'addr:housenumber': '5',
+              'addr:postcode': '12345',
+            }),
+          ]),
+        );
+        final results = await OverpassService.searchNearby(
+          48.0,
+          11.0,
+          2000,
+          httpClient: client,
+        );
+        expect(results.first.address, 'High St 5, 12345');
+      },
+    );
 
     test('address with city only (no postcode)', () async {
       final client = _client(
         _overpassResponse([
-          _node(1, 48.1, 11.5, {
-            'name': 'Shop',
-            'addr:city': 'Vienna',
-          }),
+          _node(1, 48.1, 11.5, {'name': 'Shop', 'addr:city': 'Vienna'}),
         ]),
       );
       final results = await OverpassService.searchNearby(
@@ -327,7 +322,9 @@ void main() {
 
     test('element with name="" (empty) is filtered out', () async {
       final client = _client(
-        _overpassResponse([_node(1, 48.1, 11.5, {'name': '', 'shop': 'bakery'})]),
+        _overpassResponse([
+          _node(1, 48.1, 11.5, {'name': '', 'shop': 'bakery'}),
+        ]),
       );
       final results = await OverpassService.searchNearby(
         48.0,

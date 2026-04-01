@@ -804,10 +804,8 @@ void main() {
   // ── Empty store plan (all unmatched) ─────────────────────────────────────
 
   group('NavigationScreen – empty store plan', () {
-    NavigationPlan _emptyStorePlan() => NavigationPlan(
-      storePlans: [],
-      globalUnmatched: ['Cheese', 'Butter'],
-    );
+    NavigationPlan _emptyStorePlan() =>
+        NavigationPlan(storePlans: [], globalUnmatched: ['Cheese', 'Butter']);
 
     testWidgets('shows unmatched items when no store plans', (tester) async {
       await tester.pumpWidget(_wrap(_emptyStorePlan()));
@@ -832,7 +830,9 @@ void main() {
       tester,
     ) async {
       final stores = [
-        _storeWithItems('s1', 'BestMart', {'A1': ['Cheese']}),
+        _storeWithItems('s1', 'BestMart', {
+          'A1': ['Cheese'],
+        }),
       ];
       await tester.pumpWidget(_wrap(_emptyStorePlan(), stores: stores));
       await tester.pumpAndSettle();
@@ -856,9 +856,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        _wrap(
-          _twoStorePlan(store1Items: ['Milk'], store2Items: ['Bread']),
-        ),
+        _wrap(_twoStorePlan(store1Items: ['Milk'], store2Items: ['Bread'])),
       );
       await tester.pumpAndSettle();
 
@@ -871,9 +869,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        _wrap(
-          _twoStorePlan(store1Items: ['Milk'], store2Items: ['Bread']),
-        ),
+        _wrap(_twoStorePlan(store1Items: ['Milk'], store2Items: ['Bread'])),
       );
       await tester.pumpAndSettle();
 
@@ -920,7 +916,9 @@ void main() {
           StorePlan(
             storeId: 's1',
             storeName: 'TestMart',
-            stops: [NavigationStop(cell: 'A1', items: ['Milk'])],
+            stops: [
+              NavigationStop(cell: 'A1', items: ['Milk']),
+            ],
             unmatched: ['Cheese'],
           ),
         ],
@@ -1000,10 +998,7 @@ void main() {
 
   group('NavigationScreen – done view next-shop advance', () {
     testWidgets('Next shop button advances to store two', (tester) async {
-      final plan = _twoStorePlan(
-        store1Items: ['Milk'],
-        store2Items: ['Bread'],
-      );
+      final plan = _twoStorePlan(store1Items: ['Milk'], store2Items: ['Bread']);
       await tester.pumpWidget(_wrap(plan));
       await tester.pumpAndSettle();
 
@@ -1022,10 +1017,7 @@ void main() {
     testWidgets('done view shows "Next shop" button at non-last store', (
       tester,
     ) async {
-      final plan = _twoStorePlan(
-        store1Items: ['Milk'],
-        store2Items: ['Bread'],
-      );
+      final plan = _twoStorePlan(store1Items: ['Milk'], store2Items: ['Bread']);
       await tester.pumpWidget(_wrap(plan));
       await tester.pumpAndSettle();
 

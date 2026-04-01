@@ -497,7 +497,9 @@ void main() {
             cols: ['1', '2'],
             entrance: 'A1',
             exit: 'B2',
-            cells: {'A2': ['Milk']},
+            cells: {
+              'A2': ['Milk'],
+            },
             onCellLongPress: (id) => longPressed = id,
           ),
         ),

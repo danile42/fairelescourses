@@ -159,3 +159,11 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 
 66. Add a data privacy declaration in the project that I can link to from Play store. It should also contain the information about storage from the help screen.
     - Created `docs/privacy-policy.html`: covers local-only storage, optional Firebase household sync (end-to-end encrypted), anonymous Firebase auth, Overpass API queries, no personal data collected, deletion instructions, and contact link.
+
+67. [Stashed test changes from an earlier session.] Unstash the test changes and make them all run without modifying production code.
+    - Added `store_grid_test.dart`, `navigation_screen_test.dart`, `home_screen_test.dart`, `list_editor_screen_test.dart` widget tests; `supermarket_test.dart` model tests; `overpass_service_test.dart` service tests.
+    - Fake notifiers (`_FakeNavViewModeNotifier`, `_FakeLocalOnlyNotifier`, `_FakeListsNotifier` with `remove()` override) prevent real Hive access in provider-dependent tests.
+    - Tests that push `NavigationScreen` use bounded pumps (`pump()` + `pump(500ms)`) instead of `pumpAndSettle()` and are ordered last in each file to avoid persistent-animation interference.
+    - Root cause of `tearDownAll` hang: `_startNav` writes to `Hive.box<String>('settings')` inside a `testWidgets` (FakeAsync) block; the flush never completes, so `Hive.close()` blocks indefinitely. Fix: cap `Hive.close()` at 5 s with `.timeout()` in `tearDownHive()` — safe because the temp dir is deleted immediately after.
+
+68. Check that formatting is ok, update prompts.md (incl. this one), and commit.

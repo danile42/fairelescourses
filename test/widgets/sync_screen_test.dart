@@ -591,9 +591,7 @@ void main() {
   });
 
   group('SyncScreen – Firebase help button', () {
-    testWidgets('tapping Firebase help icon opens help screen', (
-      tester,
-    ) async {
+    testWidgets('tapping Firebase help icon opens help screen', (tester) async {
       await tester.pumpWidget(_wrap());
       await tester.pumpAndSettle();
 
