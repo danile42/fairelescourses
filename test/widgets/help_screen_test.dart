@@ -59,13 +59,17 @@ void main() {
       await tester.tap(find.text('Open'));
       await tester.pumpAndSettle();
       // Tap Next 3 times to reach the last page.
+      await tester.ensureVisible(find.text('Next'));
       await tester.tap(find.text('Next'));
       await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Next'));
       await tester.tap(find.text('Next'));
       await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Next'));
       await tester.tap(find.text('Next'));
       await tester.pumpAndSettle();
-      // Now on last page — button says "Get started".
+      // Now on last page — button says "Get started" (may need scrolling).
+      await tester.ensureVisible(find.text('Get started'));
       await tester.tap(find.text('Get started'));
       await tester.pumpAndSettle();
       expect(find.text('Open'), findsOneWidget);
