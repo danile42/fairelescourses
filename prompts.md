@@ -156,3 +156,6 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 64. CI fails with formatting. Please fix that and commit as usual.
 
 65. prompts.md updated?
+
+66. Add a data privacy declaration in the project that I can link to from Play store. It should also contain the information about storage from the help screen.
+    - Created `docs/privacy-policy.html`: covers local-only storage, optional Firebase household sync (end-to-end encrypted), anonymous Firebase auth, Overpass API queries, no personal data collected, deletion instructions, and contact link.
