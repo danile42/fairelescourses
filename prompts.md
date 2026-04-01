@@ -152,3 +152,7 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 63. How could a tour for new users look like? → Yes, do B + C.
     - Option C: Converted `HelpScreen` from a scrollable list into a 4-page `PageView` stepper (Shops → Lists → Navigation → Sync/Data) with dot indicators and Next/Get started buttons.
     - Option B: Replaced plain-text empty states in the Lists and Shops tabs with rich `_EmptyState` widgets (icon, title, description, action buttons). Lists tab gets a "Create a list" button; Shops tab gets "Create a shop" and "Find a shop" buttons.
+
+64. CI fails with formatting. Please fix that and commit as usual.
+
+65. prompts.md updated?
