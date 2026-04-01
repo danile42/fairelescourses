@@ -167,3 +167,8 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - Root cause of `tearDownAll` hang: `_startNav` writes to `Hive.box<String>('settings')` inside a `testWidgets` (FakeAsync) block; the flush never completes, so `Hive.close()` blocks indefinitely. Fix: cap `Hive.close()` at 5 s with `.timeout()` in `tearDownHive()` — safe because the temp dir is deleted immediately after.
 
 68. Check that formatting is ok, update prompts.md (incl. this one), and commit.
+
+69. Buttons on help screens are sometimes overlapped by OS menu bars. Move the buttons just below the text to avoid the overlap.
+    - HelpScreen tour: moved dots + Next/Get-started button inside each page's scrollable content (below body text), removing the fixed-bottom strip.
+    - ShopEditorHelpScreen / FirebaseHelpScreen: wrapped body in `SafeArea(top: false)` so the Close button clears the system bar even when content fits without scrolling.
+    - Updated `help_screen_test.dart`: added `ensureVisible()` before tapping buttons that are now inside scrollable content.
