@@ -172,3 +172,8 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - HelpScreen tour: moved dots + Next/Get-started button inside each page's scrollable content (below body text), removing the fixed-bottom strip.
     - ShopEditorHelpScreen / FirebaseHelpScreen: wrapped body in `SafeArea(top: false)` so the Close button clears the system bar even when content fits without scrolling.
     - Updated `help_screen_test.dart`: added `ensureVisible()` before tapping buttons that are now inside scrollable content.
+
+70. CI analyze fails with 3 lint issues. Fix, format, update prompts.md, and commit.
+    - `help_screen.dart`: `if (extra != null) extra!` → `?extra` (null-aware element, already fixed locally).
+    - `navigation_screen_test.dart`: renamed local function `_emptyStorePlan` → `emptyStorePlan` (`no_leading_underscores_for_local_identifiers`).
+    - `store_grid_test.dart`: added `expect(doubleTapped, 'A2')` to the double-tap test (`unused_local_variable`). Also fixed the double-tap simulation: pumped 50 ms between the two taps (Flutter's `kDoubleTapMinTime` is 40 ms, so a single frame at 16 ms was too short) and 200 ms after.

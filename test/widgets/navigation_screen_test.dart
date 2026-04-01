@@ -804,11 +804,11 @@ void main() {
   // ── Empty store plan (all unmatched) ─────────────────────────────────────
 
   group('NavigationScreen – empty store plan', () {
-    NavigationPlan _emptyStorePlan() =>
+    NavigationPlan emptyStorePlan() =>
         NavigationPlan(storePlans: [], globalUnmatched: ['Cheese', 'Butter']);
 
     testWidgets('shows unmatched items when no store plans', (tester) async {
-      await tester.pumpWidget(_wrap(_emptyStorePlan()));
+      await tester.pumpWidget(_wrap(emptyStorePlan()));
       await tester.pumpAndSettle();
       // Shows the navigation title (app bar).
       expect(find.text('Navigation'), findsOneWidget);
@@ -820,7 +820,7 @@ void main() {
     testWidgets('assign-to-shop button appears for unmatched items', (
       tester,
     ) async {
-      await tester.pumpWidget(_wrap(_emptyStorePlan()));
+      await tester.pumpWidget(_wrap(emptyStorePlan()));
       await tester.pumpAndSettle();
       // Both unmatched items should have an assign-to-shop button.
       expect(find.textContaining('Assign to shop'), findsWidgets);
@@ -834,7 +834,7 @@ void main() {
           'A1': ['Cheese'],
         }),
       ];
-      await tester.pumpWidget(_wrap(_emptyStorePlan(), stores: stores));
+      await tester.pumpWidget(_wrap(emptyStorePlan(), stores: stores));
       await tester.pumpAndSettle();
 
       // Tap the first Assign to shop button.

@@ -477,13 +477,14 @@ void main() {
       await tester.pump();
 
       await tester.tap(find.byIcon(Icons.logout)); // A2
-      await tester.pump();
+      // Need > kDoubleTapMinTime (40 ms) between the two taps.
+      await tester.pump(const Duration(milliseconds: 50));
       await tester.tap(find.byIcon(Icons.logout));
-      // Drain the 40 ms DoubleTapGestureRecognizer countdown timer.
-      await tester.pump(const Duration(milliseconds: 100));
+      // Drain the DoubleTapGestureRecognizer timer.
+      await tester.pump(const Duration(milliseconds: 200));
 
-      // Double tap triggered.
       expect(tester.takeException(), isNull);
+      expect(doubleTapped, 'A2');
     });
   });
 
