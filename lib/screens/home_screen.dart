@@ -512,8 +512,7 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) =>
-                      ListEditorScreen(list: newList, isNew: true),
+                  builder: (_) => ListEditorScreen(list: newList, isNew: true),
                 ),
               );
             },
@@ -797,9 +796,7 @@ class _StoresTab extends ConsumerWidget {
             label: Text(l.emptyShopsCreate),
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const StoreEditorScreen(),
-              ),
+              MaterialPageRoute(builder: (_) => const StoreEditorScreen()),
             ),
           ),
           OutlinedButton.icon(
@@ -807,9 +804,7 @@ class _StoresTab extends ConsumerWidget {
             label: Text(l.emptyShopsFind),
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const ShopSearchScreen(),
-              ),
+              MaterialPageRoute(builder: (_) => const ShopSearchScreen()),
             ),
           ),
         ],
