@@ -17,7 +17,14 @@ Future<Directory> setUpHive() async {
 }
 
 Future<void> tearDownHive(Directory dir) async {
-  await Hive.close();
+  // Hive.close() can hang indefinitely when a test wrote to a Hive box inside
+  // a testWidgets block (FakeAsync zone) and the write never flushed — e.g.
+  // when tapping "Start navigation" writes 'singleNavActive'. Cap the wait at
+  // 5 s; since we delete the temp dir immediately after, any unflushed data is
+  // safely discarded.
+  try {
+    await Hive.close().timeout(const Duration(seconds: 5));
+  } catch (_) {}
   await dir.delete(recursive: true);
 }
 

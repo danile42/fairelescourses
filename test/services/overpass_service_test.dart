@@ -244,4 +244,106 @@ void main() {
       expect(values.length, osmShopCategories.length);
     });
   });
+
+  group('OverpassService.searchNearby – category filtering', () {
+    test('single-category search still works', () async {
+      final bakery = osmShopCategories.firstWhere(
+        (c) => c.osmValue == 'bakery',
+      );
+      final client = _client(
+        _overpassResponse([
+          _node(1, 48.1, 11.5, {'name': 'Best Bakery', 'shop': 'bakery'}),
+        ]),
+      );
+      final results = await OverpassService.searchNearby(
+        48.0,
+        11.0,
+        1000,
+        categories: {bakery},
+        httpClient: client,
+      );
+      expect(results.length, 1);
+      expect(results.first.name, 'Best Bakery');
+      expect(results.first.osmCategory, 'bakery');
+    });
+
+    test('osmCategory set to matched category value', () async {
+      final client = _client(
+        _overpassResponse([
+          _node(
+            1,
+            48.1,
+            11.5,
+            {'name': 'Pharma', 'amenity': 'pharmacy'},
+          ),
+        ]),
+      );
+      final results = await OverpassService.searchNearby(
+        48.0,
+        11.0,
+        2000,
+        httpClient: client,
+      );
+      expect(results.first.osmCategory, 'pharmacy');
+    });
+
+    test('address with postcode only (no city) included in city part', () async {
+      final client = _client(
+        _overpassResponse([
+          _node(1, 48.1, 11.5, {
+            'name': 'Shop',
+            'addr:street': 'High St',
+            'addr:housenumber': '5',
+            'addr:postcode': '12345',
+          }),
+        ]),
+      );
+      final results = await OverpassService.searchNearby(
+        48.0,
+        11.0,
+        2000,
+        httpClient: client,
+      );
+      expect(results.first.address, 'High St 5, 12345');
+    });
+
+    test('address with city only (no postcode)', () async {
+      final client = _client(
+        _overpassResponse([
+          _node(1, 48.1, 11.5, {
+            'name': 'Shop',
+            'addr:city': 'Vienna',
+          }),
+        ]),
+      );
+      final results = await OverpassService.searchNearby(
+        48.0,
+        11.0,
+        2000,
+        httpClient: client,
+      );
+      expect(results.first.address, 'Vienna');
+    });
+
+    test('element with name="" (empty) is filtered out', () async {
+      final client = _client(
+        _overpassResponse([_node(1, 48.1, 11.5, {'name': '', 'shop': 'bakery'})]),
+      );
+      final results = await OverpassService.searchNearby(
+        48.0,
+        11.0,
+        2000,
+        httpClient: client,
+      );
+      expect(results, isEmpty);
+    });
+  });
+
+  group('formatOsmRadius – edge cases', () {
+    test('exactly 1000 m formats as 1 km', () {
+      expect(formatOsmRadius(1000), '1 km');
+    });
+    test('1200 → 1.2 km', () => expect(formatOsmRadius(1200), '1.2 km'));
+    test('10000 → 10 km', () => expect(formatOsmRadius(10000), '10 km'));
+  });
 }

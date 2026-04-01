@@ -800,4 +800,240 @@ void main() {
       expect(find.text('Bread'), findsOneWidget);
     });
   });
+
+  // ── Empty store plan (all unmatched) ─────────────────────────────────────
+
+  group('NavigationScreen – empty store plan', () {
+    NavigationPlan _emptyStorePlan() => NavigationPlan(
+      storePlans: [],
+      globalUnmatched: ['Cheese', 'Butter'],
+    );
+
+    testWidgets('shows unmatched items when no store plans', (tester) async {
+      await tester.pumpWidget(_wrap(_emptyStorePlan()));
+      await tester.pumpAndSettle();
+      // Shows the navigation title (app bar).
+      expect(find.text('Navigation'), findsOneWidget);
+      // Unmatched items are shown.
+      expect(find.text('• Cheese'), findsOneWidget);
+      expect(find.text('• Butter'), findsOneWidget);
+    });
+
+    testWidgets('assign-to-shop button appears for unmatched items', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap(_emptyStorePlan()));
+      await tester.pumpAndSettle();
+      // Both unmatched items should have an assign-to-shop button.
+      expect(find.textContaining('Assign to shop'), findsWidgets);
+    });
+
+    testWidgets('tapping assign-to-shop opens shop picker dialog', (
+      tester,
+    ) async {
+      final stores = [
+        _storeWithItems('s1', 'BestMart', {'A1': ['Cheese']}),
+      ];
+      await tester.pumpWidget(_wrap(_emptyStorePlan(), stores: stores));
+      await tester.pumpAndSettle();
+
+      // Tap the first Assign to shop button.
+      await tester.tap(find.textContaining('Assign to shop').first);
+      await tester.pumpAndSettle();
+
+      // The dialog shows "BestMart" as a choice.
+      expect(find.text('BestMart'), findsOneWidget);
+      // Dismiss.
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+    });
+  });
+
+  // ── Multi-store tab navigation ────────────────────────────────────────────
+
+  group('NavigationScreen – multi-store tab navigation', () {
+    testWidgets('store tabs appear at top for two-store plan in grid view', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          _twoStorePlan(store1Items: ['Milk'], store2Items: ['Bread']),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // In grid mode with 2 stores, ChoiceChips for each store appear.
+      expect(find.text('Store One'), findsWidgets);
+      expect(find.text('Store Two'), findsWidgets);
+    });
+
+    testWidgets('tapping second store tab shows store two items', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          _twoStorePlan(store1Items: ['Milk'], store2Items: ['Bread']),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Tap the Store Two chip.
+      await tester.tap(find.text('Store Two').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Bread'), findsOneWidget);
+    });
+
+    testWidgets('progress bar is visible', (tester) async {
+      await tester.pumpWidget(_wrap(_singleStorePlan(['Milk', 'Bread'])));
+      await tester.pumpAndSettle();
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    });
+  });
+
+  // ── List view with multiple stores ────────────────────────────────────────
+
+  group('NavigationScreen – list view multi-store', () {
+    testWidgets('list view shows all stores as sub-sections', (tester) async {
+      await tester.pumpWidget(
+        _wrap(_twoStorePlan(store1Items: ['Milk'], store2Items: ['Bread'])),
+      );
+      await tester.pumpAndSettle();
+
+      // Switch to list view.
+      await tester.tap(find.byIcon(Icons.list));
+      await tester.pumpAndSettle();
+
+      // Both store names shown as headers.
+      expect(find.text('Store One'), findsWidgets);
+      expect(find.text('Store Two'), findsWidgets);
+      // Both items shown.
+      expect(find.text('Milk'), findsOneWidget);
+      expect(find.text('Bread'), findsOneWidget);
+    });
+
+    testWidgets('list view shows unmatched section when items unmatched', (
+      tester,
+    ) async {
+      final plan = NavigationPlan(
+        storePlans: [
+          StorePlan(
+            storeId: 's1',
+            storeName: 'TestMart',
+            stops: [NavigationStop(cell: 'A1', items: ['Milk'])],
+            unmatched: ['Cheese'],
+          ),
+        ],
+        globalUnmatched: [],
+      );
+      await tester.pumpWidget(_wrap(plan));
+      await tester.pumpAndSettle();
+
+      // Switch to list view.
+      await tester.tap(find.byIcon(Icons.list));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Not found'), findsWidgets);
+      expect(find.text('Cheese'), findsOneWidget);
+    });
+  });
+
+  // ── Finish tour ────────────────────────────────────────────────────────────
+
+  group('NavigationScreen – finish tour', () {
+    testWidgets('tapping Finish from done view pops the screen', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Builder(
+            builder: (ctx) => Scaffold(
+              body: TextButton(
+                onPressed: () => Navigator.of(ctx).push(
+                  MaterialPageRoute(
+                    builder: (_) => ProviderScope(
+                      overrides: [
+                        navViewModeProvider.overrideWith(
+                          () => _FakeNavViewModeNotifier(),
+                        ),
+                        shoppingListsProvider.overrideWith(
+                          () =>
+                              _FakeListsNotifier([ShoppingItem(name: 'Milk')]),
+                        ),
+                        supermarketsProvider.overrideWith(
+                          () => _FakeStoresNotifier(),
+                        ),
+                      ],
+                      child: NavigationScreen(
+                        plan: _singleStorePlan(['Milk']),
+                        listId: _listId,
+                      ),
+                    ),
+                  ),
+                ),
+                child: const Text('Open'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+
+      // Check the only item to reach done view.
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pumpAndSettle();
+
+      // Tap Finish.
+      await tester.tap(find.text('Finish'));
+      await tester.pumpAndSettle();
+
+      // After finishing, back at the original page.
+      expect(find.text('Open'), findsOneWidget);
+    });
+  });
+
+  // ── Next shop advance from done view ────────────────────────────────────────
+
+  group('NavigationScreen – done view next-shop advance', () {
+    testWidgets('Next shop button advances to store two', (tester) async {
+      final plan = _twoStorePlan(
+        store1Items: ['Milk'],
+        store2Items: ['Bread'],
+      );
+      await tester.pumpWidget(_wrap(plan));
+      await tester.pumpAndSettle();
+
+      // Check the Milk item to reach done view at store one.
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pumpAndSettle();
+
+      // Tap "Next shop".
+      await tester.tap(find.text('Next shop'));
+      await tester.pumpAndSettle();
+
+      // Now at store two: Bread is shown.
+      expect(find.text('Bread'), findsOneWidget);
+    });
+
+    testWidgets('done view shows "Next shop" button at non-last store', (
+      tester,
+    ) async {
+      final plan = _twoStorePlan(
+        store1Items: ['Milk'],
+        store2Items: ['Bread'],
+      );
+      await tester.pumpWidget(_wrap(plan));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Next shop'), findsOneWidget);
+      expect(find.text('Finish'), findsNothing);
+    });
+  });
 }

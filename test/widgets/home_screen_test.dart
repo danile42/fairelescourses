@@ -13,7 +13,9 @@ import 'package:fairelescourses/models/supermarket.dart';
 import 'package:fairelescourses/models/shop_floor.dart';
 import 'package:fairelescourses/providers/firestore_sync_provider.dart';
 import 'package:fairelescourses/providers/household_provider.dart';
+import 'package:fairelescourses/providers/local_only_provider.dart';
 import 'package:fairelescourses/providers/nav_session_provider.dart';
+import 'package:fairelescourses/providers/nav_view_mode_provider.dart';
 import 'package:fairelescourses/providers/shopping_list_provider.dart';
 import 'package:fairelescourses/providers/supermarket_provider.dart';
 import 'package:fairelescourses/screens/home_screen.dart';
@@ -36,6 +38,11 @@ class _FakeListsNotifier extends ShoppingListNotifier {
 
   @override
   List<ShoppingList> build() => _lists;
+
+  @override
+  Future<void> remove(String id) async {
+    state = [for (final e in state) if (e.id != id) e];
+  }
 }
 
 class _FakeStoresNotifier extends SupermarketNotifier {
@@ -49,6 +56,16 @@ class _FakeStoresNotifierWith extends SupermarketNotifier {
 
   @override
   List<Supermarket> build() => _stores;
+}
+
+class _FakeNavViewModeNotifier extends NavViewModeNotifier {
+  @override
+  bool build() => false; // no Hive access
+}
+
+class _FakeLocalOnlyNotifier extends LocalOnlyNotifier {
+  @override
+  bool build() => false; // no Hive access
 }
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -79,6 +96,8 @@ Widget _wrap({
       else
         supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
       navSessionProvider.overrideWith((ref) => Stream.value(session)),
+      navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
+      localOnlyProvider.overrideWith(() => _FakeLocalOnlyNotifier()),
       firestoreSyncProvider.overrideWith((ref) {}),
       currentUidProvider.overrideWith((ref) => null),
       firestoreServiceProvider.overrideWithValue(mockSvc),
@@ -447,6 +466,211 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.textContaining('Fairelescourses'), findsOneWidget);
+    });
+  });
+
+  group('HomeScreen selection mode – merge bar', () {
+    testWidgets('selecting two lists shows merge bar', (tester) async {
+      await tester.pumpWidget(
+        _wrap(lists: [_list('L1', 'Groceries'), _list('L2', 'Hardware')]),
+      );
+      await tester.pumpAndSettle();
+
+      // Long-press first list to enter selection mode.
+      await tester.longPress(find.text('Groceries'));
+      await tester.pumpAndSettle();
+
+      // Tap second list checkbox to select it.
+      final checkboxes = find.byType(Checkbox);
+      await tester.tap(checkboxes.last);
+      await tester.pumpAndSettle();
+
+      // The merge bar (with Merge button) should appear.
+      expect(find.text('Merge'), findsOneWidget);
+    });
+
+    testWidgets('cancel selection clears selection mode', (tester) async {
+      await tester.pumpWidget(
+        _wrap(lists: [_list('L1', 'Groceries'), _list('L2', 'Hardware')]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.text('Groceries'));
+      await tester.pumpAndSettle();
+
+      // Cancel selection.
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      // Checkboxes should be gone.
+      expect(find.byType(Checkbox), findsNothing);
+    });
+
+    testWidgets('merging two lists opens merge-target dialog', (tester) async {
+      await tester.pumpWidget(
+        _wrap(lists: [_list('L1', 'Groceries'), _list('L2', 'Hardware')]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.text('Groceries'));
+      await tester.pumpAndSettle();
+
+      final checkboxes = find.byType(Checkbox);
+      await tester.tap(checkboxes.last);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Merge'));
+      await tester.pumpAndSettle();
+
+      // The target-list dialog should be shown (title from mergeTargetTitle ARB key).
+      expect(find.textContaining('Merge into which list?'), findsOneWidget);
+
+      // Cancel — use .last because the merge bar also has a Cancel button.
+      await tester.tap(find.text('Cancel').last);
+      await tester.pumpAndSettle();
+    });
+  });
+
+  group('HomeScreen list tab – tapping list opens editor', () {
+    testWidgets('tapping list name opens ListEditorScreen', (tester) async {
+      await tester.pumpWidget(_wrap(lists: [_list('L1', 'Groceries')]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Groceries'));
+      await tester.pumpAndSettle();
+
+      // No crash — editor opens.
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('HomeScreen list tab – progress bar', () {
+    testWidgets('shows progress bar for partially-checked list', (
+      tester,
+    ) async {
+      final list = ShoppingList(
+        id: 'L1',
+        name: 'Progress',
+        preferredStoreIds: [],
+        items: [
+          ShoppingItem(name: 'Milk', checked: true),
+          ShoppingItem(name: 'Eggs'),
+        ],
+      );
+      await tester.pumpWidget(_wrap(lists: [list]));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    });
+  });
+
+  group('HomeScreen shops tab – delete store', () {
+    testWidgets('tapping delete icon on shop shows confirmation dialog', (
+      tester,
+    ) async {
+      final store = Supermarket(
+        id: 'store-1',
+        name: 'Test Market',
+        rows: ['A', 'B'],
+        cols: ['1', '2'],
+        entrance: 'A1',
+        exit: 'B2',
+        cells: {},
+      );
+      await tester.pumpWidget(_wrap(lists: [], stores: [store]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Shops'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Yes'), findsOneWidget);
+      expect(find.text('No'), findsOneWidget);
+
+      await tester.tap(find.text('No'));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('tapping store tile opens store editor', (tester) async {
+      final store = Supermarket(
+        id: 'store-1',
+        name: 'Test Market',
+        rows: ['A', 'B'],
+        cols: ['1', '2'],
+        entrance: 'A1',
+        exit: 'B2',
+        cells: {},
+      );
+      await tester.pumpWidget(_wrap(lists: [], stores: [store]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Shops'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Test Market'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('HomeScreen – confirm delete list', () {
+    testWidgets('confirming delete removes list', (tester) async {
+      await tester.pumpWidget(_wrap(lists: [_list('L1', 'Groceries')]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Yes'));
+      await tester.pumpAndSettle();
+
+      // No exception after deletion.
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  // join banner must run before start-navigation: pushing NavigationScreen
+  // leaves persistent timers that prevent pumpAndSettle() from ever returning
+  // in subsequent tests.
+  group('HomeScreen join banner – tapping join button', () {
+    testWidgets('tapping join navigates to NavigationScreen', (tester) async {
+      const session = NavSession(listId: 'L1', startedBy: 'uid-1');
+      await tester.pumpWidget(
+        _wrap(lists: [_list('L1', 'Groceries')], session: session),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Join'));
+      // Use bounded pumps: NavigationScreen may have persistent animations
+      // that prevent pumpAndSettle() from ever returning.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // No exception when joining session.
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  // start navigation must run LAST: pushing NavigationScreen leaves persistent
+  // timers that prevent pumpAndSettle() from ever returning in subsequent tests.
+  group('HomeScreen – start navigation single-play', () {
+    testWidgets('tapping play icon starts navigation', (tester) async {
+      await tester.pumpWidget(_wrap(lists: [_list('L1', 'Groceries')]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.play_arrow));
+      // Use bounded pumps: NavigationScreen may have persistent animations
+      // that prevent pumpAndSettle() from ever returning.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // NavigationScreen opened.
+      expect(tester.takeException(), isNull);
     });
   });
 }

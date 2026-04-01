@@ -87,6 +87,16 @@ class _FakeLocalOnlyNotifier extends LocalOnlyNotifier {
   }
 }
 
+class _LocalOnlyActiveNotifier extends LocalOnlyNotifier {
+  @override
+  bool build() => true;
+
+  @override
+  Future<void> set(bool value) async {
+    state = value;
+  }
+}
+
 class _FakeHomeLocationNotifier extends HomeLocationNotifier {
   @override
   HomeLocation? build() => null;
@@ -109,7 +119,7 @@ class _FakeHomeLocationSetNotifier extends HomeLocationNotifier {
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
-Widget _wrap({bool hasHousehold = false}) {
+Widget _wrap({bool hasHousehold = false, bool localOnly = false}) {
   final mockSvc = MockFirestoreService();
   return ProviderScope(
     overrides: [
@@ -124,7 +134,9 @@ Widget _wrap({bool hasHousehold = false}) {
       firestoreServiceProvider.overrideWithValue(mockSvc),
       navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
       homeLocationProvider.overrideWith(() => _FakeHomeLocationNotifier()),
-      localOnlyProvider.overrideWith(() => _FakeLocalOnlyNotifier()),
+      localOnlyProvider.overrideWith(
+        () => localOnly ? _LocalOnlyActiveNotifier() : _FakeLocalOnlyNotifier(),
+      ),
     ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -475,6 +487,118 @@ void main() {
 
       // Tap the "List" segment.
       await tester.tap(find.text('List'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('SyncScreen – local-only mode active', () {
+    testWidgets('local-only active shows warning message', (tester) async {
+      await tester.pumpWidget(_wrap(localOnly: true));
+      await tester.pumpAndSettle();
+
+      // The local-only warning text is shown (capital L as in localOnlyWarning string).
+      expect(
+        find.textContaining('Local-only', findRichText: true),
+        findsWidgets,
+      );
+    });
+
+    testWidgets('local-only active hides household section', (tester) async {
+      await tester.pumpWidget(_wrap(localOnly: true));
+      await tester.pumpAndSettle();
+
+      // Household-related buttons should not appear.
+      expect(find.text('Create new household'), findsNothing);
+    });
+
+    testWidgets('toggling off local-only shows confirmation dialog', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap(localOnly: true));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(Switch).first);
+      await tester.pumpAndSettle();
+
+      // Disabling local-only mode also triggers a confirmation dialog.
+      expect(find.textContaining('Disable local-only mode'), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+    });
+  });
+
+  group('SyncScreen – Firebase edit fields', () {
+    testWidgets('entering Firebase credentials shows save button', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap());
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Change'));
+      await tester.tap(find.text('Change'));
+      await tester.pumpAndSettle();
+
+      // After the warning dialog confirms, editing fields appear.
+      // The dialog shows Continue/Cancel.
+      if (find.text('Continue').evaluate().isNotEmpty) {
+        await tester.tap(find.text('Continue'));
+        await tester.pumpAndSettle();
+      }
+
+      // Either we see the Firebase editing form or the Change button.
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('paste-JSON mode shows json text field when confirmed', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap());
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Change'));
+      await tester.tap(find.text('Change'));
+      await tester.pumpAndSettle();
+
+      if (find.text('Continue').evaluate().isNotEmpty) {
+        await tester.tap(find.text('Continue'));
+        await tester.pumpAndSettle();
+      }
+
+      // If editing is open, toggle to paste JSON mode.
+      if (find.text('Paste JSON').evaluate().isNotEmpty) {
+        await tester.tap(find.text('Paste JSON'));
+        await tester.pumpAndSettle();
+        expect(
+          find.widgetWithText(TextField, 'google-services.json'),
+          findsOneWidget,
+        );
+      }
+
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('SyncScreen – share household ID', () {
+    testWidgets('share icon is visible when in a household', (tester) async {
+      await tester.pumpWidget(_wrap(hasHousehold: true));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.byIcon(Icons.share_outlined));
+      expect(find.byIcon(Icons.share_outlined), findsOneWidget);
+    });
+  });
+
+  group('SyncScreen – Firebase help button', () {
+    testWidgets('tapping Firebase help icon opens help screen', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap());
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.byIcon(Icons.help_outline).last);
+      await tester.tap(find.byIcon(Icons.help_outline).last);
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);

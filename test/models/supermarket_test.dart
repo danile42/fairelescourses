@@ -452,4 +452,169 @@ void main() {
       expect(s.categories, ['bakery']);
     });
   });
+
+  group('findCellWithFloor – multi-pass matching', () {
+    test('pass 1 exact match on ground floor', () {
+      final s = makeStore(
+        cells: {
+          'A1': ['Milk'],
+        },
+      );
+      expect(s.findCellWithFloor('milk'), (0, 'A1'));
+    });
+
+    test('pass 1 exact match on additional floor via cell', () {
+      final s = makeStore();
+      s.additionalFloors = [
+        ShopFloor(
+          name: 'Upper',
+          rows: ['A', 'B'],
+          cols: ['1', '2'],
+          entrance: 'A1',
+          exit: 'B2',
+          cells: {
+            'B2': ['Electronics'],
+          },
+        ),
+      ];
+      expect(s.findCellWithFloor('electronics'), (1, 'B2'));
+    });
+
+    test('pass 1 exact match via ground floor subcell', () {
+      final s = makeStore(
+        subcells: {
+          'A1:col:0': ['Yoghurt'],
+          'A1:col:1': ['Kefir'],
+        },
+      );
+      expect(s.findCellWithFloor('yoghurt'), (0, 'A1'));
+    });
+
+    test('pass 1 exact match via additional floor subcell', () {
+      final s = makeStore();
+      s.additionalFloors = [
+        ShopFloor(
+          name: 'Upper',
+          rows: ['A'],
+          cols: ['1', '2'],
+          entrance: 'A1',
+          exit: 'A2',
+          subcells: {
+            'A2:col:0': ['Socks'],
+            'A2:col:1': ['Gloves'],
+          },
+        ),
+      ];
+      expect(s.findCellWithFloor('socks'), (1, 'A2'));
+    });
+
+    test('pass 2 all-words match on ground floor', () {
+      final s = makeStore(
+        cells: {
+          'B2': ['Organic Whole Milk'],
+        },
+      );
+      // "Organic Milk" → both words present in "Organic Whole Milk".
+      expect(s.findCellWithFloor('Organic Milk'), (0, 'B2'));
+    });
+
+    test('pass 2 all-words match on additional floor cell', () {
+      final s = makeStore();
+      s.additionalFloors = [
+        ShopFloor(
+          name: 'Upper',
+          rows: ['A'],
+          cols: ['1', '2'],
+          entrance: 'A1',
+          exit: 'A2',
+          cells: {
+            'A2': ['Sparkling Water Bottle'],
+          },
+        ),
+      ];
+      expect(s.findCellWithFloor('Sparkling Bottle'), (1, 'A2'));
+    });
+
+    test('pass 2 all-words match via ground floor subcell', () {
+      final s = makeStore(
+        subcells: {
+          'A1:col:0': ['Red Wine Glass'],
+          'A1:col:1': ['White Wine'],
+        },
+      );
+      expect(s.findCellWithFloor('Red Glass'), (0, 'A1'));
+    });
+
+    test('pass 2 all-words match via additional floor subcell', () {
+      final s = makeStore();
+      s.additionalFloors = [
+        ShopFloor(
+          name: 'Upper',
+          rows: ['A'],
+          cols: ['1', '2'],
+          entrance: 'A1',
+          exit: 'A2',
+          subcells: {
+            'A2:col:0': ['Green Tea Bag'],
+            'A2:col:1': ['Coffee'],
+          },
+        ),
+      ];
+      expect(s.findCellWithFloor('Green Bag'), (1, 'A2'));
+    });
+
+    test('pass 3 partial match on additional floor via findCell', () {
+      final s = makeStore();
+      s.additionalFloors = [
+        ShopFloor(
+          name: 'Upper',
+          rows: ['A'],
+          cols: ['1', '2'],
+          entrance: 'A1',
+          exit: 'A2',
+          cells: {
+            'A2': ['Biscuit'],
+          },
+        ),
+      ];
+      // Query "biscuit" doesn't match ground floor, falls to floor 1 via pass 3.
+      expect(s.findCellWithFloor('biscuit'), (1, 'A2'));
+    });
+
+    test('returns null when item not on any floor or subcell', () {
+      final s = makeStore(
+        cells: {
+          'A1': ['Bread'],
+        },
+      );
+      expect(s.findCellWithFloor('Fish'), isNull);
+    });
+  });
+
+  group('groundFloorName', () {
+    test('floorAt(0) uses groundFloorName when set', () {
+      final s = Supermarket(
+        id: 'x',
+        name: 'X',
+        rows: ['A'],
+        cols: ['1'],
+        entrance: 'A1',
+        exit: 'A1',
+        cells: {},
+        groundFloorName: 'Erdgeschoss',
+      );
+      expect(s.floorAt(0).name, 'Erdgeschoss');
+    });
+
+    test('floorAt(0) returns empty name when groundFloorName is null', () {
+      final s = makeStore();
+      expect(s.floorAt(0).name, '');
+    });
+
+    test('additionalFloors setter with empty list sets floorsRaw to null', () {
+      final s = makeStore();
+      s.additionalFloors = [];
+      expect(s.floorsRaw, isNull);
+    });
+  });
 }

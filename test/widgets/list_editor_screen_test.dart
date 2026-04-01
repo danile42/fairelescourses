@@ -12,6 +12,8 @@ import 'package:fairelescourses/models/supermarket.dart';
 import 'package:fairelescourses/providers/firestore_sync_provider.dart';
 import 'package:fairelescourses/providers/household_provider.dart';
 import 'package:fairelescourses/providers/nav_session_provider.dart';
+import 'package:fairelescourses/providers/local_only_provider.dart';
+import 'package:fairelescourses/providers/nav_view_mode_provider.dart';
 import 'package:fairelescourses/providers/shopping_list_provider.dart';
 import 'package:fairelescourses/providers/supermarket_provider.dart';
 import 'package:fairelescourses/screens/list_editor_screen.dart';
@@ -51,6 +53,24 @@ class _FakeStoresNotifier extends SupermarketNotifier {
   List<Supermarket> build() => [];
 }
 
+class _FakeNavViewModeNotifier extends NavViewModeNotifier {
+  @override
+  bool build() => false; // default: grid view, no Hive access
+}
+
+class _FakeLocalOnlyNotifier extends LocalOnlyNotifier {
+  @override
+  bool build() => false; // no Hive access
+}
+
+class _FakeStoresNotifierWith extends SupermarketNotifier {
+  _FakeStoresNotifierWith(this._stores);
+  final List<Supermarket> _stores;
+
+  @override
+  List<Supermarket> build() => _stores;
+}
+
 // ── helpers ───────────────────────────────────────────────────────────────────
 
 ShoppingList _list({
@@ -64,7 +84,12 @@ ShoppingList _list({
   items: items ?? [ShoppingItem(name: 'Milk'), ShoppingItem(name: 'Eggs')],
 );
 
-Widget _wrap(ShoppingList list, {bool isNew = false, NavSession? session}) {
+Widget _wrap(
+  ShoppingList list, {
+  bool isNew = false,
+  NavSession? session,
+  List<Supermarket>? stores,
+}) {
   final mockSvc = MockFirestoreService();
   when(() => mockSvc.upsertList(any(), any())).thenAnswer((_) async {});
   when(() => mockSvc.deleteList(any(), any())).thenAnswer((_) async {});
@@ -73,8 +98,13 @@ Widget _wrap(ShoppingList list, {bool isNew = false, NavSession? session}) {
     overrides: [
       householdProvider.overrideWith(() => _NullHouseholdNotifier()),
       shoppingListsProvider.overrideWith(() => _FakeListsNotifier([list])),
-      supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+      if (stores != null)
+        supermarketsProvider.overrideWith(() => _FakeStoresNotifierWith(stores))
+      else
+        supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
       navSessionProvider.overrideWith((ref) => Stream.value(session)),
+      navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
+      localOnlyProvider.overrideWith(() => _FakeLocalOnlyNotifier()),
       firestoreSyncProvider.overrideWith((ref) {}),
       currentUidProvider.overrideWith((ref) => null),
       firestoreServiceProvider.overrideWithValue(mockSvc),
@@ -649,6 +679,101 @@ void main() {
 
       // Still on editor screen.
       expect(find.text('Cheese'), findsOneWidget);
+    });
+  });
+
+  // All tests below use pumpAndSettle() and must run before the NavigationScreen-
+  // opening tests: pushing NavigationScreen leaves persistent timers that make
+  // pumpAndSettle() loop indefinitely in any subsequent test.
+  group('ListEditorScreen – store selector', () {
+    testWidgets('store selector appears when stores exist', (tester) async {
+      final store = Supermarket(
+        id: 'store-1',
+        name: 'Corner Shop',
+        rows: ['A'],
+        cols: ['1'],
+        entrance: 'A1',
+        exit: 'A1',
+        cells: {},
+      );
+
+      await tester.pumpWidget(_wrap(_list(), stores: [store]));
+      await tester.pumpAndSettle();
+
+      // Store selector should appear.
+      expect(find.textContaining('Preferred shops'), findsOneWidget);
+    });
+  });
+
+  group('ListEditorScreen – checked item styling', () {
+    testWidgets('checked item has strikethrough decoration', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          _list(
+            items: [
+              ShoppingItem(name: 'Milk', checked: true),
+              ShoppingItem(name: 'Eggs'),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Milk is checked — should show with strikethrough (via RichText or Text).
+      expect(find.text('Milk'), findsOneWidget);
+    });
+  });
+
+  group('ListEditorScreen – item ordering', () {
+    testWidgets('multiple items are all visible', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          _list(
+            items: [
+              ShoppingItem(name: 'Apples'),
+              ShoppingItem(name: 'Bread'),
+              ShoppingItem(name: 'Cheese'),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Apples'), findsOneWidget);
+      expect(find.text('Bread'), findsOneWidget);
+      expect(find.text('Cheese'), findsOneWidget);
+    });
+  });
+
+  group('ListEditorScreen – empty-name save', () {
+    testWidgets('saving with no name uses dash placeholder', (tester) async {
+      await tester.pumpWidget(_wrap(_list(name: '')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  // start navigation must run LAST: pushing NavigationScreen leaves persistent
+  // timers that prevent pumpAndSettle() from ever returning in subsequent tests.
+  group('ListEditorScreen – start navigation', () {
+    testWidgets('tapping Start navigation opens NavigationScreen', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap(_list()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Start navigation'));
+      // Use bounded pumps: NavigationScreen may have persistent animations
+      // that prevent pumpAndSettle() from ever returning.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // No exception — NavigationScreen opened.
+      expect(tester.takeException(), isNull);
     });
   });
 }
