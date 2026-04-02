@@ -181,6 +181,8 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 71. If no article from my list matches a shop, and I then assign an item to a shop, navigation is not offered. Only when an item is already assigned is navigation offered after assigning an unmatched item.
     - Root cause: `StoreEditorScreen._save()` called `notifier.update(store)` / `notifier.add(store)` without `await`. The Riverpod state update (`state = [...]`) only runs after Hive's async disk write, but `Navigator.pop` fires one frame later via `addPostFrameCallback`. When `_showShopPicker` in `NavigationScreen` reads `ref.read(supermarketsProvider)` right after the pop, the provider state is still stale → `_resolvedUnmatched` stays empty → "Generate Plan" never appears.
     - Fix: `await notifier.update/add(store)` in `_save()`, then `if (!mounted) return`.
-    - `help_screen.dart`: `if (extra != null) extra!` → `?extra` (null-aware element, already fixed locally).
-    - `navigation_screen_test.dart`: renamed local function `_emptyStorePlan` → `emptyStorePlan` (`no_leading_underscores_for_local_identifiers`).
-    - `store_grid_test.dart`: added `expect(doubleTapped, 'A2')` to the double-tap test (`unused_local_variable`). Also fixed the double-tap simulation: pumped 50 ms between the two taps (Flutter's `kDoubleTapMinTime` is 40 ms, so a single frame at 16 ms was too short) and 200 ms after.
+
+72. When there is no list defined yet, the help message uses a different "play" button. Use the two buttons that are actually used when a list is present.
+    - Added optional `hint` widget slot to `_EmptyState`.
+    - Updated `emptyListsBody` (EN + DE) to remove the hardcoded `▶` and end with a colon.
+    - Lists empty state now shows the real disabled nav buttons as a visual hint: two `_NavIcon` buttons (person+play, group+play) when in a household, or the single `Icons.play_arrow` otherwise — matching exactly what appears on list cards.

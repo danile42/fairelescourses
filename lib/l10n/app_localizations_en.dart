@@ -28,7 +28,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get emptyListsBody =>
-      'Create a shopping list, then tap ▶ on it to navigate your shop.';
+      'Create a shopping list, then tap the navigation button on it:';
 
   @override
   String get emptyListsCreate => 'Create a list';

@@ -235,12 +235,14 @@ class _EmptyState extends StatelessWidget {
   final IconData icon;
   final String title;
   final String body;
+  final Widget? hint;
   final List<Widget> actions;
 
   const _EmptyState({
     required this.icon,
     required this.title,
     required this.body,
+    this.hint,
     required this.actions,
   });
 
@@ -281,6 +283,7 @@ class _EmptyState extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
+            ?hint,
             const SizedBox(height: 28),
             ...actions.map(
               (a) => Padding(
@@ -498,6 +501,32 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
         icon: Icons.shopping_cart_outlined,
         title: l.emptyListsTitle,
         body: l.emptyListsBody,
+        hint: Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: showTwoNavButtons
+                ? [
+                    IconButton(
+                      icon: const _NavIcon(Icons.person_outline),
+                      tooltip: l.navModeSingle,
+                      onPressed: null,
+                    ),
+                    IconButton(
+                      icon: const _NavIcon(Icons.group_outlined),
+                      tooltip: l.navModeCollaborative,
+                      onPressed: null,
+                    ),
+                  ]
+                : [
+                    IconButton(
+                      icon: const Icon(Icons.play_arrow),
+                      tooltip: l.generatePlan,
+                      onPressed: null,
+                    ),
+                  ],
+          ),
+        ),
         actions: [
           FilledButton.icon(
             icon: const Icon(Icons.add),
