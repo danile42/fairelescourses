@@ -508,10 +508,11 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
     }
     final notifier = ref.read(supermarketsProvider.notifier);
     if (widget.existing != null) {
-      notifier.update(store);
+      await notifier.update(store);
     } else {
-      notifier.add(store);
+      await notifier.add(store);
     }
+    if (!mounted) return;
     setState(() => _dirty = false);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) Navigator.pop(context);
