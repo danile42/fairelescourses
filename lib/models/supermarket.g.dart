@@ -35,6 +35,7 @@ class SupermarketAdapter extends TypeAdapter<Supermarket> {
       osmCategories: (fields[13] as List?)?.cast<String>(),
       floorsRaw: (fields[14] as List?)?.cast<dynamic>(),
       groundFloorName: fields[15] as String?,
+      osmId: (fields[16] as num?)?.toInt(),
       subcells: (fields[11] as Map?)?.map(
         (dynamic k, dynamic v) =>
             MapEntry(k as String, (v as List).cast<String>()),
@@ -45,7 +46,7 @@ class SupermarketAdapter extends TypeAdapter<Supermarket> {
   @override
   void write(BinaryWriter writer, Supermarket obj) {
     writer
-      ..writeByte(16)
+      ..writeByte(17)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -77,7 +78,9 @@ class SupermarketAdapter extends TypeAdapter<Supermarket> {
       ..writeByte(14)
       ..write(obj.floorsRaw)
       ..writeByte(15)
-      ..write(obj.groundFloorName);
+      ..write(obj.groundFloorName)
+      ..writeByte(16)
+      ..write(obj.osmId);
   }
 
   @override

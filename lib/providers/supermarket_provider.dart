@@ -3,6 +3,7 @@ import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import '../models/supermarket.dart';
 import 'firestore_sync_provider.dart';
 import 'household_provider.dart';
+import 'local_only_provider.dart';
 
 const _boxName = 'supermarkets';
 
@@ -34,6 +35,9 @@ class SupermarketNotifier extends Notifier<List<Supermarket>> {
     if (hid != null) {
       ref.read(firestoreServiceProvider).upsertShop(hid, s).ignore();
     }
+    if (s.osmId != null && !ref.read(localOnlyProvider)) {
+      ref.read(firestoreServiceProvider).upsertPublicCells(s).ignore();
+    }
   }
 
   Future<void> update(Supermarket s) async {
@@ -45,6 +49,9 @@ class SupermarketNotifier extends Notifier<List<Supermarket>> {
     final hid = _hid;
     if (hid != null) {
       ref.read(firestoreServiceProvider).upsertShop(hid, s).ignore();
+    }
+    if (s.osmId != null && !ref.read(localOnlyProvider)) {
+      ref.read(firestoreServiceProvider).upsertPublicCells(s).ignore();
     }
   }
 

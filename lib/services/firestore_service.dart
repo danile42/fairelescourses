@@ -62,6 +62,9 @@ class FirestoreService {
   CollectionReference<Map<String, dynamic>> get _shopsCol =>
       _db.collection('shops');
 
+  CollectionReference<Map<String, dynamic>> get _publicShopsCol =>
+      _db.collection('public_shops');
+
   Future<void> upsertShop(String hid, Supermarket s) {
     final data = s.toMap()
       ..['ownerUid'] = _auth.currentUser!.uid
@@ -72,6 +75,40 @@ class FirestoreService {
     if (s.lng == null) data.remove('lng');
     if (s.address == null) data.remove('address');
     return _shopsCol.doc(s.id).set(data);
+  }
+
+  /// Writes the cell layout of an OSM-imported shop to the public collection
+  /// so other users importing the same OSM node see it pre-populated.
+  Future<void> upsertPublicCells(Supermarket s) {
+    if (s.osmId == null) return Future.value();
+    return _publicShopsCol.doc('${s.osmId}').set({
+      'osmId': s.osmId,
+      'rows': s.rows,
+      'cols': s.cols,
+      'entrance': s.entrance,
+      'exit': s.exit,
+      'cells': s.cells,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: false));
+  }
+
+  /// Fetches the publicly shared cell layout for an OSM shop, or null if none.
+  Future<Supermarket?> fetchPublicShop(int osmId) async {
+    final doc = await _publicShopsCol.doc('$osmId').get();
+    if (!doc.exists) return null;
+    final d = doc.data()!;
+    return Supermarket(
+      id: 'osm_$osmId',
+      name: '',
+      rows: List<String>.from(d['rows'] as List),
+      cols: List<String>.from(d['cols'] as List),
+      entrance: d['entrance'] as String,
+      exit: d['exit'] as String,
+      cells: (d['cells'] as Map<String, dynamic>).map(
+        (k, v) => MapEntry(k, List<String>.from(v as List)),
+      ),
+      osmId: osmId,
+    );
   }
 
   static List<String> _goodsList(Supermarket s) => s.cells.values

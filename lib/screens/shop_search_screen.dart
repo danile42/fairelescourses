@@ -870,6 +870,36 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     );
   }
 
+  Future<void> _createFromOsm(BuildContext ctx, OsmShop osm) async {
+    final nav = Navigator.of(ctx);
+    Supermarket? template;
+    try {
+      template = await ref
+          .read(firestoreServiceProvider)
+          .fetchPublicShop(osm.osmId);
+    } catch (_) {
+      // network error; proceed without template
+    }
+    if (!mounted) return;
+    await nav.push(
+      MaterialPageRoute(
+        builder: (_) => StoreEditorScreen(
+          prefill: (
+            name: osm.name,
+            address: osm.address,
+            lat: osm.lat,
+            lng: osm.lng,
+            osmId: osm.osmId,
+            osmCategory: osm.osmCategory,
+            osmCategories: osm.osmCategory != null ? [osm.osmCategory!] : null,
+          ),
+          template: template,
+          focusItems: widget.focusItem != null ? [widget.focusItem!] : const [],
+        ),
+      ),
+    );
+  }
+
   Widget _buildOsmCard(
     BuildContext context,
     AppLocalizations l,
@@ -899,26 +929,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
             : FilledButton(
                 onPressed: () async {
                   final nav = Navigator.of(context);
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => StoreEditorScreen(
-                        prefill: (
-                          name: osm.name,
-                          address: osm.address,
-                          lat: osm.lat,
-                          lng: osm.lng,
-                          osmCategory: osm.osmCategory,
-                          osmCategories: osm.osmCategory != null
-                              ? [osm.osmCategory!]
-                              : null,
-                        ),
-                        focusItems: widget.focusItem != null
-                            ? [widget.focusItem!]
-                            : const [],
-                      ),
-                    ),
-                  );
+                  await _createFromOsm(context, osm);
                   if (widget.focusItem != null && mounted) {
                     nav.pop();
                   }
@@ -1106,26 +1117,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                         onPressed: () async {
                           final nav = Navigator.of(pageContext);
                           Navigator.pop(sheetCtx);
-                          await Navigator.push(
-                            pageContext,
-                            MaterialPageRoute(
-                              builder: (_) => StoreEditorScreen(
-                                prefill: (
-                                  name: osm.name,
-                                  address: osm.address,
-                                  lat: osm.lat,
-                                  lng: osm.lng,
-                                  osmCategory: osm.osmCategory,
-                                  osmCategories: osm.osmCategory != null
-                                      ? [osm.osmCategory!]
-                                      : null,
-                                ),
-                                focusItems: widget.focusItem != null
-                                    ? [widget.focusItem!]
-                                    : const [],
-                              ),
-                            ),
-                          );
+                          await _createFromOsm(pageContext, osm);
                           if (widget.focusItem != null && mounted) {
                             nav.pop();
                           }

@@ -69,6 +69,12 @@ class Supermarket extends HiveObject {
   @HiveField(15)
   String? groundFloorName;
 
+  /// OpenStreetMap node ID, set when this shop was imported from OSM.
+  /// Used to derive the deterministic shop ID `"osm_$osmId"` and to look up
+  /// the shared cell layout in the `public_shops` Firestore collection.
+  @HiveField(16)
+  int? osmId;
+
   /// Firebase Auth UID of the creator. Not persisted to Hive — populated
   /// from Firestore metadata so the UI can gate edit/delete controls.
   String? ownerUid;
@@ -90,6 +96,7 @@ class Supermarket extends HiveObject {
     this.osmCategories,
     this.floorsRaw,
     this.groundFloorName,
+    this.osmId,
     Map<String, List<String>>? subcells,
   }) : subcells = subcells ?? {};
 
@@ -317,6 +324,7 @@ class Supermarket extends HiveObject {
     if (floorsRaw != null && floorsRaw!.isNotEmpty)
       'floors': additionalFloors.map((f) => f.toMap()).toList(),
     if (groundFloorName != null) 'groundFloorName': groundFloorName,
+    if (osmId != null) 'osmId': osmId,
   };
 
   factory Supermarket.fromMap(Map<String, dynamic> m) => Supermarket(
@@ -344,6 +352,7 @@ class Supermarket extends HiveObject {
         : null,
     floorsRaw: m['floors'] != null ? (m['floors'] as List).toList() : null,
     groundFloorName: m['groundFloorName'] as String?,
+    osmId: m['osmId'] as int?,
   );
 
   Supermarket copyWith({
@@ -362,6 +371,7 @@ class Supermarket extends HiveObject {
     Object? osmCategories = _sentinel,
     Object? floorsRaw = _sentinel,
     Object? groundFloorName = _sentinel,
+    Object? osmId = _sentinel,
   }) => Supermarket(
     id: id,
     name: name ?? this.name,
@@ -387,6 +397,7 @@ class Supermarket extends HiveObject {
     groundFloorName: groundFloorName == _sentinel
         ? this.groundFloorName
         : groundFloorName as String?,
+    osmId: osmId == _sentinel ? this.osmId : osmId as int?,
   );
 }
 

@@ -29,6 +29,7 @@ typedef ShopPrefill = ({
   double? lng,
   String? osmCategory,
   List<String>? osmCategories,
+  int? osmId,
 });
 
 /// Holds the editable state for one floor in the store editor.
@@ -60,6 +61,11 @@ class StoreEditorScreen extends ConsumerStatefulWidget {
   /// Ignored when [existing] is provided.
   final ShopPrefill? prefill;
 
+  /// Pre-populates the grid from a publicly shared cell layout fetched from
+  /// `public_shops/{osmId}`. Only used for new shops (ignored when [existing]
+  /// is provided).
+  final Supermarket? template;
+
   /// Items to show as pinned suggestions in the cell goods editor,
   /// regardless of what the user is currently typing.
   final List<String> focusItems;
@@ -68,6 +74,7 @@ class StoreEditorScreen extends ConsumerStatefulWidget {
     super.key,
     this.existing,
     this.prefill,
+    this.template,
     this.focusItems = const [],
   });
 
@@ -106,26 +113,60 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
     final p = widget.prefill;
 
     // Build floor data from existing store or defaults.
+    // For new shops, use the public template if available.
+    final t = s == null ? widget.template : null;
     _floorData = [
       _FloorEditData(
         name: s?.groundFloorName ?? '',
-        rowCount: s != null ? s.rows.length.clamp(1, _maxDim) : 5,
-        colCount: s != null ? s.cols.length.clamp(1, _maxDim) : 5,
-        entrance: s?.entrance ?? 'A1',
-        exit: s?.exit ?? 'E5',
+        rowCount: s != null
+            ? s.rows.length.clamp(1, _maxDim)
+            : t != null
+            ? t.rows.length.clamp(1, _maxDim)
+            : 5,
+        colCount: s != null
+            ? s.cols.length.clamp(1, _maxDim)
+            : t != null
+            ? t.cols.length.clamp(1, _maxDim)
+            : 5,
+        entrance: s?.entrance ?? t?.entrance ?? 'A1',
+        exit: s?.exit ?? t?.exit ?? 'E5',
         cells: s != null
             ? Map<String, List<String>>.from(
                 s.cells.map((k, v) => MapEntry(k, List<String>.from(v))),
+              )
+            : t != null
+            ? Map<String, List<String>>.from(
+                t.cells.map((k, v) => MapEntry(k, List<String>.from(v))),
               )
             : {},
         subcells: s != null
             ? Map<String, List<String>>.from(
                 s.subcells.map((k, v) => MapEntry(k, List<String>.from(v))),
               )
+            : t != null
+            ? Map<String, List<String>>.from(
+                t.subcells.map((k, v) => MapEntry(k, List<String>.from(v))),
+              )
             : {},
       ),
       if (s != null)
         ...s.additionalFloors.map(
+          (f) => _FloorEditData(
+            name: f.name,
+            rowCount: f.rows.length.clamp(1, _maxDim),
+            colCount: f.cols.length.clamp(1, _maxDim),
+            entrance: f.entrance,
+            exit: f.exit,
+            cells: Map<String, List<String>>.from(
+              f.cells.map((k, v) => MapEntry(k, List<String>.from(v))),
+            ),
+            subcells: Map<String, List<String>>.from(
+              f.subcells.map((k, v) => MapEntry(k, List<String>.from(v))),
+            ),
+          ),
+        )
+      else if (t != null)
+        ...t.additionalFloors.map(
           (f) => _FloorEditData(
             name: f.name,
             rowCount: f.rows.length.clamp(1, _maxDim),
@@ -473,8 +514,11 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
     }
 
     final floor0 = _floorData[0];
+    final prefillOsmId = widget.prefill?.osmId;
     final store = Supermarket(
-      id: widget.existing?.id ?? _uuid.v4(),
+      id:
+          widget.existing?.id ??
+          (prefillOsmId != null ? 'osm_$prefillOsmId' : _uuid.v4()),
       name: _nameCtrl.text.trim(),
       rows: _makeRows(floor0.rowCount),
       cols: _makeCols(floor0.colCount),
@@ -489,6 +533,7 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
       osmCategories:
           widget.existing?.osmCategories ?? widget.prefill?.osmCategories,
       groundFloorName: floor0.name.isEmpty ? null : floor0.name,
+      osmId: widget.existing?.osmId ?? prefillOsmId,
     );
     if (_floorData.length > 1) {
       store.additionalFloors = _floorData
