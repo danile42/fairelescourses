@@ -28,8 +28,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get emptyListsTitle => 'Noch keine Einkaufslisten';
 
   @override
-  String get emptyListsBody =>
-      'Erstelle eine Einkaufsliste und tippe auf den Navigationsknopf:';
+  String get emptyListsBodyBefore =>
+      'Erstelle eine Einkaufsliste und tippe auf';
+
+  @override
+  String get emptyListsBodyAfter => 'um deinen Markt zu navigieren.';
 
   @override
   String get emptyListsCreate => 'Liste erstellen';

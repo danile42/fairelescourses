@@ -134,11 +134,17 @@ abstract class AppLocalizations {
   /// **'No shopping lists yet'**
   String get emptyListsTitle;
 
-  /// No description provided for @emptyListsBody.
+  /// No description provided for @emptyListsBodyBefore.
   ///
   /// In en, this message translates to:
-  /// **'Create a shopping list, then tap ▶ on it to navigate your shop.'**
-  String get emptyListsBody;
+  /// **'Create a shopping list, then tap'**
+  String get emptyListsBodyBefore;
+
+  /// No description provided for @emptyListsBodyAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'to navigate your shop.'**
+  String get emptyListsBodyAfter;
 
   /// No description provided for @emptyListsCreate.
   ///

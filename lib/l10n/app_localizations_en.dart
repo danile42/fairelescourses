@@ -27,8 +27,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get emptyListsTitle => 'No shopping lists yet';
 
   @override
-  String get emptyListsBody =>
-      'Create a shopping list, then tap the navigation button on it:';
+  String get emptyListsBodyBefore => 'Create a shopping list, then tap';
+
+  @override
+  String get emptyListsBodyAfter => 'to navigate your shop.';
 
   @override
   String get emptyListsCreate => 'Create a list';

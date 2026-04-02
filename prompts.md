@@ -182,7 +182,7 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - Root cause: `StoreEditorScreen._save()` called `notifier.update(store)` / `notifier.add(store)` without `await`. The Riverpod state update (`state = [...]`) only runs after Hive's async disk write, but `Navigator.pop` fires one frame later via `addPostFrameCallback`. When `_showShopPicker` in `NavigationScreen` reads `ref.read(supermarketsProvider)` right after the pop, the provider state is still stale → `_resolvedUnmatched` stays empty → "Generate Plan" never appears.
     - Fix: `await notifier.update/add(store)` in `_save()`, then `if (!mounted) return`.
 
-72. When there is no list defined yet, the help message uses a different "play" button. Use the two buttons that are actually used when a list is present.
-    - Added optional `hint` widget slot to `_EmptyState`.
-    - Updated `emptyListsBody` (EN + DE) to remove the hardcoded `▶` and end with a colon.
-    - Lists empty state now shows the real disabled nav buttons as a visual hint: two `_NavIcon` buttons (person+play, group+play) when in a household, or the single `Icons.play_arrow` otherwise — matching exactly what appears on list cards.
+72. When there is no list defined yet, the help message uses a different "play" button. Use the two buttons that are actually used when a list is present. Then: replace the incorrect button with the correct buttons, inside the sentence.
+    - Added `bodyWidget: Widget?` to `_EmptyState`; when provided it replaces the plain `Text(body)`.
+    - Replaced `emptyListsBody` l10n key with `emptyListsBodyBefore` + `emptyListsBodyAfter` (splitting around the inline buttons).
+    - Lists empty state now uses a `Wrap` with the text parts and the real disabled nav buttons inline: two `_NavIcon` buttons when in a household, or the single `play_arrow` otherwise.
