@@ -482,8 +482,10 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
           !_selectedBrands.contains(_extractBrand(osm.name, osm.brand))) {
         return false;
       }
-      // Hide OSM results that already have a local shop at the same location.
+      // Hide OSM results that already have a local shop at the same location
+      // or were previously imported from the same OSM node.
       if (findLocalByOsm(osm.lat, osm.lng, stores) != null) return false;
+      if (stores.any((s) => s.osmId == osm.osmId)) return false;
       return true;
     }).toList();
 
@@ -851,7 +853,8 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
   }
 
   Supermarket? _findLocalByOsm(OsmShop osm, List<Supermarket> stores) =>
-      findLocalByOsm(osm.lat, osm.lng, stores);
+      findLocalByOsm(osm.lat, osm.lng, stores) ??
+      stores.where((s) => s.osmId == osm.osmId).firstOrNull;
 
   Widget _buildFirestoreCard(
     BuildContext context,

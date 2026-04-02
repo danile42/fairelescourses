@@ -207,3 +207,7 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - Root cause: `byLocation` mode has three sections (local "Your shops" with green check, Firestore "In your list", OSM "Import") with no cross-section deduplication.
     - Fix: computed `localIds` from `filteredLocalStores`; filtered `filteredFirestore` to exclude shops whose ID is already in `localIds`; filtered `filteredOsm` to exclude OSM results where `findLocalByOsm` returns a match (i.e. a local shop exists at the same location).
     - Also made local shop cards tappable (opens `StoreEditorScreen`) for consistency with Firestore and OSM cards.
+
+76. Now I still see it two times: 1. with a green check mark. 2. with "import". What is the expected use case or result if I hit "import" now? Does it make sense to show it two times?
+    - Root cause: proximity-based deduplication (`findLocalByOsm`) fails when the local shop has no GPS coordinates (e.g. created manually). The OSM card still shows "Import" even though the shop is already local.
+    - Fix: extended `_findLocalByOsm` to also match by `osmId` (fallback after proximity check). Extended `filteredOsm` filter to suppress OSM results where any local shop has the same `osmId`. Both changes together ensure a shop imported from OSM is always suppressed in the OSM section regardless of whether coordinates are stored.
