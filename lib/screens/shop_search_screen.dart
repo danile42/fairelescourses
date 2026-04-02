@@ -964,7 +964,17 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                 onPressed: () async {
                   final nav = Navigator.of(context);
                   await _createFromOsm(context, osm);
-                  if (widget.focusItem != null && mounted) {
+                  if (!mounted) return;
+                  // Remove the OSM result immediately if the shop is now local,
+                  // so it doesn't linger in the list while the filter catches up.
+                  if (ref
+                      .read(supermarketsProvider)
+                      .any((s) => s.osmId == osm.osmId)) {
+                    setState(() {
+                      _osmResults.removeWhere((r) => r.osmId == osm.osmId);
+                    });
+                  }
+                  if (widget.focusItem != null) {
                     nav.pop();
                   }
                 },
@@ -1163,7 +1173,17 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                           final nav = Navigator.of(pageContext);
                           Navigator.pop(sheetCtx);
                           await _createFromOsm(pageContext, osm);
-                          if (widget.focusItem != null && mounted) {
+                          if (!mounted) return;
+                          if (ref
+                              .read(supermarketsProvider)
+                              .any((s) => s.osmId == osm.osmId)) {
+                            setState(() {
+                              _osmResults.removeWhere(
+                                (r) => r.osmId == osm.osmId,
+                              );
+                            });
+                          }
+                          if (widget.focusItem != null) {
                             nav.pop();
                           }
                         },

@@ -494,7 +494,7 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
         lat != null &&
         lng != null &&
         (addressText == widget.existing?.address ||
-            addressText == prefillAddress);
+            addressText == (prefillAddress ?? ''));
     if (addressText.isNotEmpty && !alreadyGeocoded) {
       setState(() => _geocoding = true);
       final coords = await NominatimService.geocode(addressText);
