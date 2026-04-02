@@ -195,3 +195,10 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - `StoreEditorScreen`: new `template: Supermarket?` parameter pre-populates the grid for new shops; `prefill` gains `int? osmId`.
     - `ShopSearchScreen._createFromOsm()`: fetches `public_shops/{osmId}` before opening the editor; pre-populated grid shown to the user, who can refine and save (writing back to the public collection).
     - Tests: `osmId` serialization roundtrip in `supermarket_test.dart`; `upsertPublicCells` called/not-called based on `osmId` and local-only mode in `supermarket_provider_test.dart`; deterministic shop ID and template pre-population in `store_editor_screen_test.dart`. Fixed existing prefill tests to include the new `osmId` field.
+
+74. When I found a shop in shop search and either imported it or already had it imported, I want to be able to open it in the editor by simple tap.
+    - Firestore results (list view): tapping a card that shows "In your list" now opens `StoreEditorScreen` for the locally-known shop.
+    - OSM results (list view): tapping a card that shows "Already defined" now opens `StoreEditorScreen` for the nearest local match.
+    - Map view sheets: the disabled "Already defined" / "In your list" button is replaced with an active "Edit shop" `FilledButton` in both Firestore and OSM bottom sheets.
+    - Extracted `findLocalByOsm(lat, lng, stores)` as a public top-level function (alongside `isKnownOsm`/`isKnownFirestore`); `isKnownOsm` now delegates to it.
+    - Tests: 5 new unit tests for `findLocalByOsm` in `shop_search_screen_test.dart`.

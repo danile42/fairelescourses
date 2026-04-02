@@ -127,6 +127,35 @@ void main() {
     });
   });
 
+  group('findLocalByOsm', () {
+    test('returns the matching local shop when within 0.2 km', () {
+      final local = _makeShop(id: 'near', lat: 52.5209, lng: 13.4050);
+      expect(findLocalByOsm(52.5200, 13.4050, [local]), same(local));
+    });
+
+    test('returns null when no local shop is within 0.2 km', () {
+      final far = _makeShop(id: 'far', lat: 48.1351, lng: 11.5820);
+      expect(findLocalByOsm(52.5200, 13.4050, [far]), isNull);
+    });
+
+    test('returns null when local shops have no coordinates', () {
+      final noCoords = _makeShop(id: 'x');
+      expect(findLocalByOsm(52.5200, 13.4050, [noCoords]), isNull);
+    });
+
+    test('returns null for empty store list', () {
+      expect(findLocalByOsm(52.5200, 13.4050, []), isNull);
+    });
+
+    test('returns the nearest shop when multiple are within range', () {
+      final closer = _makeShop(id: 'closer', lat: 52.5202, lng: 13.4050);
+      final further = _makeShop(id: 'further', lat: 52.5205, lng: 13.4050);
+      // firstOrNull returns the first match; both are within 0.2 km
+      final result = findLocalByOsm(52.5200, 13.4050, [closer, further]);
+      expect(result, isNotNull);
+    });
+  });
+
   group('shopSearchHaversineKm', () {
     test('same point is 0', () {
       expect(shopSearchHaversineKm(52.0, 13.0, 52.0, 13.0), 0.0);

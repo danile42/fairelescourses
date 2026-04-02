@@ -60,12 +60,22 @@ bool isKnownFirestore(Supermarket shop, List<Supermarket> stores) {
 /// Returns true if an OSM shop result is already represented in [stores].
 /// OSM shops always have coordinates, so only proximity (< 0.2 km) is used.
 bool isKnownOsm(double osmLat, double osmLng, List<Supermarket> stores) =>
-    stores.any(
+    findLocalByOsm(osmLat, osmLng, stores) != null;
+
+/// Returns the local [Supermarket] that matches the given OSM coordinates,
+/// or null if none is within 0.2 km.
+Supermarket? findLocalByOsm(
+  double osmLat,
+  double osmLng,
+  List<Supermarket> stores,
+) => stores
+    .where(
       (s) =>
           s.lat != null &&
           s.lng != null &&
           shopSearchHaversineKm(osmLat, osmLng, s.lat!, s.lng!) < 0.2,
-    );
+    )
+    .firstOrNull;
 
 class ShopSearchScreen extends ConsumerStatefulWidget {
   /// When set, importing or creating a shop will open it immediately in the
@@ -823,8 +833,15 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     );
   }
 
-  bool _isKnownFirestore(Supermarket shop, List<Supermarket> stores) =>
-      isKnownFirestore(shop, stores);
+  void _openInEditor(BuildContext ctx, Supermarket store) {
+    Navigator.push(
+      ctx,
+      MaterialPageRoute(builder: (_) => StoreEditorScreen(existing: store)),
+    );
+  }
+
+  Supermarket? _findLocalByOsm(OsmShop osm, List<Supermarket> stores) =>
+      findLocalByOsm(osm.lat, osm.lng, stores);
 
   Widget _buildFirestoreCard(
     BuildContext context,
@@ -834,7 +851,8 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     ThemeData theme,
   ) {
     final shop = result.shop;
-    final known = _isKnownFirestore(shop, stores);
+    final localStore = stores.where((s) => s.id == shop.id).firstOrNull;
+    final known = localStore != null;
     final distText = result.distanceKm != null
         ? l.distanceKm(result.distanceKm!.toStringAsFixed(1))
         : null;
@@ -850,6 +868,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
             ?shop.address,
           ].nonNulls.join('  •  '),
         ),
+        onTap: known ? () => _openInEditor(context, localStore) : null,
         trailing: known
             ? Chip(
                 label: Text(
@@ -907,13 +926,15 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     List<Supermarket> stores,
     ThemeData theme,
   ) {
-    final alreadyLocal = isKnownOsm(osm.lat, osm.lng, stores);
+    final localStore = _findLocalByOsm(osm, stores);
+    final alreadyLocal = localStore != null;
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: ListTile(
         leading: Icon(Icons.store_outlined, color: theme.colorScheme.secondary),
         title: Text(osm.name),
         subtitle: Text([?osm.address].nonNulls.join('  •  ')),
+        onTap: alreadyLocal ? () => _openInEditor(context, localStore) : null,
         trailing: alreadyLocal
             ? Chip(
                 label: Text(
@@ -956,18 +977,20 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       final lat = r.shop.lat;
       final lng = r.shop.lng;
       if (lat == null || lng == null) continue;
-      final known = _isKnownFirestore(r.shop, stores);
+      final localStore = stores.where((s) => s.id == r.shop.id).firstOrNull;
       markers.add(
         Marker(
           point: LatLng(lat, lng),
           width: 36,
           height: 36,
           child: GestureDetector(
-            onTap: () => _showFirestoreSheet(context, l, r, known, theme),
+            onTap: () => _showFirestoreSheet(context, l, r, localStore, theme),
             child: Icon(
               Icons.location_pin,
               size: 36,
-              color: known ? Colors.grey : theme.colorScheme.primary,
+              color: localStore != null
+                  ? Colors.grey
+                  : theme.colorScheme.primary,
             ),
           ),
         ),
@@ -975,7 +998,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     }
 
     for (final osm in filteredOsm) {
-      final alreadyLocal = isKnownOsm(osm.lat, osm.lng, stores);
+      final localStore = _findLocalByOsm(osm, stores);
       markers.add(
         Marker(
           point: LatLng(osm.lat, osm.lng),
@@ -983,11 +1006,13 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
           height: 36,
           child: GestureDetector(
             onTap: () =>
-                _showOsmSheet(context, l, osm, alreadyLocal, stores, theme),
+                _showOsmSheet(context, l, osm, localStore, stores, theme),
             child: Icon(
               Icons.location_pin,
               size: 36,
-              color: alreadyLocal ? Colors.grey : theme.colorScheme.secondary,
+              color: localStore != null
+                  ? Colors.grey
+                  : theme.colorScheme.secondary,
             ),
           ),
         ),
@@ -1035,10 +1060,11 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     BuildContext pageContext,
     AppLocalizations l,
     ShopSearchResult result,
-    bool known,
+    Supermarket? localStore,
     ThemeData theme,
   ) {
     final shop = result.shop;
+    final known = localStore != null;
     showModalBottomSheet(
       context: pageContext,
       builder: (sheetCtx) => SafeArea(
@@ -1064,9 +1090,12 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
               SizedBox(
                 width: double.infinity,
                 child: known
-                    ? OutlinedButton(
-                        onPressed: null,
-                        child: Text(l.shopAlreadyKnown),
+                    ? FilledButton(
+                        onPressed: () {
+                          Navigator.pop(sheetCtx);
+                          _openInEditor(pageContext, localStore);
+                        },
+                        child: Text(l.editShop),
                       )
                     : FilledButton(
                         onPressed: () {
@@ -1087,7 +1116,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     BuildContext pageContext,
     AppLocalizations l,
     OsmShop osm,
-    bool alreadyLocal,
+    Supermarket? localStore,
     List<Supermarket> stores,
     ThemeData theme,
   ) {
@@ -1108,10 +1137,13 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
-                child: alreadyLocal
-                    ? OutlinedButton(
-                        onPressed: null,
-                        child: Text(l.alreadyDefined),
+                child: localStore != null
+                    ? FilledButton(
+                        onPressed: () {
+                          Navigator.pop(sheetCtx);
+                          _openInEditor(pageContext, localStore);
+                        },
+                        child: Text(l.editShop),
                       )
                     : FilledButton(
                         onPressed: () async {
