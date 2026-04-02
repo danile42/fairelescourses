@@ -187,10 +187,11 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - Replaced `emptyListsBody` l10n key with `emptyListsBodyBefore` + `emptyListsBodyOr` + `emptyListsBodyAfter`.
     - Lists empty state uses a `Wrap` with both nav buttons (`_NavIcon` single + collaborative) always shown inline, with "or" / "oder" between them.
 
-73. When I assign an item to a market cell, this should be visible for other users who have this market imported.
+73. When I assign an item to a market cell, this should be visible for other users who have this market imported. Add tests for these changes, if there are not already.
     - Added `int? osmId` to `Supermarket` model (`@HiveField(16)`); regenerated Hive adapter via build_runner.
     - OSM-imported shops now get a deterministic ID `"osm_{osmId}"` instead of a random UUID, so household members who independently import the same OSM shop share one Firestore document.
     - Added `public_shops/{osmId}` Firestore collection: stores the cell layout (rows, cols, entrance, exit, cells) of any shop with an OSM node ID.
     - `SupermarketNotifier.add/update()`: when `s.osmId != null` and not in local-only mode, also writes to `public_shops`.
     - `StoreEditorScreen`: new `template: Supermarket?` parameter pre-populates the grid for new shops; `prefill` gains `int? osmId`.
     - `ShopSearchScreen._createFromOsm()`: fetches `public_shops/{osmId}` before opening the editor; pre-populated grid shown to the user, who can refine and save (writing back to the public collection).
+    - Tests: `osmId` serialization roundtrip in `supermarket_test.dart`; `upsertPublicCells` called/not-called based on `osmId` and local-only mode in `supermarket_provider_test.dart`; deterministic shop ID and template pre-population in `store_editor_screen_test.dart`. Fixed existing prefill tests to include the new `osmId` field.

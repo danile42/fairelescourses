@@ -7,6 +7,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:fairelescourses/models/supermarket.dart';
 import 'package:fairelescourses/providers/supermarket_provider.dart';
 import 'package:fairelescourses/providers/household_provider.dart';
+import 'package:fairelescourses/providers/local_only_provider.dart';
 import 'package:fairelescourses/providers/firestore_sync_provider.dart';
 import 'package:fairelescourses/services/firestore_service.dart';
 
@@ -19,7 +20,17 @@ class _NullHouseholdNotifier extends HouseholdNotifier {
   String? build() => null;
 }
 
-Supermarket _store(String id) => Supermarket(
+class _FalseLocalOnlyNotifier extends LocalOnlyNotifier {
+  @override
+  bool build() => false;
+}
+
+class _TrueLocalOnlyNotifier extends LocalOnlyNotifier {
+  @override
+  bool build() => true;
+}
+
+Supermarket _store(String id, {int? osmId}) => Supermarket(
   id: id,
   name: 'Store $id',
   rows: ['A', 'B'],
@@ -27,21 +38,29 @@ Supermarket _store(String id) => Supermarket(
   entrance: 'A1',
   exit: 'B2',
   cells: {},
+  osmId: osmId,
 );
 
-ProviderContainer _makeContainer() {
+ProviderContainer _makeContainer({bool localOnly = false}) {
   final mock = MockFirestoreService();
   when(() => mock.upsertShop(any(), any())).thenAnswer((_) async {});
   when(() => mock.deleteShop(any(), any())).thenAnswer((_) async {});
+  when(() => mock.upsertPublicCells(any())).thenAnswer((_) async {});
   return ProviderContainer(
     overrides: [
       householdProvider.overrideWith(() => _NullHouseholdNotifier()),
+      localOnlyProvider.overrideWith(
+        () => localOnly ? _TrueLocalOnlyNotifier() : _FalseLocalOnlyNotifier(),
+      ),
       firestoreServiceProvider.overrideWithValue(mock),
       currentUidProvider.overrideWith((ref) => null),
       firestoreSyncProvider.overrideWith((ref) {}),
     ],
   );
 }
+
+MockFirestoreService _mockFrom(ProviderContainer c) =>
+    c.read(firestoreServiceProvider) as MockFirestoreService;
 
 void main() {
   late Directory hiveDir;
@@ -161,5 +180,56 @@ void main() {
 
       expect(container.read(supermarketsProvider), isEmpty);
     });
+  });
+
+  group('SupermarketNotifier – public cell sharing', () {
+    test('add with osmId calls upsertPublicCells', () async {
+      final container = _makeContainer();
+      addTearDown(container.dispose);
+
+      await container
+          .read(supermarketsProvider.notifier)
+          .add(_store('osm_1', osmId: 1));
+
+      verify(() => _mockFrom(container).upsertPublicCells(any())).called(1);
+    });
+
+    test('update with osmId calls upsertPublicCells', () async {
+      final container = _makeContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(supermarketsProvider.notifier);
+
+      await notifier.add(_store('osm_2', osmId: 2));
+      clearInteractions(_mockFrom(container));
+
+      await notifier.update(_store('osm_2', osmId: 2));
+
+      verify(() => _mockFrom(container).upsertPublicCells(any())).called(1);
+    });
+
+    test('add without osmId does not call upsertPublicCells', () async {
+      final container = _makeContainer();
+      addTearDown(container.dispose);
+
+      await container
+          .read(supermarketsProvider.notifier)
+          .add(_store('S1')); // no osmId
+
+      verifyNever(() => _mockFrom(container).upsertPublicCells(any()));
+    });
+
+    test(
+      'add with osmId in local-only mode does not call upsertPublicCells',
+      () async {
+        final container = _makeContainer(localOnly: true);
+        addTearDown(container.dispose);
+
+        await container
+            .read(supermarketsProvider.notifier)
+            .add(_store('osm_3', osmId: 3));
+
+        verifyNever(() => _mockFrom(container).upsertPublicCells(any()));
+      },
+    );
   });
 }

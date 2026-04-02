@@ -591,6 +591,41 @@ void main() {
     });
   });
 
+  group('osmId', () {
+    test('osmId roundtrip via toMap/fromMap', () {
+      final s = Supermarket(
+        id: 'osm_42',
+        name: 'Test',
+        rows: ['A'],
+        cols: ['1'],
+        entrance: 'A1',
+        exit: 'A1',
+        cells: {},
+        osmId: 42,
+      );
+      final restored = Supermarket.fromMap(s.toMap());
+      expect(restored.osmId, 42);
+    });
+
+    test('fromMap tolerates missing osmId', () {
+      final map = {
+        'id': 'x',
+        'name': 'X',
+        'rows': ['A'],
+        'cols': ['1'],
+        'entrance': 'A1',
+        'exit': 'A1',
+        'cells': <String, dynamic>{},
+      };
+      expect(Supermarket.fromMap(map).osmId, isNull);
+    });
+
+    test('osmId null is absent from toMap output', () {
+      final s = makeStore();
+      expect(s.toMap().containsKey('osmId'), isFalse);
+    });
+  });
+
   group('groundFloorName', () {
     test('floorAt(0) uses groundFloorName when set', () {
       final s = Supermarket(

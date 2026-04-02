@@ -407,6 +407,7 @@ void main() {
               address: '1 Main St',
               lat: 48.0,
               lng: 11.0,
+              osmId: null,
               osmCategory: 'supermarket',
               osmCategories: ['supermarket'],
             ),
@@ -431,6 +432,7 @@ void main() {
               address: null,
               lat: null,
               lng: null,
+              osmId: null,
               osmCategory: null,
               osmCategories: null,
             ),
@@ -443,6 +445,91 @@ void main() {
       await tester.pumpAndSettle();
 
       // Should save without error (name already set from prefill).
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('prefill with osmId uses deterministic shop id', (
+      tester,
+    ) async {
+      _FakeStoresNotifier? captured;
+      final mockSvc = MockFirestoreService();
+      when(() => mockSvc.upsertShop(any(), any())).thenAnswer((_) async {});
+      when(() => mockSvc.upsertPublicCells(any())).thenAnswer((_) async {});
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
+            supermarketsProvider.overrideWith(() {
+              captured = _FakeStoresNotifier([]);
+              return captured!;
+            }),
+            shoppingListsProvider.overrideWith(() => _FakeListsNotifier()),
+            firestoreSyncProvider.overrideWith((ref) {}),
+            currentUidProvider.overrideWith((ref) => null),
+            firestoreServiceProvider.overrideWithValue(mockSvc),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: StoreEditorScreen(
+              prefill: (
+                name: 'OSM Market',
+                address: null,
+                lat: null,
+                lng: null,
+                osmId: 99999,
+                osmCategory: null,
+                osmCategories: null,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(captured!.state.length, 1);
+      expect(captured!.state.first.id, 'osm_99999');
+      expect(captured!.state.first.osmId, 99999);
+    });
+
+    testWidgets('template pre-populates grid dimensions', (tester) async {
+      final template = Supermarket(
+        id: 'osm_7',
+        name: '',
+        rows: ['A', 'B', 'C'],
+        cols: ['1', '2', '3', '4'],
+        entrance: 'A1',
+        exit: 'C4',
+        cells: {'B2': []},
+        osmId: 7,
+      );
+
+      await tester.pumpWidget(
+        _wrap(
+          StoreEditorScreen(
+            prefill: (
+              name: 'My Market',
+              address: null,
+              lat: null,
+              lng: null,
+              osmId: 7,
+              osmCategory: null,
+              osmCategories: null,
+            ),
+            template: template,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Grid renders without error (entrance and exit icons present).
+      expect(find.byIcon(Icons.login), findsOneWidget);
+      expect(find.byIcon(Icons.logout), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });
