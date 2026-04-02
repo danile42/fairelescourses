@@ -457,15 +457,22 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
               .toList()
         : <Supermarket>[];
 
-    // Apply brand filter (empty selection = show all)
-    final filteredFirestore = _selectedBrands.isEmpty
-        ? _firestoreResults
-        : _firestoreResults
-              .where(
-                (r) =>
-                    _selectedBrands.contains(_extractBrand(r.shop.name, null)),
-              )
-              .toList();
+    // IDs of shops already shown in the local "Your shops" section — used to
+    // suppress duplicates in the Firestore and OSM sections below.
+    final localIds = filteredLocalStores.map((s) => s.id).toSet();
+
+    // Apply brand filter (empty selection = show all); also exclude shops
+    // already shown in the local section.
+    final filteredFirestore =
+        (_selectedBrands.isEmpty
+                ? _firestoreResults
+                : _firestoreResults.where(
+                    (r) => _selectedBrands.contains(
+                      _extractBrand(r.shop.name, null),
+                    ),
+                  ))
+            .where((r) => !localIds.contains(r.shop.id))
+            .toList();
     final filteredOsm = _osmResults.where((osm) {
       if (_osmNameFilter != null &&
           !osm.name.toLowerCase().contains(_osmNameFilter!)) {
@@ -475,6 +482,8 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
           !_selectedBrands.contains(_extractBrand(osm.name, osm.brand))) {
         return false;
       }
+      // Hide OSM results that already have a local shop at the same location.
+      if (findLocalByOsm(osm.lat, osm.lng, stores) != null) return false;
       return true;
     }).toList();
 
@@ -785,6 +794,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
               title: Text(store.name),
               subtitle: store.address != null ? Text(store.address!) : null,
               trailing: const Icon(Icons.check_circle, color: Colors.green),
+              onTap: () => _openInEditor(context, store),
             ),
           );
         }

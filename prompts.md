@@ -202,3 +202,8 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - Map view sheets: the disabled "Already defined" / "In your list" button is replaced with an active "Edit shop" `FilledButton` in both Firestore and OSM bottom sheets.
     - Extracted `findLocalByOsm(lat, lng, stores)` as a public top-level function (alongside `isKnownOsm`/`isKnownFirestore`); `isKnownOsm` now delegates to it.
     - Tests: 5 new unit tests for `findLocalByOsm` in `shop_search_screen_test.dart`.
+
+75. Now I see the same shop 3 times in the results: 1. with a green check mark. 2. with "in your list" and 3. with "import". It should be there only once.
+    - Root cause: `byLocation` mode has three sections (local "Your shops" with green check, Firestore "In your list", OSM "Import") with no cross-section deduplication.
+    - Fix: computed `localIds` from `filteredLocalStores`; filtered `filteredFirestore` to exclude shops whose ID is already in `localIds`; filtered `filteredOsm` to exclude OSM results where `findLocalByOsm` returns a match (i.e. a local shop exists at the same location).
+    - Also made local shop cards tappable (opens `StoreEditorScreen`) for consistency with Firestore and OSM cards.
