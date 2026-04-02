@@ -7,6 +7,7 @@
   "noShops": "Noch keine Märkte definiert.",
   "emptyListsTitle": "Noch keine Einkaufslisten",
   "emptyListsBodyBefore": "Erstelle eine Einkaufsliste und tippe auf",
+  "emptyListsBodyOr": "oder",
   "emptyListsBodyAfter": "um deinen Markt zu navigieren.",
   "emptyListsCreate": "Liste erstellen",
   "emptyShopsTitle": "Noch keine Märkte",

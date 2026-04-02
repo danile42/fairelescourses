@@ -30,6 +30,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get emptyListsBodyBefore => 'Create a shopping list, then tap';
 
   @override
+  String get emptyListsBodyOr => 'or';
+
+  @override
   String get emptyListsBodyAfter => 'to navigate your shop.';
 
   @override

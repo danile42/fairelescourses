@@ -32,6 +32,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Erstelle eine Einkaufsliste und tippe auf';
 
   @override
+  String get emptyListsBodyOr => 'oder';
+
+  @override
   String get emptyListsBodyAfter => 'um deinen Markt zu navigieren.';
 
   @override

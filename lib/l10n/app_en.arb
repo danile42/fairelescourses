@@ -7,6 +7,7 @@
   "noShops": "No shops defined yet.",
   "emptyListsTitle": "No shopping lists yet",
   "emptyListsBodyBefore": "Create a shopping list, then tap",
+  "emptyListsBodyOr": "or",
   "emptyListsBodyAfter": "to navigate your shop.",
   "emptyListsCreate": "Create a list",
   "emptyShopsTitle": "No shops yet",

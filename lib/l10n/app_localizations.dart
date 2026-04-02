@@ -140,6 +140,12 @@ abstract class AppLocalizations {
   /// **'Create a shopping list, then tap'**
   String get emptyListsBodyBefore;
 
+  /// No description provided for @emptyListsBodyOr.
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get emptyListsBodyOr;
+
   /// No description provided for @emptyListsBodyAfter.
   ///
   /// In en, this message translates to:

@@ -510,23 +510,17 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Text('${l.emptyListsBodyBefore} ', style: bodyStyle),
-            if (showTwoNavButtons) ...[
-              IconButton(
-                icon: const _NavIcon(Icons.person_outline),
-                tooltip: l.navModeSingle,
-                onPressed: null,
-              ),
-              IconButton(
-                icon: const _NavIcon(Icons.group_outlined),
-                tooltip: l.navModeCollaborative,
-                onPressed: null,
-              ),
-            ] else
-              IconButton(
-                icon: const Icon(Icons.play_arrow),
-                tooltip: l.generatePlan,
-                onPressed: null,
-              ),
+            IconButton(
+              icon: const _NavIcon(Icons.person_outline),
+              tooltip: l.navModeSingle,
+              onPressed: null,
+            ),
+            Text(' ${l.emptyListsBodyOr} ', style: bodyStyle),
+            IconButton(
+              icon: const _NavIcon(Icons.group_outlined),
+              tooltip: l.navModeCollaborative,
+              onPressed: null,
+            ),
             Text(' ${l.emptyListsBodyAfter}', style: bodyStyle),
           ],
         ),
