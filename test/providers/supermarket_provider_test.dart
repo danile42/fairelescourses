@@ -246,4 +246,43 @@ void main() {
       },
     );
   });
+
+  group('SupermarketNotifier – syncToFirestore: false', () {
+    test('add with syncToFirestore:false does not call upsertShop', () async {
+      final container = _makeContainer();
+      addTearDown(container.dispose);
+
+      await container
+          .read(supermarketsProvider.notifier)
+          .add(_store('S1'), syncToFirestore: false);
+
+      verifyNever(() => _mockFrom(container).upsertShop(any(), any()));
+    });
+
+    test(
+      'add with osmId and syncToFirestore:false does not call upsertPublicCells',
+      () async {
+        final container = _makeContainer();
+        addTearDown(container.dispose);
+
+        await container
+            .read(supermarketsProvider.notifier)
+            .add(_store('osm_9', osmId: 9), syncToFirestore: false);
+
+        verifyNever(() => _mockFrom(container).upsertPublicCells(any()));
+      },
+    );
+
+    test('add with syncToFirestore:false still updates local state', () async {
+      final container = _makeContainer();
+      addTearDown(container.dispose);
+
+      await container
+          .read(supermarketsProvider.notifier)
+          .add(_store('S1'), syncToFirestore: false);
+
+      expect(container.read(supermarketsProvider).length, 1);
+      expect(container.read(supermarketsProvider).first.id, 'S1');
+    });
+  });
 }

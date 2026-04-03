@@ -235,3 +235,9 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 82. It looks better now: after click on "Import", I briefly see "In your list", but the import seems to fail — Firestore PERMISSION_DENIED on `shops/{uuid}`.
     - Root cause: `notifier.add()` always calls `upsertShop(hid, s)` which tries to write the community shop back to Firestore. The current user doesn't own that document, so the write fails. The Firestore SDK optimistically applies the write to its local cache (showing "In your list" briefly), then reverts on server rejection, firing the snapshot listener which calls `syncFromRemote` and wipes the local import.
     - Fix: added `syncToFirestore` flag (default `true`) to `notifier.add()`. `_import()` passes `syncToFirestore: false` — the shop is already in Firestore, so no write-back is needed.
+
+83. Good, that seems to work now. Add tests for these changes, if you didn't already. Then format, update prompts.md, and commit.
+    - Added tests to `test/providers/supermarket_provider_test.dart`:
+      - `add with duplicate id replaces rather than appends` (upsert behaviour)
+      - Group `SupermarketNotifier – syncToFirestore: false` with 3 tests: `syncToFirestore:false` skips `upsertShop`, skips `upsertPublicCells`, but still updates local state.
+    - Updated `_FakeStoresNotifier.add()` in `store_editor_screen_test.dart` to match the new `{bool syncToFirestore = true}` parameter.
