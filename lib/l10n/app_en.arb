@@ -90,7 +90,7 @@
   "importShop": "Import",
   "searchByName": "By name",
   "searchByItem": "By item",
-  "syncTitle": "Sync",
+  "configTitle": "Settings",
   "yourHouseholdId": "Your household ID",
   "createHousehold": "Create new household",
   "joinHousehold": "Join household",

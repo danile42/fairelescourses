@@ -421,11 +421,11 @@ void main() {
   });
 
   group('HomeScreen AppBar buttons', () {
-    testWidgets('tapping sync icon opens sync screen', (tester) async {
+    testWidgets('tapping config icon opens settings screen', (tester) async {
       await tester.pumpWidget(_wrap(lists: []));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.sync));
+      await tester.tap(find.byIcon(Icons.settings_outlined));
       await tester.pumpAndSettle();
 
       // SyncScreen opens — no crash.

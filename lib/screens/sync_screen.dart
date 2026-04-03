@@ -350,7 +350,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l.syncTitle),
+        title: Text(l.configTitle),
         backgroundColor: theme.colorScheme.primary,
         foregroundColor: Colors.white,
       ),

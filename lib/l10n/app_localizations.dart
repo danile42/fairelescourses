@@ -512,11 +512,11 @@ abstract class AppLocalizations {
   /// **'By item'**
   String get searchByItem;
 
-  /// No description provided for @syncTitle.
+  /// No description provided for @configTitle.
   ///
   /// In en, this message translates to:
-  /// **'Sync'**
-  String get syncTitle;
+  /// **'Settings'**
+  String get configTitle;
 
   /// No description provided for @yourHouseholdId.
   ///

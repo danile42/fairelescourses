@@ -59,7 +59,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final l = AppLocalizations.of(context)!;
     final lists = ref.watch(shoppingListsProvider);
     final stores = ref.watch(supermarketsProvider);
-    final hid = ref.watch(householdProvider);
+    ref.watch(householdProvider);
     ref.watch(firestoreSyncProvider); // activates real-time sync
 
     final session = ref.watch(navSessionProvider);
@@ -86,11 +86,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
             IconButton(
-              icon: Icon(
-                Icons.sync,
-                color: hid != null ? Colors.white : Colors.white54,
-              ),
-              tooltip: l.syncTitle,
+              icon: const Icon(Icons.settings_outlined, color: Colors.white),
+              tooltip: l.configTitle,
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const SyncScreen()),

@@ -227,7 +227,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchByItem => 'By item';
 
   @override
-  String get syncTitle => 'Sync';
+  String get configTitle => 'Settings';
 
   @override
   String get yourHouseholdId => 'Your household ID';

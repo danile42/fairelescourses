@@ -229,7 +229,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get searchByItem => 'Nach Artikel';
 
   @override
-  String get syncTitle => 'Synchronisierung';
+  String get configTitle => 'Einstellungen';
 
   @override
   String get yourHouseholdId => 'Deine Haushalt-ID';

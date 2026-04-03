@@ -260,7 +260,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Heimatort'), findsOneWidget);
-      expect(find.text('Synchronisierung'), findsOneWidget);
+      expect(find.text('Einstellungen'), findsOneWidget);
     });
   });
 
