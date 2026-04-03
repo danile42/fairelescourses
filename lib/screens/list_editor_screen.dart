@@ -431,8 +431,9 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
                   final showTwo = hid != null && _navModeSeen;
                   final hasActiveCollab =
                       ref.watch(navSessionProvider).asData?.value != null;
+                  final bottomInset = MediaQuery.of(context).padding.bottom;
                   return Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    padding: EdgeInsets.fromLTRB(16, 0, 16, 12 + bottomInset),
                     child: showTwo
                         ? Row(
                             mainAxisAlignment: MainAxisAlignment.center,
