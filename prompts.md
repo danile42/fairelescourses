@@ -241,3 +241,20 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
       - `add with duplicate id replaces rather than appends` (upsert behaviour)
       - Group `SupermarketNotifier – syncToFirestore: false` with 3 tests: `syncToFirestore:false` skips `upsertShop`, skips `upsertPublicCells`, but still updates local state.
     - Updated `_FakeStoresNotifier.add()` in `store_editor_screen_test.dart` to match the new `{bool syncToFirestore = true}` parameter.
+
+84. In list edit mode, list items should not be checkable — only in navigation mode. In navigation mode, unmatched items should also be checkable (with the assign-to-store button still present).
+    - list_editor_screen: `onChanged: null` on each Checkbox; removed unused `_toggleItem`.
+    - navigation_screen: added `_checkedUnmatched` set and `_toggleUnmatched` method; all three unmatched-item sections (no-store, grid view, DoneView) now show a Checkbox + strikethrough alongside the Assign-to-shop button; `_syncCheckedFromList` restores checked state on restart; added `checkedUnmatched`/`onToggleUnmatched` parameters to `_DoneView`.
+
+85. Move the Start-shopping / Start-navigation buttons higher to avoid overlap by OS navigation bar.
+    - Used `MediaQuery.of(context).padding.bottom` added to the 12 px fixed bottom padding.
+
+86. Prepend navigation buttons with "Start shopping:" label in list editor (two-button row only).
+    - Added `startShopping` / `"Einkaufen starten:"` l10n strings; prepended as a `Text` widget in the `showTwo` Row.
+
+87. Add 5-second cooldown on OSM retry button after a search failure.
+    - Added `_retryTimer` / `_retrySecondsLeft`; `_startRetryCountdown(5)` is called from both OSM catch blocks; retry button is disabled and shows "Retry (N)" during cooldown.
+
+88. Add tests for the recent changes, format, update prompts.md, and commit.
+    - list_editor_screen_test: fixed "checkbox toggles item checked state" → now asserts `onChanged` is null for all checkboxes in edit mode.
+    - navigation_screen_test: fixed `'• Cheese'`/`'• Butter'` text assertions (bullet prefix removed when checkbox was added); added group `NavigationScreen – unmatched item checkboxes` with 4 tests (show checkboxes, tap to check, tap to uncheck, list-view variant).

@@ -812,9 +812,9 @@ void main() {
       await tester.pumpAndSettle();
       // Shows the navigation title (app bar).
       expect(find.text('Navigation'), findsOneWidget);
-      // Unmatched items are shown.
-      expect(find.text('• Cheese'), findsOneWidget);
-      expect(find.text('• Butter'), findsOneWidget);
+      // Unmatched items are shown (no bullet prefix since checkbox is used).
+      expect(find.text('Cheese'), findsOneWidget);
+      expect(find.text('Butter'), findsOneWidget);
     });
 
     testWidgets('assign-to-shop button appears for unmatched items', (
@@ -991,6 +991,79 @@ void main() {
 
       // After finishing, back at the original page.
       expect(find.text('Open'), findsOneWidget);
+    });
+  });
+
+  // ── Unmatched item checkboxes ─────────────────────────────────────────────
+
+  group('NavigationScreen – unmatched item checkboxes', () {
+    NavigationPlan _unmatchedOnlyPlan() =>
+        NavigationPlan(storePlans: [], globalUnmatched: ['Cheese', 'Butter']);
+
+    testWidgets('unmatched items in no-store plan show checkboxes', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap(_unmatchedOnlyPlan()));
+      await tester.pumpAndSettle();
+      expect(find.byType(Checkbox), findsNWidgets(2));
+    });
+
+    testWidgets('tapping unmatched checkbox marks it checked', (tester) async {
+      await tester.pumpWidget(_wrap(_unmatchedOnlyPlan()));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.widget<Checkbox>(find.byType(Checkbox).first).value,
+        isFalse,
+      );
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<Checkbox>(find.byType(Checkbox).first).value,
+        isTrue,
+      );
+    });
+
+    testWidgets('tapping checked unmatched checkbox unchecks it', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap(_unmatchedOnlyPlan()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.widget<Checkbox>(find.byType(Checkbox).first).value,
+        isFalse,
+      );
+    });
+
+    testWidgets('unmatched items in list view have checkboxes', (tester) async {
+      final plan = NavigationPlan(
+        storePlans: [
+          StorePlan(
+            storeId: 's1',
+            storeName: 'TestMart',
+            stops: [
+              NavigationStop(cell: 'A1', items: ['Milk']),
+            ],
+            unmatched: [],
+          ),
+        ],
+        globalUnmatched: ['Cheese'],
+      );
+      await tester.pumpWidget(_wrap(plan));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.list));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Cheese'), findsOneWidget);
+      // 1 for Milk (matched) + 1 for Cheese (unmatched).
+      expect(find.byType(Checkbox), findsNWidgets(2));
     });
   });
 

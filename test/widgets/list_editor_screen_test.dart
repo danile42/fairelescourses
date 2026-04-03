@@ -201,17 +201,21 @@ void main() {
   });
 
   group('ListEditorScreen – item actions', () {
-    testWidgets('checkbox toggles item checked state', (tester) async {
-      await tester.pumpWidget(_wrap(_list()));
-      await tester.pumpAndSettle();
+    testWidgets(
+      'checkboxes are display-only in edit mode (onChanged is null)',
+      (tester) async {
+        await tester.pumpWidget(_wrap(_list()));
+        await tester.pumpAndSettle();
 
-      final checkboxes = find.byType(Checkbox);
-      await tester.tap(checkboxes.first);
-      await tester.pumpAndSettle();
-
-      final checkbox = tester.widget<Checkbox>(checkboxes.first);
-      expect(checkbox.value, isTrue);
-    });
+        for (final cb in tester.widgetList<Checkbox>(find.byType(Checkbox))) {
+          expect(
+            cb.onChanged,
+            isNull,
+            reason: 'Items must not be checkable in edit mode',
+          );
+        }
+      },
+    );
 
     testWidgets('popup menu appears on more_vert tap', (tester) async {
       await tester.pumpWidget(_wrap(_list()));
