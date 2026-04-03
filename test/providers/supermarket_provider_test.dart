@@ -118,6 +118,20 @@ void main() {
       expect(container.read(supermarketsProvider).length, 2);
     });
 
+    test('add with duplicate id replaces rather than appends', () async {
+      final container = _makeContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(supermarketsProvider.notifier);
+
+      await notifier.add(_store('S1'));
+      final updated = _store('S1')..name = 'Updated via add';
+      await notifier.add(updated);
+
+      final state = container.read(supermarketsProvider);
+      expect(state.length, 1);
+      expect(state.first.name, 'Updated via add');
+    });
+
     test('update replaces existing store by id', () async {
       final container = _makeContainer();
       addTearDown(container.dispose);

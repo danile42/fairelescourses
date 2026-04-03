@@ -509,8 +509,12 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
         ).showSnackBar(SnackBar(content: Text(l.geocodeFailed)));
       }
     } else if (addressText.isEmpty) {
-      lat = null;
-      lng = null;
+      // Keep coordinates that were pre-supplied from an external source (OSM
+      // GPS data). Only null them out when the shop had no such source.
+      if (widget.prefill?.lat == null) {
+        lat = null;
+        lng = null;
+      }
     }
 
     final floor0 = _floorData[0];
