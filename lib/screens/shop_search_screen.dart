@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fairelescourses/l10n/app_localizations.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:uuid/uuid.dart';
 
 import '../models/supermarket.dart';
 import '../providers/firestore_sync_provider.dart';
@@ -17,8 +16,6 @@ import '../services/firestore_service.dart';
 import '../services/nominatim_service.dart';
 import '../services/overpass_service.dart';
 import 'store_editor_screen.dart';
-
-const _uuid = Uuid();
 
 enum _SearchMode { byName, byItem, byLocation }
 
