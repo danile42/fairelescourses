@@ -464,10 +464,6 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
           !_selectedBrands.contains(_extractBrand(osm.name, osm.brand))) {
         return false;
       }
-      // Hide OSM results that already have a local shop at the same location
-      // or were previously imported from the same OSM node.
-      if (findLocalByOsm(osm.lat, osm.lng, stores) != null) return false;
-      if (stores.any((s) => s.osmId == osm.osmId)) return false;
       return true;
     }).toList();
 
@@ -898,15 +894,6 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                   final nav = Navigator.of(context);
                   await _createFromOsm(context, osm);
                   if (!mounted) return;
-                  // Remove the OSM result immediately if the shop is now local,
-                  // so it doesn't linger in the list while the filter catches up.
-                  if (ref
-                      .read(supermarketsProvider)
-                      .any((s) => s.osmId == osm.osmId)) {
-                    setState(() {
-                      _osmResults.removeWhere((r) => r.osmId == osm.osmId);
-                    });
-                  }
                   if (widget.focusItem != null) {
                     nav.pop();
                   }
@@ -1107,15 +1094,6 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                           Navigator.pop(sheetCtx);
                           await _createFromOsm(pageContext, osm);
                           if (!mounted) return;
-                          if (ref
-                              .read(supermarketsProvider)
-                              .any((s) => s.osmId == osm.osmId)) {
-                            setState(() {
-                              _osmResults.removeWhere(
-                                (r) => r.osmId == osm.osmId,
-                              );
-                            });
-                          }
                           if (widget.focusItem != null) {
                             nav.pop();
                           }
