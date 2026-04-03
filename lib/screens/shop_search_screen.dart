@@ -307,7 +307,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     }
   }
 
-  void _startRetryCountdown([int seconds = 30]) {
+  void _startRetryCountdown([int seconds = 5]) {
     _retryTimer?.cancel();
     setState(() => _retrySecondsLeft = seconds);
     _retryTimer = Timer.periodic(const Duration(seconds: 1), (t) {
