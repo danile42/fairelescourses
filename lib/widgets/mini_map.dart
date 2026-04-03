@@ -89,7 +89,7 @@ class MiniMap extends ConsumerWidget {
     final adjacentCells = <String>{};
     if (last != null && lastCheckedFloor == currentFloor) {
       for (final cellId in stopCells) {
-        if (cellId != last && floor.distance(cellId, last) == 1) {
+        if (floor.isNeighbour(cellId, last)) {
           adjacentCells.add(cellId);
         }
       }

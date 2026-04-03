@@ -271,6 +271,10 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - SyncScreen AppBar title updated to `configTitle`.
     - Tests: sync icon finder updated to `settings_outlined`; German title assertion updated to "Einstellungen".
 
+95. Change adjacency highlight to 3×3 neighbourhood (Chebyshev distance).
+    - Added `ShopFloor.isNeighbour(a, b)` — true when Chebyshev distance == 1 (|Δrow| ≤ 1 && |Δcol| ≤ 1, excluding self); covers all 8 surrounding cells.
+    - `_isAdjacentCell` in navigation_screen and the adjacency set in mini_map now use `isNeighbour` instead of `distance == 1`.
+
 94. Fix app icon in title: declare asset in pubspec.yaml and prevent Row overflow.
     - Added `assets/icon.png` under `flutter: assets:` in pubspec.yaml (was only declared for flutter_launcher_icons, not as a bundle asset).
     - Wrapped title `Text` in `Flexible` with `TextOverflow.ellipsis` to prevent the Row from overflowing the AppBar.

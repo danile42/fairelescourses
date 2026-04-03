@@ -459,7 +459,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     }
     final stores = ref.read(supermarketsProvider);
     final store = stores.where((s) => s.id == _currentPlan.storeId).firstOrNull;
-    return store?.floorAt(floor).distance(cell, last) == 1;
+    return store?.floorAt(floor).isNeighbour(cell, last) ?? false;
   }
 
   int get _currentFloorIndex {

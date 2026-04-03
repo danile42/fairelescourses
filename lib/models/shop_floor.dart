@@ -36,6 +36,17 @@ class ShopFloor {
     return (posA.$1 - posB.$1).abs() + (posA.$2 - posB.$2).abs();
   }
 
+  /// Returns true when [a] and [b] are within the same 3×3 square —
+  /// i.e. Chebyshev distance == 1 (includes diagonals).
+  bool isNeighbour(String a, String b) {
+    final posA = _cellPos(a);
+    final posB = _cellPos(b);
+    if (posA == null || posB == null) return false;
+    final dr = (posA.$1 - posB.$1).abs();
+    final dc = (posA.$2 - posB.$2).abs();
+    return dr <= 1 && dc <= 1 && (dr + dc) > 0;
+  }
+
   (int, int)? _cellPos(String cellId) {
     for (var ri = 0; ri < rows.length; ri++) {
       for (var ci = 0; ci < cols.length; ci++) {
