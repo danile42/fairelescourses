@@ -105,6 +105,8 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
   bool _showMap = false;
   int _osmRadiusMeters = 2000;
   Timer? _debounce;
+  Timer? _retryTimer;
+  int _retrySecondsLeft = 0;
 
   static const _kRadius = 'osmSearchRadius';
   static const _kCategories = 'osmSearchCategories';
@@ -142,6 +144,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
   @override
   void dispose() {
     _debounce?.cancel();
+    _retryTimer?.cancel();
     super.dispose();
   }
 
@@ -300,14 +303,32 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
         _osmLoading = false;
         _osmError = e.toString();
       });
+      _startRetryCountdown();
     }
+  }
+
+  void _startRetryCountdown([int seconds = 30]) {
+    _retryTimer?.cancel();
+    setState(() => _retrySecondsLeft = seconds);
+    _retryTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) {
+        t.cancel();
+        return;
+      }
+      setState(() {
+        _retrySecondsLeft--;
+        if (_retrySecondsLeft <= 0) t.cancel();
+      });
+    });
   }
 
   Future<void> _retryOsm() async {
     final lat = _lastLat;
     final lng = _lastLng;
     if (lat == null || lng == null) return;
+    _retryTimer?.cancel();
     setState(() {
+      _retrySecondsLeft = 0;
       _osmError = null;
       _osmLoading = true;
     });
@@ -332,6 +353,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
         _osmLoading = false;
         _osmError = e.toString();
       });
+      _startRetryCountdown();
     }
   }
 
@@ -1212,6 +1234,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
         child: Center(child: CircularProgressIndicator()),
       );
     }
+    final cooling = _retrySecondsLeft > 0;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       child: Row(
@@ -1225,9 +1248,9 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
             ),
           ),
           TextButton.icon(
-            onPressed: _retryOsm,
+            onPressed: cooling ? null : _retryOsm,
             icon: const Icon(Icons.refresh, size: 18),
-            label: Text(l.retry),
+            label: Text(cooling ? '${l.retry} ($_retrySecondsLeft)' : l.retry),
           ),
         ],
       ),
