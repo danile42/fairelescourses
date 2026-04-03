@@ -837,18 +837,23 @@ class _StoresTab extends ConsumerWidget {
       );
     }
     final currentUid = ref.watch(currentUidProvider);
+    final inHousehold = ref.watch(householdProvider) != null;
     return ListView.builder(
       padding: const EdgeInsets.all(8),
       itemCount: stores.length,
       itemBuilder: (context, i) {
         final store = stores[i];
-        // ownerUid == null means local-only (no household) — always editable.
-        final isOwned = store.ownerUid == null || store.ownerUid == currentUid;
+        // All household shops are editable by any household member.
+        // Without a household, only the creator may edit/delete.
+        final canEdit =
+            inHousehold ||
+            store.ownerUid == null ||
+            store.ownerUid == currentUid;
         return Card(
           child: ListTile(
             leading: Icon(
               Icons.store_outlined,
-              color: isOwned ? null : Theme.of(context).colorScheme.secondary,
+              color: canEdit ? null : Theme.of(context).colorScheme.secondary,
             ),
             title: Text(store.name),
             subtitle: Text(() {
@@ -861,7 +866,7 @@ class _StoresTab extends ConsumerWidget {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (isOwned) ...[
+                if (canEdit) ...[
                   IconButton(
                     icon: const Icon(Icons.delete_outline),
                     onPressed: () =>
@@ -870,7 +875,7 @@ class _StoresTab extends ConsumerWidget {
                 ],
               ],
             ),
-            onTap: isOwned
+            onTap: canEdit
                 ? () => Navigator.push(
                     context,
                     MaterialPageRoute(

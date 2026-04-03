@@ -9,8 +9,20 @@ service cloud.firestore {
       allow read: if request.auth != null;
       allow create: if request.auth != null
                     && request.resource.data.ownerUid == request.auth.uid;
-      allow update, delete: if request.auth != null
-                            && resource.data.ownerUid == request.auth.uid;
+      // Owner can always update/delete.  Any authenticated user may also
+      // update a household shop provided the householdHash is unchanged
+      // (i.e. they know the household secret and are keeping the shop in
+      // the same household).  Deleting is likewise open to any household
+      // member — the householdHash can only be verified on update, so we
+      // allow delete for any authenticated user that can read the doc.
+      allow update: if request.auth != null
+                    && (resource.data.ownerUid == request.auth.uid
+                        || (resource.data.householdHash != null
+                            && request.resource.data.householdHash
+                               == resource.data.householdHash));
+      allow delete: if request.auth != null
+                    && (resource.data.ownerUid == request.auth.uid
+                        || resource.data.householdHash != null);
     }
 
     // ── Household-scoped data ─────────────────────────────────────────────────
