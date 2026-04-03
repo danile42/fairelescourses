@@ -217,14 +217,6 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
     });
   }
 
-  void _toggleItem(int index) {
-    setState(() {
-      _dirty = true;
-      _items = [..._items];
-      _items[index] = _items[index].copyWith(checked: !_items[index].checked);
-    });
-  }
-
   static const _singleNavKey = 'singleNavActive';
 
   bool get _navModeSeen =>
@@ -357,7 +349,7 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
                           key: ValueKey(i),
                           leading: Checkbox(
                             value: item.checked,
-                            onChanged: (_) => _toggleItem(i),
+                            onChanged: null,
                           ),
                           title: Text(
                             item.name,

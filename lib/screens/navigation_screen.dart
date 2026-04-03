@@ -42,6 +42,7 @@ class NavigationScreen extends ConsumerStatefulWidget {
 
 class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   late List<Set<String>> _checkedPerStore;
+  final Set<String> _checkedUnmatched = {};
   int _storeIndex = 0;
   late _ViewMode _viewMode;
   late Set<String> _resolvedUnmatched;
@@ -112,6 +113,31 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
           .where((item) => checkedNames.contains(item.toLowerCase()))
           .toSet();
     }
+    final allUnmatchedNames = {
+      ...widget.plan.globalUnmatched,
+      ...widget.plan.storePlans.expand((sp) => sp.unmatched),
+    };
+    _checkedUnmatched
+      ..clear()
+      ..addAll(
+        allUnmatchedNames.where(
+          (item) => checkedNames.contains(item.toLowerCase()),
+        ),
+      );
+  }
+
+  void _toggleUnmatched(String item) {
+    setState(() {
+      if (_checkedUnmatched.contains(item)) {
+        _checkedUnmatched.remove(item);
+      } else {
+        _checkedUnmatched.add(item);
+      }
+    });
+    ref
+        .read(shoppingListsProvider.notifier)
+        .toggleItemByName(widget.listId, item)
+        .ignore();
   }
 
   StorePlan get _currentPlan => widget.plan.storePlans[_storeIndex];
@@ -649,10 +675,22 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 2),
                           child: Row(
                             children: [
+                              Checkbox(
+                                value: _checkedUnmatched.contains(item),
+                                onChanged: (_) => _toggleUnmatched(item),
+                                visualDensity: VisualDensity.compact,
+                              ),
                               Expanded(
                                 child: Text(
-                                  '• $item',
-                                  style: const TextStyle(fontSize: 13),
+                                  item,
+                                  style: _checkedUnmatched.contains(item)
+                                      ? const TextStyle(
+                                          decoration:
+                                              TextDecoration.lineThrough,
+                                          color: Colors.grey,
+                                          fontSize: 13,
+                                        )
+                                      : const TextStyle(fontSize: 13),
                                 ),
                               ),
                               TextButton.icon(
@@ -830,6 +868,8 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                         checkedAtCurrentStore: _checkedPerStore[_storeIndex],
                         onCreateList: (items, move) =>
                             _createListFromItems(items, move: move),
+                        checkedUnmatched: _checkedUnmatched,
+                        onToggleUnmatched: _toggleUnmatched,
                       )
                     : _viewMode == _ViewMode.grid
                     ? _buildGridView(storePlan)
@@ -963,11 +1003,21 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               child: Row(
                 children: [
-                  const SizedBox(width: 36),
+                  Checkbox(
+                    value: _checkedUnmatched.contains(item),
+                    onChanged: (_) => _toggleUnmatched(item),
+                    visualDensity: VisualDensity.compact,
+                  ),
                   Expanded(
                     child: Text(
                       item,
-                      style: const TextStyle(color: Colors.grey, fontSize: 13),
+                      style: _checkedUnmatched.contains(item)
+                          ? const TextStyle(
+                              decoration: TextDecoration.lineThrough,
+                              color: Colors.grey,
+                              fontSize: 13,
+                            )
+                          : const TextStyle(color: Colors.grey, fontSize: 13),
                     ),
                   ),
                   TextButton.icon(
@@ -1109,6 +1159,8 @@ class _DoneView extends ConsumerWidget {
   final Set<String> checkedAtCurrentStore;
   // Copy/move unmatched items to a new list.
   final void Function(Iterable<String> items, bool move) onCreateList;
+  final Set<String> checkedUnmatched;
+  final void Function(String item) onToggleUnmatched;
 
   const _DoneView({
     required this.plan,
@@ -1124,6 +1176,8 @@ class _DoneView extends ConsumerWidget {
     required this.carriedOverItems,
     required this.checkedAtCurrentStore,
     required this.onCreateList,
+    required this.checkedUnmatched,
+    required this.onToggleUnmatched,
   });
 
   @override
@@ -1303,10 +1357,22 @@ class _DoneView extends ConsumerWidget {
                             padding: const EdgeInsets.symmetric(vertical: 2),
                             child: Row(
                               children: [
+                                Checkbox(
+                                  value: checkedUnmatched.contains(item),
+                                  onChanged: (_) => onToggleUnmatched(item),
+                                  visualDensity: VisualDensity.compact,
+                                ),
                                 Expanded(
                                   child: Text(
-                                    '• $item',
-                                    style: const TextStyle(fontSize: 13),
+                                    item,
+                                    style: checkedUnmatched.contains(item)
+                                        ? const TextStyle(
+                                            decoration:
+                                                TextDecoration.lineThrough,
+                                            color: Colors.grey,
+                                            fontSize: 13,
+                                          )
+                                        : const TextStyle(fontSize: 13),
                                   ),
                                 ),
                                 TextButton.icon(
