@@ -73,7 +73,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             children: [
               Image.asset('assets/icon.png', height: 28, width: 28),
               const SizedBox(width: 8),
-              Text(l.appTitle),
+              Flexible(
+                child: Text(l.appTitle, overflow: TextOverflow.ellipsis),
+              ),
             ],
           ),
           backgroundColor: Theme.of(context).colorScheme.primary,

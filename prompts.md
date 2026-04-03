@@ -271,6 +271,10 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - SyncScreen AppBar title updated to `configTitle`.
     - Tests: sync icon finder updated to `settings_outlined`; German title assertion updated to "Einstellungen".
 
+94. Fix app icon in title: declare asset in pubspec.yaml and prevent Row overflow.
+    - Added `assets/icon.png` under `flutter: assets:` in pubspec.yaml (was only declared for flutter_launcher_icons, not as a bundle asset).
+    - Wrapped title `Text` in `Flexible` with `TextOverflow.ellipsis` to prevent the Row from overflowing the AppBar.
+
 93. In the mini-map grid, highlight cells adjacent to the last checked-off item using the same logic as the list/card views.
     - Added `lastCheckedCell` / `lastCheckedFloor` parameters to `MiniMap`.
     - Pre-compute `adjacentCells` set using `ShopFloor.distance() == 1` (same floor, non-done stops only).
