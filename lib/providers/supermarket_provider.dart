@@ -27,7 +27,7 @@ class SupermarketNotifier extends Notifier<List<Supermarket>> {
 
   String? get _hid => ref.read(householdProvider);
 
-  Future<void> add(Supermarket s) async {
+  Future<void> add(Supermarket s, {bool syncToFirestore = true}) async {
     s.ownerUid = ref.read(currentUidProvider);
     await _box.put(s.id, s);
     // Upsert: replace in-place if the id already exists, otherwise append.
@@ -36,6 +36,7 @@ class SupermarketNotifier extends Notifier<List<Supermarket>> {
     } else {
       state = [...state, s];
     }
+    if (!syncToFirestore) return;
     final hid = _hid;
     if (hid != null) {
       ref.read(firestoreServiceProvider).upsertShop(hid, s).ignore();

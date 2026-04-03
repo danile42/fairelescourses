@@ -410,7 +410,12 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       osmCategory: source.osmCategory,
       osmCategories: source.osmCategories ?? source.categories,
     );
-    await ref.read(supermarketsProvider.notifier).add(copy);
+    // The shop already exists in Firestore (it came from a community search).
+    // Writing it back would fail with PERMISSION_DENIED (the current user
+    // doesn't own the remote document). Save locally only.
+    await ref
+        .read(supermarketsProvider.notifier)
+        .add(copy, syncToFirestore: false);
     if (!mounted) return;
     if (widget.focusItem != null) {
       await nav.push(

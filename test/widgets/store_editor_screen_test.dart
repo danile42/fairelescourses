@@ -35,7 +35,8 @@ class _FakeStoresNotifier extends SupermarketNotifier {
   List<Supermarket> build() => _stores;
 
   @override
-  Future<void> add(Supermarket s) async => state = [...state, s];
+  Future<void> add(Supermarket s, {bool syncToFirestore = true}) async =>
+      state = [...state, s];
 
   @override
   Future<void> update(Supermarket s) async =>
