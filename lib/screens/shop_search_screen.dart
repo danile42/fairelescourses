@@ -443,36 +443,18 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
           ..sort();
     final theme = Theme.of(context);
 
-    // Local shops filtered by selected categories (byLocation mode only).
-    // Shows stores whose categories intersect with the active selection.
-    final selectedOsmValues = _selectedCategories
-        .map((c) => c.osmValue)
-        .toSet();
-    final filteredLocalStores = _mode == _SearchMode.byLocation
-        ? stores
+    // Apply brand filter (empty selection = show all).
+    // Firestore results that are already in the local collection are kept
+    // in the list — _buildFirestoreCard shows them with an "In your list"
+    // chip instead of an Import button.
+    final filteredFirestore = _selectedBrands.isEmpty
+        ? _firestoreResults
+        : _firestoreResults
               .where(
-                (s) =>
-                    s.categories.any((cat) => selectedOsmValues.contains(cat)),
+                (r) =>
+                    _selectedBrands.contains(_extractBrand(r.shop.name, null)),
               )
-              .toList()
-        : <Supermarket>[];
-
-    // IDs of shops already shown in the local "Your shops" section — used to
-    // suppress duplicates in the Firestore and OSM sections below.
-    final localIds = filteredLocalStores.map((s) => s.id).toSet();
-
-    // Apply brand filter (empty selection = show all); also exclude shops
-    // already shown in the local section.
-    final filteredFirestore =
-        (_selectedBrands.isEmpty
-                ? _firestoreResults
-                : _firestoreResults.where(
-                    (r) => _selectedBrands.contains(
-                      _extractBrand(r.shop.name, null),
-                    ),
-                  ))
-            .where((r) => !localIds.contains(r.shop.id))
-            .toList();
+              .toList();
     final filteredOsm = _osmResults.where((osm) {
       if (_osmNameFilter != null &&
           !osm.name.toLowerCase().contains(_osmNameFilter!)) {
@@ -648,7 +630,6 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                 theme,
                 filteredFirestore,
                 filteredOsm,
-                filteredLocalStores,
               ),
             ),
         ],
@@ -664,9 +645,8 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     List<Supermarket> stores,
     ThemeData theme,
     List<ShopSearchResult> filteredFirestore,
-    List<OsmShop> filteredOsm, [
-    List<Supermarket> filteredLocalStores = const [],
-  ]) {
+    List<OsmShop> filteredOsm,
+  ) {
     if (_mode == _SearchMode.byLocation) {
       final homeLoc = ref.read(homeLocationProvider);
       if (_nearMe && homeLoc == null && !_searched) {
@@ -707,7 +687,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       );
     }
 
-    if (!_searched && filteredLocalStores.isEmpty) {
+    if (!_searched) {
       if (_mode == _SearchMode.byLocation && _nearMe) {
         return const SizedBox.shrink();
       }
@@ -719,12 +699,11 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       );
     }
 
-    final hasLocal = filteredLocalStores.isNotEmpty;
     final hasFirestore = filteredFirestore.isNotEmpty;
     final hasOsm = filteredOsm.isNotEmpty;
     final showOsmSection = hasOsm || _osmLoading || _osmError != null;
 
-    if (!hasLocal && !hasFirestore && !showOsmSection) {
+    if (!hasFirestore && !showOsmSection) {
       return Center(
         child: Text(
           _selectedBrands.isNotEmpty ? l.noShopsMatchFilter : l.noShopsFound,
@@ -733,27 +712,19 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       );
     }
 
-    // Section layout:
-    //   [local header?] [local items] [firestore items] [osm divider?] [osm items] [attribution?]
-    final localCount = filteredLocalStores.length;
-    final localHeaderCount = hasLocal ? 1 : 0;
-    final localSectionEnd = localHeaderCount + localCount;
-    final firestoreStart = localSectionEnd;
+    // Section layout: [firestore items] [osm divider?] [osm items] [attribution?]
     final firestoreCount = filteredFirestore.length;
-    final osmDividerCount = (hasFirestore || hasLocal) && showOsmSection
-        ? 1
-        : 0;
-    final osmSectionStart = firestoreStart + firestoreCount + osmDividerCount;
+    final osmDividerCount = hasFirestore && showOsmSection ? 1 : 0;
+    final osmSectionStart = firestoreCount + osmDividerCount;
     final osmItemCount = _osmLoading || _osmError != null
         ? 1
         : filteredOsm.length;
-    final showAttribution = showOsmSection;
     final totalItems = osmSectionStart + osmItemCount;
 
     return ListView.builder(
-      itemCount: totalItems + (showAttribution ? 1 : 0),
+      itemCount: totalItems + (showOsmSection ? 1 : 0),
       itemBuilder: (context, i) {
-        if (showAttribution && i == totalItems) {
+        if (showOsmSection && i == totalItems) {
           return Padding(
             padding: const EdgeInsets.all(8),
             child: Text(
@@ -764,57 +735,19 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
           );
         }
 
-        // Local shops header
-        if (hasLocal && i == 0) {
-          return Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-            child: Row(
-              children: [
-                const Expanded(child: Divider()),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(
-                    l.localShopsSection,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: Colors.grey,
-                    ),
-                  ),
-                ),
-                const Expanded(child: Divider()),
-              ],
-            ),
-          );
-        }
-
-        // Local shop cards
-        if (hasLocal && i >= localHeaderCount && i < localSectionEnd) {
-          final store = filteredLocalStores[i - localHeaderCount];
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            child: ListTile(
-              leading: const Icon(Icons.store),
-              title: Text(store.name),
-              subtitle: store.address != null ? Text(store.address!) : null,
-              trailing: const Icon(Icons.check_circle, color: Colors.green),
-              onTap: () => _openInEditor(context, store),
-            ),
-          );
-        }
-
         // Firestore cards
-        if (i >= firestoreStart && i < firestoreStart + firestoreCount) {
+        if (i < firestoreCount) {
           return _buildFirestoreCard(
             context,
             l,
-            filteredFirestore[i - firestoreStart],
+            filteredFirestore[i],
             stores,
             theme,
           );
         }
 
         // OSM section divider
-        final osmDividerIndex = firestoreStart + firestoreCount;
-        if (osmDividerCount > 0 && i == osmDividerIndex) {
+        if (osmDividerCount > 0 && i == firestoreCount) {
           return Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
             child: Row(

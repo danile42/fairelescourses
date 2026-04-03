@@ -214,8 +214,9 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 
 77. It is not fixed: I deleted my local shop, then hit "import" on the found shop in search, and it is immediately displayed twice (with green check mark and with "import"). [Addressed in prompt 78.]
 
-78. This did not help: I can import a shop multiple times, adding one entry after another with a green check mark in the search results.
-    - Root cause (Overpass returns multiple OSM elements per shop): Overpass `nwr` queries return a node, way, and/or relation for the same physical shop, each with a different `osmId`. Importing one (say osmId=X) only removes that card; the other cards (osmId=Y, Z) remain with "Import" buttons. Each subsequent import adds another green check mark.
-    - Key fix (`else if (addressText.isEmpty)` discarded OSM lat/lng): the branch `else if (addressText.isEmpty) { lat = null; lng = null; }` was unconditional — it ran even when lat/lng were pre-supplied from OSM. Without coordinates, `findLocalByOsm` could not suppress the sibling OSM cards. Fixed by skipping the clear when `widget.prefill?.lat != null`.
-    - Secondary fix (`notifier.add()` appended duplicates): calling `add()` twice with the same deterministic ID (`osm_{osmId}`) appended two entries to state instead of replacing. Fixed with an upsert: if the ID already exists in state, replace it; otherwise append.
-    - Test added: `add with duplicate id replaces rather than appends` in `supermarket_provider_test.dart`.
+78. This did not help: I can import a shop multiple times, adding one entry after another with a green check mark in the search results. [Addressed in prompt 79.]
+
+79. I still see the same behaviour: first one entry with "import", after click on that, a new entry with green check mark appears, and this can be repeated endlessly. I still think there should be no state with green check mark — only either "import" or "in your list".
+    - Root cause (architectural): the "Your shops" section in byLocation mode showed ALL locally stored shops matching the selected category, completely independent of the OSM/Firestore results. This created unavoidable duplicates and the "endless import" loop because each import added a new green-check entry while sibling OSM nodes for the same shop remained.
+    - Fix: removed the `filteredLocalStores` display section entirely from `_buildResults`. Each shop now appears exactly once: Firestore results show "In your list" if already local, OSM results show "Already defined" if already local. The separate green-check section is gone.
+    - Also retained from earlier: `notifier.add()` upsert (no duplicate state entries); OSM lat/lng preservation in `StoreEditorScreen._save()` so `findLocalByOsm` can suppress sibling OSM nodes.
