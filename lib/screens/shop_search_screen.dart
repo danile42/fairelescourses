@@ -394,7 +394,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     final messenger = ScaffoldMessenger.of(context);
     final nav = Navigator.of(context);
     final copy = Supermarket(
-      id: _uuid.v4(),
+      id: source.id,
       name: source.name,
       rows: List<String>.from(source.rows),
       cols: List<String>.from(source.cols),
@@ -406,7 +406,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       address: source.address,
       lat: source.lat,
       lng: source.lng,
-      parentId: source.id,
+      osmId: source.osmId,
       osmCategory: source.osmCategory,
       osmCategories: source.osmCategories ?? source.categories,
     );
