@@ -12,12 +12,18 @@ class MiniMap extends ConsumerWidget {
   /// Which floor's grid to display (0 = ground floor).
   final int currentFloor;
 
+  /// Cell of the most recently checked-off item — used to highlight adjacent cells.
+  final String? lastCheckedCell;
+  final int lastCheckedFloor;
+
   const MiniMap({
     super.key,
     required this.storePlan,
     required this.currentCell,
     required this.checkedItems,
     this.currentFloor = 0,
+    this.lastCheckedCell,
+    this.lastCheckedFloor = 0,
   });
 
   /// Returns the next stop cell (on the same floor) with unchecked items after [currentCell].
@@ -78,6 +84,17 @@ class MiniMap extends ConsumerWidget {
         .map((s) => s.cell)
         .toSet();
 
+    // Pre-compute adjacent cells relative to the last checked-off item.
+    final last = lastCheckedCell;
+    final adjacentCells = <String>{};
+    if (last != null && lastCheckedFloor == currentFloor) {
+      for (final cellId in stopCells) {
+        if (cellId != last && floor.distance(cellId, last) == 1) {
+          adjacentCells.add(cellId);
+        }
+      }
+    }
+
     final nextCell = _nextCell() ?? floor.exit;
     // Only draw arrow if the next cell is on the same floor.
     final arrowAngle = (currentCell != null && nextCell != currentCell)
@@ -105,6 +122,7 @@ class MiniMap extends ConsumerWidget {
                     cellId == currentCell && stopCells.contains(cellId);
                 final isEntrance = cellId == floor.entrance;
                 final isExit = cellId == floor.exit;
+                final isAdjacent = adjacentCells.contains(cellId) && !isDone;
 
                 Color bg = Colors.grey.shade200;
                 if (isEntrance) bg = Colors.green.shade200;
@@ -112,6 +130,7 @@ class MiniMap extends ConsumerWidget {
                 if (isStop) {
                   bg = isDone ? Colors.green.shade100 : Colors.blue.shade200;
                 }
+                if (isAdjacent) bg = theme.colorScheme.secondaryContainer;
                 if (isCurrent) bg = theme.colorScheme.primary;
 
                 Widget? child;

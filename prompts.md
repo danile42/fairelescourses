@@ -271,6 +271,12 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - SyncScreen AppBar title updated to `configTitle`.
     - Tests: sync icon finder updated to `settings_outlined`; German title assertion updated to "Einstellungen".
 
+93. In the mini-map grid, highlight cells adjacent to the last checked-off item using the same logic as the list/card views.
+    - Added `lastCheckedCell` / `lastCheckedFloor` parameters to `MiniMap`.
+    - Pre-compute `adjacentCells` set using `ShopFloor.distance() == 1` (same floor, non-done stops only).
+    - Adjacent cells get `secondaryContainer` background, applied after stop colour but before the current-cell override.
+    - `NavigationScreen` passes `_lastCheckedCell` / `_lastCheckedFloor` to `MiniMap`.
+
 92. During navigation, highlight items in cells directly adjacent to the last checked-off item's cell.
     - Added `_lastCheckedCell` / `_lastCheckedFloor` state; set in `_toggleItem` when an item is checked (not unchecked) by scanning the store plan stops.
     - Added `_isAdjacentCell(cell, floor)` helper using `ShopFloor.distance()` (Manhattan distance == 1, same floor) against `_lastCheckedCell`.

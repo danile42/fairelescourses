@@ -68,7 +68,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(l.appTitle),
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset('assets/icon.png', height: 28, width: 28),
+              const SizedBox(width: 8),
+              Text(l.appTitle),
+            ],
+          ),
           backgroundColor: Theme.of(context).colorScheme.primary,
           foregroundColor: Colors.white,
           actions: [

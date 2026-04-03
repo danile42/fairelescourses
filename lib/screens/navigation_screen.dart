@@ -884,6 +884,8 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                   currentCell: _currentCell,
                   checkedItems: _checkedPerStore[_storeIndex],
                   currentFloor: _currentFloorIndex,
+                  lastCheckedCell: _lastCheckedCell,
+                  lastCheckedFloor: _lastCheckedFloor,
                 ),
                 const Divider(height: 1),
               ],
