@@ -311,5 +311,9 @@
   "navViewModeTitle": "Default navigation view",
   "navViewModeDesc": "Which view opens by default when navigating a list.",
   "navViewModeGrid": "Grid",
-  "navViewModeList": "List"
+  "navViewModeList": "List",
+  "menuColorTitle": "Menu color",
+  "resetLocalDataTitle": "Reset all local data",
+  "resetLocalDataConfirm": "This will delete all local shops, lists, and settings. Continue?",
+  "resetLocalDataDone": "All local data has been reset."
 }

@@ -311,5 +311,9 @@
   "navViewModeTitle": "Standard-Navigationsansicht",
   "navViewModeDesc": "Welche Ansicht beim Navigieren einer Liste standardmäßig geöffnet wird.",
   "navViewModeGrid": "Raster",
-  "navViewModeList": "Liste"
+  "navViewModeList": "Liste",
+  "menuColorTitle": "Menüfarbe",
+  "resetLocalDataTitle": "Alle lokalen Daten zurücksetzen",
+  "resetLocalDataConfirm": "Dadurch werden alle lokalen Märkte, Listen und Einstellungen gelöscht. Fortfahren?",
+  "resetLocalDataDone": "Alle lokalen Daten wurden zurückgesetzt."
 }

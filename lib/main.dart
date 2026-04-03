@@ -9,6 +9,7 @@ import 'hive_registrar.g.dart';
 import 'models/supermarket.dart';
 import 'models/shopping_list.dart';
 import 'providers/firebase_app_provider.dart';
+import 'providers/seed_color_provider.dart';
 import 'screens/home_screen.dart';
 import 'package:fairelescourses/l10n/app_localizations.dart';
 
@@ -35,11 +36,12 @@ void main() async {
   runApp(const ProviderScope(child: FairelesCourses()));
 }
 
-class FairelesCourses extends StatelessWidget {
+class FairelesCourses extends ConsumerWidget {
   const FairelesCourses({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final seedColor = ref.watch(seedColorProvider);
     return MaterialApp(
       title: 'Fairelescourses',
       localizationsDelegates: const [
@@ -50,7 +52,7 @@ class FairelesCourses extends StatelessWidget {
       ],
       supportedLocales: const [Locale('en'), Locale('de')],
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2E7D32)),
+        colorScheme: ColorScheme.fromSeed(seedColor: seedColor),
         useMaterial3: true,
       ),
       home: const HomeScreen(),

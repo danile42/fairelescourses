@@ -1543,6 +1543,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'List'**
   String get navViewModeList;
+
+  /// No description provided for @menuColorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu color'**
+  String get menuColorTitle;
+
+  /// No description provided for @resetLocalDataTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset all local data'**
+  String get resetLocalDataTitle;
+
+  /// No description provided for @resetLocalDataConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'This will delete all local shops, lists, and settings. Continue?'**
+  String get resetLocalDataConfirm;
+
+  /// No description provided for @resetLocalDataDone.
+  ///
+  /// In en, this message translates to:
+  /// **'All local data has been reset.'**
+  String get resetLocalDataDone;
 }
 
 class _AppLocalizationsDelegate

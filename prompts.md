@@ -258,3 +258,9 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 88. Add tests for the recent changes, format, update prompts.md, and commit.
     - list_editor_screen_test: fixed "checkbox toggles item checked state" → now asserts `onChanged` is null for all checkboxes in edit mode.
     - navigation_screen_test: fixed `'• Cheese'`/`'• Butter'` text assertions (bullet prefix removed when checkbox was added); added group `NavigationScreen – unmatched item checkboxes` with 4 tests (show checkboxes, tap to check, tap to uncheck, list-view variant).
+
+89. Add two user settings: select a menu color and reset all local data.
+    - New `seedColorProvider` (Hive-backed, key `seedColor`, default `0xFF2E7D32`); `FairelesCourses` changed to `ConsumerWidget` to watch it live.
+    - `sync_screen.dart`: added `_ColorPicker` widget with 8 preset swatches and `_resetLocalData()` with confirmation dialog that clears all Hive boxes and invalidates all providers.
+    - l10n: added `menuColorTitle`, `resetLocalDataTitle`, `resetLocalDataConfirm`, `resetLocalDataDone` in en + de.
+    - sync_screen_test: added `ensureVisible` before Switch taps that scroll off-screen with the new content.

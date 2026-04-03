@@ -788,4 +788,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navViewModeList => 'List';
+
+  @override
+  String get menuColorTitle => 'Menu color';
+
+  @override
+  String get resetLocalDataTitle => 'Reset all local data';
+
+  @override
+  String get resetLocalDataConfirm =>
+      'This will delete all local shops, lists, and settings. Continue?';
+
+  @override
+  String get resetLocalDataDone => 'All local data has been reset.';
 }

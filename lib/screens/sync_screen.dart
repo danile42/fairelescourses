@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fairelescourses/l10n/app_localizations.dart';
+import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 
 import '../models/firebase_credentials.dart';
+import '../models/supermarket.dart';
+import '../models/shopping_list.dart';
 import '../providers/firebase_app_provider.dart';
 import '../providers/home_location_provider.dart';
 import '../providers/household_provider.dart';
 import '../providers/local_only_provider.dart';
 import '../providers/nav_view_mode_provider.dart';
+import '../providers/seed_color_provider.dart';
 import '../providers/supermarket_provider.dart';
 import '../providers/shopping_list_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -269,6 +273,45 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
     ).showSnackBar(SnackBar(content: Text(l.firebaseInstanceSaved)));
   }
 
+  Future<void> _resetLocalData() async {
+    final l = AppLocalizations.of(context)!;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        icon: const Icon(Icons.warning_amber_rounded, size: 32),
+        content: Text(l.resetLocalDataConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(ctx).colorScheme.error,
+            ),
+            child: Text(l.yes),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    await Hive.box<Supermarket>('supermarkets').clear();
+    await Hive.box<ShoppingList>('shopping_lists').clear();
+    await Hive.box<String>('settings').clear();
+    ref.invalidate(supermarketsProvider);
+    ref.invalidate(shoppingListsProvider);
+    ref.invalidate(householdProvider);
+    ref.invalidate(homeLocationProvider);
+    ref.invalidate(localOnlyProvider);
+    ref.invalidate(navViewModeProvider);
+    ref.invalidate(seedColorProvider);
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l.resetLocalDataDone)));
+  }
+
   Future<void> _toggleLocalOnly(bool value) async {
     final l = AppLocalizations.of(context)!;
     final ok = await showDialog<bool>(
@@ -403,6 +446,33 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
               selected: {preferListView},
               onSelectionChanged: (v) =>
                   ref.read(navViewModeProvider.notifier).set(v.first),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Divider(),
+            ),
+            // ── Menu color ───────────────────────────────────────────────────
+            Text(l.menuColorTitle, style: theme.textTheme.titleMedium),
+            const SizedBox(height: 12),
+            _ColorPicker(
+              current: ref.watch(seedColorProvider),
+              onSelected: (c) => ref.read(seedColorProvider.notifier).set(c),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Divider(),
+            ),
+            // ── Reset local data ─────────────────────────────────────────────
+            Text(l.resetLocalDataTitle, style: theme.textTheme.titleMedium),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.delete_forever_outlined),
+              label: Text(l.resetLocalDataTitle),
+              onPressed: _resetLocalData,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: theme.colorScheme.error,
+                side: BorderSide(color: theme.colorScheme.error),
+              ),
             ),
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
@@ -677,4 +747,55 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
       ),
     ),
   );
+}
+
+// ── Preset color swatches ────────────────────────────────────────────────────
+
+const _kPresetColors = [
+  Color(0xFF2E7D32), // green (default)
+  Color(0xFF1565C0), // blue
+  Color(0xFF6A1B9A), // purple
+  Color(0xFFAD1457), // pink
+  Color(0xFFC62828), // red
+  Color(0xFFE65100), // orange
+  Color(0xFF00695C), // teal
+  Color(0xFF37474F), // blue-grey
+];
+
+class _ColorPicker extends StatelessWidget {
+  final Color current;
+  final ValueChanged<Color> onSelected;
+
+  const _ColorPicker({required this.current, required this.onSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: _kPresetColors.map((color) {
+        final selected = current.value == color.value;
+        return GestureDetector(
+          onTap: () => onSelected(color),
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              border: selected
+                  ? Border.all(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      width: 3,
+                    )
+                  : null,
+            ),
+            child: selected
+                ? const Icon(Icons.check, color: Colors.white, size: 20)
+                : null,
+          ),
+        );
+      }).toList(),
+    );
+  }
 }

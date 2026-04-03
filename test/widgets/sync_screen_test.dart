@@ -291,6 +291,7 @@ void main() {
       await tester.pumpWidget(_wrap());
       await tester.pumpAndSettle();
 
+      await tester.ensureVisible(find.byType(Switch).first);
       await tester.tap(find.byType(Switch).first);
       await tester.pumpAndSettle();
 
@@ -519,6 +520,7 @@ void main() {
       await tester.pumpWidget(_wrap(localOnly: true));
       await tester.pumpAndSettle();
 
+      await tester.ensureVisible(find.byType(Switch).first);
       await tester.tap(find.byType(Switch).first);
       await tester.pumpAndSettle();
 
