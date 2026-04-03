@@ -59,6 +59,10 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   String? _carriedFromStoreName;
   // ────────────────────────────────────────────────────────────────────────
 
+  // Cell of the most recently checked-off item — used for adjacent highlighting.
+  String? _lastCheckedCell;
+  int _lastCheckedFloor = 0;
+
   // Cached for use in dispose() — ref.read() is illegal after unmount.
   String? _cachedHid;
   FirestoreService? _cachedSvc;
@@ -178,6 +182,14 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         set.remove(item);
       } else {
         set.add(item);
+        // Remember which cell this item was in so adjacent cells can be highlighted.
+        for (final stop in widget.plan.storePlans[si].stops) {
+          if (stop.items.contains(item)) {
+            _lastCheckedCell = stop.cell;
+            _lastCheckedFloor = stop.floor;
+            break;
+          }
+        }
       }
     });
     // Persist checked state to the shopping list so progress survives restarts.
@@ -439,15 +451,15 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   }
 
   /// Returns true when [cell] on [floor] is Manhattan-distance 1 from the
-  /// current cell (i.e. directly next to where the user is right now).
+  /// cell of the last checked-off item.
   bool _isAdjacentCell(String cell, int floor) {
-    final current = _currentCell;
-    if (current == null || cell == current || floor != _currentFloorIndex) {
+    final last = _lastCheckedCell;
+    if (last == null || cell == last || floor != _lastCheckedFloor) {
       return false;
     }
     final stores = ref.read(supermarketsProvider);
     final store = stores.where((s) => s.id == _currentPlan.storeId).firstOrNull;
-    return store?.floorAt(floor).distance(cell, current) == 1;
+    return store?.floorAt(floor).distance(cell, last) == 1;
   }
 
   int get _currentFloorIndex {

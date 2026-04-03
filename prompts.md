@@ -271,8 +271,9 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - SyncScreen AppBar title updated to `configTitle`.
     - Tests: sync icon finder updated to `settings_outlined`; German title assertion updated to "Einstellungen".
 
-92. During navigation, highlight items in cells directly adjacent to the current cell.
-    - Added `_isAdjacentCell(cell, floor)` helper using `ShopFloor.distance()` (Manhattan distance == 1, same floor).
+92. During navigation, highlight items in cells directly adjacent to the last checked-off item's cell.
+    - Added `_lastCheckedCell` / `_lastCheckedFloor` state; set in `_toggleItem` when an item is checked (not unchecked) by scanning the store plan stops.
+    - Added `_isAdjacentCell(cell, floor)` helper using `ShopFloor.distance()` (Manhattan distance == 1, same floor) against `_lastCheckedCell`.
     - Grid view: adjacent (non-current, non-done) stop cards get `secondaryContainer` background alongside the existing `primaryContainer` for the current stop.
     - List view: `_buildItemRow` gains a `highlighted` flag; adjacent items are wrapped in a semi-transparent `secondaryContainer` `ColoredBox` (45% opacity). List iteration changed from `expand` to nested `for` loops to carry stop context per item.
 
