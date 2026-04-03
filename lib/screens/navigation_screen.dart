@@ -438,6 +438,18 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     return null;
   }
 
+  /// Returns true when [cell] on [floor] is Manhattan-distance 1 from the
+  /// current cell (i.e. directly next to where the user is right now).
+  bool _isAdjacentCell(String cell, int floor) {
+    final current = _currentCell;
+    if (current == null || cell == current || floor != _currentFloorIndex) {
+      return false;
+    }
+    final stores = ref.read(supermarketsProvider);
+    final store = stores.where((s) => s.id == _currentPlan.storeId).firstOrNull;
+    return store?.floorAt(floor).distance(cell, current) == 1;
+  }
+
   int get _currentFloorIndex {
     for (final stop in _currentPlan.stops) {
       if (stop.items.any((i) => !_isChecked(i) && !_isDeferred(i))) {
@@ -449,7 +461,12 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
 
   // ── Item row builders ────────────────────────────────────────────────────
 
-  Widget _buildItemRow(String item, {bool available = true, int? forStore}) {
+  Widget _buildItemRow(
+    String item, {
+    bool available = true,
+    int? forStore,
+    bool highlighted = false,
+  }) {
     final l = AppLocalizations.of(context)!;
     final isChecked = _isChecked(item, forStore: forStore);
     final isDeferredNext = _deferNextShop.contains(item);
@@ -457,7 +474,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     final isDeferred = isDeferredNext || isDeferredList;
     final isUnavailable = !available && !isChecked && !isDeferred;
 
-    return SizedBox(
+    final row = SizedBox(
       height: 36,
       child: Row(
         children: [
@@ -515,6 +532,13 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
             ),
         ],
       ),
+    );
+    if (!highlighted) return row;
+    return ColoredBox(
+      color: Theme.of(
+        context,
+      ).colorScheme.secondaryContainer.withValues(alpha: 0.45),
+      child: row,
     );
   }
 
@@ -907,6 +931,10 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         );
         final isCurrent =
             stop.cell == _currentCell && stop.floor == _currentFloorIndex;
+        final isAdjacent =
+            !isCurrent &&
+            !allStopDone &&
+            _isAdjacentCell(stop.cell, stop.floor);
         return AnimatedOpacity(
           opacity: allStopDone ? 0.4 : 1.0,
           duration: const Duration(milliseconds: 300),
@@ -914,6 +942,8 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
             margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             color: isCurrent
                 ? Theme.of(context).colorScheme.primaryContainer
+                : isAdjacent
+                ? Theme.of(context).colorScheme.secondaryContainer
                 : null,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -974,9 +1004,13 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
           ),
           const Divider(height: 1, indent: 16, endIndent: 16),
           // ── Items in navigation order ────────────────────────────────────
-          ...plans[si].stops
-              .expand((stop) => stop.items)
-              .map((item) => _buildItemRow(item, forStore: si)),
+          for (final stop in plans[si].stops)
+            for (final item in stop.items)
+              _buildItemRow(
+                item,
+                forStore: si,
+                highlighted: _isAdjacentCell(stop.cell, stop.floor),
+              ),
         ],
         // ── Unmatched items ──────────────────────────────────────────────
         if (allUnmatched.isNotEmpty) ...[

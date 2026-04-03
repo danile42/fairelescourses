@@ -271,6 +271,11 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - SyncScreen AppBar title updated to `configTitle`.
     - Tests: sync icon finder updated to `settings_outlined`; German title assertion updated to "Einstellungen".
 
+92. During navigation, highlight items in cells directly adjacent to the current cell.
+    - Added `_isAdjacentCell(cell, floor)` helper using `ShopFloor.distance()` (Manhattan distance == 1, same floor).
+    - Grid view: adjacent (non-current, non-done) stop cards get `secondaryContainer` background alongside the existing `primaryContainer` for the current stop.
+    - List view: `_buildItemRow` gains a `highlighted` flag; adjacent items are wrapped in a semi-transparent `secondaryContainer` `ColoredBox` (45% opacity). List iteration changed from `expand` to nested `for` loops to carry stop context per item.
+
 91. Add `osmCategoryLabel` tests to overpass_service_test.dart.
     - New group `osmCategoryLabel – localised strings` using `AppLocalizationsEn()` directly.
     - Tests: every category key resolves to a non-empty string, spot-checks for supermarket/pharmacy/bakery, unknown key returns key itself, all 18 categories produce distinct labels.
