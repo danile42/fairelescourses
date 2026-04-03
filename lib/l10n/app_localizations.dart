@@ -188,6 +188,48 @@ abstract class AppLocalizations {
   /// **'Next'**
   String get tourNext;
 
+  /// No description provided for @tourSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip tour'**
+  String get tourSkip;
+
+  /// No description provided for @tourStep1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a store'**
+  String get tourStep1Title;
+
+  /// No description provided for @tourStep1Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap + and choose \'New shop\'. Draw the layout as a grid and assign goods to cells.'**
+  String get tourStep1Body;
+
+  /// No description provided for @tourStep2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a shopping list'**
+  String get tourStep2Title;
+
+  /// No description provided for @tourStep2Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap + and choose \'New list\'. Add the items you want to buy.'**
+  String get tourStep2Body;
+
+  /// No description provided for @tourStep3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Start navigation'**
+  String get tourStep3Title;
+
+  /// No description provided for @tourStep3Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the play button next to your list to start your first shopping trip.'**
+  String get tourStep3Body;
+
   /// No description provided for @shops.
   ///
   /// In en, this message translates to:

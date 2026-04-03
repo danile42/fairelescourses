@@ -55,6 +55,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tourNext => 'Next';
 
   @override
+  String get tourSkip => 'Skip tour';
+
+  @override
+  String get tourStep1Title => 'Create a store';
+
+  @override
+  String get tourStep1Body =>
+      'Tap + and choose \'New shop\'. Draw the layout as a grid and assign goods to cells.';
+
+  @override
+  String get tourStep2Title => 'Create a shopping list';
+
+  @override
+  String get tourStep2Body =>
+      'Tap + and choose \'New list\'. Add the items you want to buy.';
+
+  @override
+  String get tourStep3Title => 'Start navigation';
+
+  @override
+  String get tourStep3Body =>
+      'Tap the play button next to your list to start your first shopping trip.';
+
+  @override
   String get shops => 'Shops';
 
   @override

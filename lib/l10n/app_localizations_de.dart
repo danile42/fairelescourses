@@ -57,6 +57,30 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tourNext => 'Weiter';
 
   @override
+  String get tourSkip => 'Tour überspringen';
+
+  @override
+  String get tourStep1Title => 'Markt anlegen';
+
+  @override
+  String get tourStep1Body =>
+      'Tippe auf + und wähle \'Neuer Markt\'. Zeichne den Grundriss als Raster und weise den Feldern Waren zu.';
+
+  @override
+  String get tourStep2Title => 'Einkaufsliste erstellen';
+
+  @override
+  String get tourStep2Body =>
+      'Tippe auf + und wähle \'Neue Liste\'. Füge die gewünschten Artikel hinzu.';
+
+  @override
+  String get tourStep3Title => 'Navigation starten';
+
+  @override
+  String get tourStep3Body =>
+      'Tippe auf den Play-Button neben deiner Liste, um deinen ersten Einkauf zu starten.';
+
+  @override
   String get shops => 'Märkte';
 
   @override

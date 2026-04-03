@@ -271,6 +271,13 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - SyncScreen AppBar title updated to `configTitle`.
     - Tests: sync icon finder updated to `settings_outlined`; German title assertion updated to "Einstellungen".
 
+97. Replace first-start help screen with an interactive 3-step tour.
+    - `TourStepNotifier` (NotifierProvider<int>) in tour_provider.dart: initialises from Hive (`introSeen`); -1 = inactive, 0/1/2 = current step; `advance(fromStep)` guards idempotency; `complete()` persists to Hive and sets -1.
+    - `TourCard` widget (lib/widgets/tour_card.dart): animated step-dot progress indicator, icon + title + body for each step, "Skip tour" button; shown at bottom of HomeScreen body column; disappears when step == -1.
+    - HomeScreen: removed old `initState` intro logic; `ref.listen` on `supermarketsProvider` (advance 0→1) and `shoppingListsProvider` (advance 1→2); `_launchNavigation` calls `complete()` to advance step 2 and persist.
+    - The existing `HelpScreen` remains accessible via the (?) button at all times.
+    - l10n: added `tourSkip`, `tourStep1Title/Body`, `tourStep2Title/Body`, `tourStep3Title/Body` in EN + DE.
+
 96. De-highlight the navigation start cell once the user checks off their first item.
     - `isCurrent` (primaryContainer / navigation-arrow highlight) is now suppressed in both the grid card view and the mini-map as soon as `_lastCheckedCell` is set.
     - This ensures only the 3×3 neighbourhood of the last checked-off item is visible; the "start of route" cell no longer competes with it.

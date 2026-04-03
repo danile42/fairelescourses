@@ -10,6 +10,8 @@ import '../providers/household_provider.dart';
 import '../providers/nav_session_provider.dart';
 import '../providers/shopping_list_provider.dart';
 import '../providers/supermarket_provider.dart';
+import '../providers/tour_provider.dart';
+import '../widgets/tour_card.dart';
 import 'help_screen.dart';
 import 'list_editor_screen.dart';
 import 'store_editor_screen.dart';
@@ -29,24 +31,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  static const _introKey = 'introSeen';
-
-  @override
-  void initState() {
-    super.initState();
-    final seen = Hive.box<String>('settings').get(_introKey) == 'true';
-    if (!seen) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        Hive.box<String>('settings').put(_introKey, 'true');
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const HelpScreen()),
-        );
-      });
-    }
-  }
-
   void _openHelp() {
     Navigator.push(
       context,
@@ -63,6 +47,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ref.watch(firestoreSyncProvider); // activates real-time sync
 
     final session = ref.watch(navSessionProvider);
+
+    // Auto-advance tour steps based on app state.
+    ref.listen(supermarketsProvider, (_, next) {
+      if (next.isNotEmpty) ref.read(tourStepProvider.notifier).advance(0);
+    });
+    ref.listen(shoppingListsProvider, (_, next) {
+      if (next.isNotEmpty) ref.read(tourStepProvider.notifier).advance(1);
+    });
 
     return DefaultTabController(
       length: 2,
@@ -125,6 +117,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ],
               ),
             ),
+            const TourCard(),
           ],
         ),
         floatingActionButton: _HomeFab(lists: lists),
@@ -441,6 +434,9 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
       Hive.box<String>('settings').get(_singleNavKey) == 'true';
 
   void _launchNavigation(ShoppingList list, {required bool collaborative}) {
+    if (ref.read(tourStepProvider) == 2) {
+      ref.read(tourStepProvider.notifier).complete();
+    }
     final stores = ref.read(supermarketsProvider);
     final plan = NavigationPlanner.plan(list, stores);
     if (!collaborative) {
