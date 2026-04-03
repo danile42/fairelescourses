@@ -944,7 +944,9 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
           (item) => _isChecked(item) || _isDeferred(item),
         );
         final isCurrent =
-            stop.cell == _currentCell && stop.floor == _currentFloorIndex;
+            _lastCheckedCell == null &&
+            stop.cell == _currentCell &&
+            stop.floor == _currentFloorIndex;
         final isAdjacent =
             !isCurrent &&
             !allStopDone &&

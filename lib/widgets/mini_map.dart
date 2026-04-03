@@ -117,9 +117,12 @@ class MiniMap extends ConsumerWidget {
                 final cellId = '$row$col';
                 final isStop = stopCells.contains(cellId);
                 final isDone = doneCells.contains(cellId);
-                // Only highlight as current if the current cell is on this displayed floor.
+                // Only highlight as current if no item has been checked yet
+                // (once the user starts checking, adjacency highlights take over).
                 final isCurrent =
-                    cellId == currentCell && stopCells.contains(cellId);
+                    lastCheckedCell == null &&
+                    cellId == currentCell &&
+                    stopCells.contains(cellId);
                 final isEntrance = cellId == floor.entrance;
                 final isExit = cellId == floor.exit;
                 final isAdjacent = adjacentCells.contains(cellId) && !isDone;

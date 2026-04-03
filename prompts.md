@@ -271,6 +271,10 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - SyncScreen AppBar title updated to `configTitle`.
     - Tests: sync icon finder updated to `settings_outlined`; German title assertion updated to "Einstellungen".
 
+96. De-highlight the navigation start cell once the user checks off their first item.
+    - `isCurrent` (primaryContainer / navigation-arrow highlight) is now suppressed in both the grid card view and the mini-map as soon as `_lastCheckedCell` is set.
+    - This ensures only the 3×3 neighbourhood of the last checked-off item is visible; the "start of route" cell no longer competes with it.
+
 95. Change adjacency highlight to 3×3 neighbourhood (Chebyshev distance).
     - Added `ShopFloor.isNeighbour(a, b)` — true when Chebyshev distance == 1 (|Δrow| ≤ 1 && |Δcol| ≤ 1, excluding self); covers all 8 surrounding cells.
     - `_isAdjacentCell` in navigation_screen and the adjacency set in mini_map now use `isNeighbour` instead of `distance == 1`.
