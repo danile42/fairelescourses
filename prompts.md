@@ -264,3 +264,9 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - `sync_screen.dart`: added `_ColorPicker` widget with 8 preset swatches and `_resetLocalData()` with confirmation dialog that clears all Hive boxes and invalidates all providers.
     - l10n: added `menuColorTitle`, `resetLocalDataTitle`, `resetLocalDataConfirm`, `resetLocalDataDone` in en + de.
     - sync_screen_test: added `ensureVisible` before Switch taps that scroll off-screen with the new content.
+
+90. Replace the sync button with a config (settings) button.
+    - AppBar icon changed from `Icons.sync` to `Icons.settings_outlined` (always white, no conditional dimming).
+    - l10n: `syncTitle` renamed to `configTitle` ("Sync" → "Settings" / "Synchronisierung" → "Einstellungen").
+    - SyncScreen AppBar title updated to `configTitle`.
+    - Tests: sync icon finder updated to `settings_outlined`; German title assertion updated to "Einstellungen".
