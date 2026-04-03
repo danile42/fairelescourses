@@ -1226,6 +1226,12 @@ abstract class AppLocalizations {
   /// **'Start navigation'**
   String get startNavigation;
 
+  /// No description provided for @startShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Start shopping:'**
+  String get startShopping;
+
   /// No description provided for @viewGrid.
   ///
   /// In en, this message translates to:

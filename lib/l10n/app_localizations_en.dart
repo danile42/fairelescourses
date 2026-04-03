@@ -608,6 +608,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get startNavigation => 'Start navigation';
 
   @override
+  String get startShopping => 'Start shopping:';
+
+  @override
   String get viewGrid => 'Grid view';
 
   @override

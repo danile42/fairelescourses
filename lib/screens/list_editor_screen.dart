@@ -437,6 +437,7 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
                         ? Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
+                              Text(l.startShopping),
                               IconButton(
                                 icon: const _NavIcon(Icons.person_outline),
                                 tooltip: l.navModeSingle,
