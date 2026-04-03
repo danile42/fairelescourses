@@ -270,3 +270,7 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - l10n: `syncTitle` renamed to `configTitle` ("Sync" → "Settings" / "Synchronisierung" → "Einstellungen").
     - SyncScreen AppBar title updated to `configTitle`.
     - Tests: sync icon finder updated to `settings_outlined`; German title assertion updated to "Einstellungen".
+
+91. Add `osmCategoryLabel` tests to overpass_service_test.dart.
+    - New group `osmCategoryLabel – localised strings` using `AppLocalizationsEn()` directly.
+    - Tests: every category key resolves to a non-empty string, spot-checks for supermarket/pharmacy/bakery, unknown key returns key itself, all 18 categories produce distinct labels.

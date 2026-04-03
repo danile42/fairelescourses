@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:fairelescourses/l10n/app_localizations_en.dart';
 import 'package:fairelescourses/services/overpass_service.dart';
 
 http.Client _client(Map<String, dynamic> body, {int status = 200}) =>
@@ -242,6 +243,40 @@ void main() {
     test('all 18 categories have unique osmValue', () {
       final values = osmShopCategories.map((c) => c.osmValue).toSet();
       expect(values.length, osmShopCategories.length);
+    });
+  });
+
+  group('osmCategoryLabel – localised strings', () {
+    final l = AppLocalizationsEn();
+
+    test('every category key resolves to a non-empty string', () {
+      for (final cat in osmShopCategories) {
+        final label = osmCategoryLabel(l, cat.labelKey);
+        expect(label, isNotEmpty, reason: '${cat.labelKey} returned empty');
+      }
+    });
+
+    test('catSupermarket returns expected EN label', () {
+      expect(osmCategoryLabel(l, 'catSupermarket'), l.catSupermarket);
+    });
+
+    test('catPharmacy returns expected EN label', () {
+      expect(osmCategoryLabel(l, 'catPharmacy'), l.catPharmacy);
+    });
+
+    test('catBakery returns expected EN label', () {
+      expect(osmCategoryLabel(l, 'catBakery'), l.catBakery);
+    });
+
+    test('unknown key returns the key itself', () {
+      expect(osmCategoryLabel(l, 'unknownKey'), 'unknownKey');
+    });
+
+    test('all 18 categories produce distinct labels', () {
+      final labels = osmShopCategories
+          .map((c) => osmCategoryLabel(l, c.labelKey))
+          .toSet();
+      expect(labels.length, osmShopCategories.length);
     });
   });
 
