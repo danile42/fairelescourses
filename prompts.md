@@ -376,6 +376,10 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - New group `osmCategoryLabel – localised strings` using `AppLocalizationsEn()` directly.
     - Tests: every category key resolves to a non-empty string, spot-checks for supermarket/pharmacy/bakery, unknown key returns key itself, all 18 categories produce distinct labels.
 
+113. Fix dart formatting failures in CI and add a git pre-commit hook to prevent future occurrences.
+    - Ran `dart format lib/ test/` to reformat 4 test files.
+    - Created `.git/hooks/pre-commit` running `dart format --output=none --set-exit-if-changed lib/ test/` to block unformatted commits.
+
 112. Add tests to reach 65% line coverage.
     - Coverage raised from 63.6% → 65.02% (3717/5717 lines), 484 tests total.
     - `list_editor_screen_test.dart`: deselect-store-chip test (covers `ids.remove` else-branch); German locale tests for preferred shops + empty list (`preferredShops`, `noItemsInList`), item popup menu (`moveToList`, `rename`), and unsaved-changes dialog (`unsavedChanges`, `discardChanges`, `keepEditing`).

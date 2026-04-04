@@ -632,10 +632,7 @@ void main() {
       await tester.tap(find.text('Reset all local data').last);
       await tester.pumpAndSettle();
 
-      expect(
-        find.textContaining('delete all local shops'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('delete all local shops'), findsOneWidget);
       // Dismiss without confirming.
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();

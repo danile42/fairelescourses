@@ -49,9 +49,7 @@ MockFirestoreService _mockSvc() {
   final svc = MockFirestoreService();
   when(() => svc.searchByName(any())).thenAnswer((_) async => []);
   when(() => svc.searchByItem(any())).thenAnswer((_) async => []);
-  when(
-    () => svc.searchNearby(any(), any(), any()),
-  ).thenAnswer((_) async => []);
+  when(() => svc.searchNearby(any(), any(), any())).thenAnswer((_) async => []);
   when(() => svc.upsertShop(any(), any())).thenAnswer((_) async {});
   return svc;
 }
@@ -122,7 +120,10 @@ void main() {
     testWidgets('initial state shows minimum-characters hint', (tester) async {
       await tester.pumpWidget(_wrap());
       await tester.pumpAndSettle();
-      expect(find.text('Type at least 2 characters to search.'), findsOneWidget);
+      expect(
+        find.text('Type at least 2 characters to search.'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('search field is present with correct hint', (tester) async {
@@ -144,9 +145,7 @@ void main() {
       expect(find.text('Type an item name…'), findsOneWidget);
     });
 
-    testWidgets('switching to By location shows location hint', (
-      tester,
-    ) async {
+    testWidgets('switching to By location shows location hint', (tester) async {
       await tester.pumpWidget(_wrap());
       await tester.pumpAndSettle();
 
@@ -154,8 +153,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // No home location set → "no location set" message
-      expect(find.text('No home location set. Go to Sync to set one.'),
-          findsOneWidget);
+      expect(
+        find.text('No home location set. Go to Sync to set one.'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('switching back to By name restores hint', (tester) async {
@@ -219,13 +220,9 @@ void main() {
     ) async {
       final localShop = _shop(id: 's1', name: 'Rewe');
       final svc = _mockSvc();
-      when(
-        () => svc.searchByName('rewe'),
-      ).thenAnswer((_) async => [localShop]);
+      when(() => svc.searchByName('rewe')).thenAnswer((_) async => [localShop]);
 
-      await tester.pumpWidget(
-        _wrap(stores: [localShop], mockService: svc),
-      );
+      await tester.pumpWidget(_wrap(stores: [localShop], mockService: svc));
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextField), 'rewe');
@@ -256,21 +253,20 @@ void main() {
   });
 
   group('ShopSearchScreen – By location', () {
-    testWidgets(
-      'By location without home shows no-location-set message',
-      (tester) async {
-        await tester.pumpWidget(_wrap());
-        await tester.pumpAndSettle();
+    testWidgets('By location without home shows no-location-set message', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap());
+      await tester.pumpAndSettle();
 
-        await tester.tap(find.text('By location'));
-        await tester.pumpAndSettle();
+      await tester.tap(find.text('By location'));
+      await tester.pumpAndSettle();
 
-        expect(
-          find.text('No home location set. Go to Sync to set one.'),
-          findsOneWidget,
-        );
-      },
-    );
+      expect(
+        find.text('No home location set. Go to Sync to set one.'),
+        findsOneWidget,
+      );
+    });
 
     testWidgets('By location shows category filter chip', (tester) async {
       await tester.pumpWidget(_wrap());
@@ -324,10 +320,9 @@ void main() {
 
   group('ShopSearchScreen – persisted categories filter', () {
     setUp(() async {
-      await Hive.box<String>('settings').put(
-        'osmSearchCategories',
-        'shop:supermarket',
-      );
+      await Hive.box<String>(
+        'settings',
+      ).put('osmSearchCategories', 'shop:supermarket');
     });
 
     testWidgets('screen renders without error when categories are persisted', (

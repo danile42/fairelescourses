@@ -762,7 +762,9 @@ void main() {
           StorePlan(
             storeId: 's1',
             storeName: 'Testmarkt',
-            stops: [NavigationStop(cell: 'A1', items: ['Milch'])],
+            stops: [
+              NavigationStop(cell: 'A1', items: ['Milch']),
+            ],
             unmatched: [],
           ),
         ],
@@ -781,10 +783,7 @@ void main() {
     testWidgets('German two-store plan shows "Nächster Markt" button', (
       tester,
     ) async {
-      final plan = _twoStorePlan(
-        store1Items: ['Milch'],
-        store2Items: ['Brot'],
-      );
+      final plan = _twoStorePlan(store1Items: ['Milch'], store2Items: ['Brot']);
       await tester.pumpWidget(_wrapDe(plan));
       await tester.pumpAndSettle();
 

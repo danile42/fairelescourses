@@ -43,10 +43,7 @@ void main() {
       const color = Color(0xFFABCDEF);
       await c.read(seedColorProvider.notifier).set(color);
       expect(c.read(seedColorProvider), equals(color));
-      expect(
-        Hive.box<String>('settings').get('seedColor'),
-        '${color.value}',
-      );
+      expect(Hive.box<String>('settings').get('seedColor'), '${color.value}');
     });
 
     test('reset() restores defaultSeedColor and removes the key', () async {
