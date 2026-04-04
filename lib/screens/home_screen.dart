@@ -225,7 +225,6 @@ class _MiniButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
   const _MiniButton({
-    super.key,
     this.fabKey,
     required this.label,
     required this.icon,

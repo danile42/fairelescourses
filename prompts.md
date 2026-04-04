@@ -405,6 +405,8 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - "New shop" FAB button: opens ShopSearchScreen on tourStep == 3 (was 0); `TourHintBanner` in ShopSearchScreen now shows on step 3.
     - `TourSpotlight`: extended to 4 dots; step 3 mapped to tourNewShopKey (same as step 0); fab-sub update guard includes step 3; switch statements cover step 3 → tourStep4Title/Body.
 
+126. Fix flutter analyze warnings: replace deprecated Color.value with toARGB32(), remove unused key parameter from private _MiniButton widget, rename underscore-prefixed local functions in tests.
+
 125. Add online shop search as the first step of the intro tour.
     - Tour step 0 now opens ShopSearchScreen (instead of StoreEditorScreen) when the user taps 'New shop' during the tour.
     - TourHintBanner added to ShopSearchScreen explaining that searching by location is faster than creating a shop manually.

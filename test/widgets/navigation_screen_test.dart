@@ -710,7 +710,7 @@ void main() {
 
   // ── German locale ─────────────────────────────────────────────────────────
 
-  Widget _wrapDe(NavigationPlan plan, {List<ShoppingItem>? listItems}) {
+  Widget wrapDe(NavigationPlan plan, {List<ShoppingItem>? listItems}) {
     final items =
         listItems ??
         plan.storePlans
@@ -735,7 +735,7 @@ void main() {
 
   group('NavigationScreen – German locale', () {
     testWidgets('renders in German without error', (tester) async {
-      await tester.pumpWidget(_wrapDe(_singleStorePlan(['Milch'])));
+      await tester.pumpWidget(wrapDe(_singleStorePlan(['Milch'])));
       await tester.pumpAndSettle();
       expect(find.text('Navigation'), findsOneWidget);
     });
@@ -743,7 +743,7 @@ void main() {
     testWidgets('German done view shows "Abschließen" and progress', (
       tester,
     ) async {
-      await tester.pumpWidget(_wrapDe(_singleStorePlan(['Milch'])));
+      await tester.pumpWidget(wrapDe(_singleStorePlan(['Milch'])));
       await tester.pumpAndSettle();
 
       // Check the item to reach done view.
@@ -770,7 +770,7 @@ void main() {
         ],
         globalUnmatched: ['Käse'],
       );
-      await tester.pumpWidget(_wrapDe(plan));
+      await tester.pumpWidget(wrapDe(plan));
       await tester.pumpAndSettle();
 
       // Switch to list view to see unmatched section.
@@ -784,7 +784,7 @@ void main() {
       tester,
     ) async {
       final plan = _twoStorePlan(store1Items: ['Milch'], store2Items: ['Brot']);
-      await tester.pumpWidget(_wrapDe(plan));
+      await tester.pumpWidget(wrapDe(plan));
       await tester.pumpAndSettle();
 
       // Check item at store one to reach done view.
@@ -1055,19 +1055,19 @@ void main() {
   // ── Unmatched item checkboxes ─────────────────────────────────────────────
 
   group('NavigationScreen – unmatched item checkboxes', () {
-    NavigationPlan _unmatchedOnlyPlan() =>
+    NavigationPlan unmatchedOnlyPlan() =>
         NavigationPlan(storePlans: [], globalUnmatched: ['Cheese', 'Butter']);
 
     testWidgets('unmatched items in no-store plan show checkboxes', (
       tester,
     ) async {
-      await tester.pumpWidget(_wrap(_unmatchedOnlyPlan()));
+      await tester.pumpWidget(_wrap(unmatchedOnlyPlan()));
       await tester.pumpAndSettle();
       expect(find.byType(Checkbox), findsNWidgets(2));
     });
 
     testWidgets('tapping unmatched checkbox marks it checked', (tester) async {
-      await tester.pumpWidget(_wrap(_unmatchedOnlyPlan()));
+      await tester.pumpWidget(_wrap(unmatchedOnlyPlan()));
       await tester.pumpAndSettle();
 
       expect(
@@ -1085,7 +1085,7 @@ void main() {
     testWidgets('tapping checked unmatched checkbox unchecks it', (
       tester,
     ) async {
-      await tester.pumpWidget(_wrap(_unmatchedOnlyPlan()));
+      await tester.pumpWidget(_wrap(unmatchedOnlyPlan()));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byType(Checkbox).first);

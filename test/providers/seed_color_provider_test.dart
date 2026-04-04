@@ -31,7 +31,9 @@ void main() {
 
     test('reads a stored hex color on build', () async {
       const color = Color(0xFF1A2B3C);
-      await Hive.box<String>('settings').put('seedColor', '${color.value}');
+      await Hive.box<String>(
+        'settings',
+      ).put('seedColor', '${color.toARGB32()}');
       final c = ProviderContainer();
       addTearDown(c.dispose);
       expect(c.read(seedColorProvider), equals(color));
@@ -43,7 +45,10 @@ void main() {
       const color = Color(0xFFABCDEF);
       await c.read(seedColorProvider.notifier).set(color);
       expect(c.read(seedColorProvider), equals(color));
-      expect(Hive.box<String>('settings').get('seedColor'), '${color.value}');
+      expect(
+        Hive.box<String>('settings').get('seedColor'),
+        '${color.toARGB32()}',
+      );
     });
 
     test('reset() restores defaultSeedColor and removes the key', () async {

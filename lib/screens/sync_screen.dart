@@ -774,7 +774,7 @@ class _ColorPicker extends StatelessWidget {
       spacing: 10,
       runSpacing: 10,
       children: _kPresetColors.map((color) {
-        final selected = current.value == color.value;
+        final selected = current.toARGB32() == color.toARGB32();
         return GestureDetector(
           onTap: () => onSelected(color),
           child: Container(

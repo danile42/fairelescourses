@@ -18,7 +18,9 @@ class SeedColorNotifier extends Notifier<Color> {
   }
 
   Future<void> set(Color color) async {
-    await Hive.box<String>('settings').put(_seedColorKey, '${color.value}');
+    await Hive.box<String>(
+      'settings',
+    ).put(_seedColorKey, '${color.toARGB32()}');
     state = color;
   }
 
