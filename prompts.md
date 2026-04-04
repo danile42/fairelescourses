@@ -376,6 +376,14 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - New group `osmCategoryLabel – localised strings` using `AppLocalizationsEn()` directly.
     - Tests: every category key resolves to a non-empty string, spot-checks for supermarket/pharmacy/bakery, unknown key returns key itself, all 18 categories produce distinct labels.
 
+126. Correct the tour: keep the original 3 steps, add a new step 4 after navigation that guides the user to find shops online.
+    - Reverted tourStep1Title/tourStep1Body to original ("Create a shop" / "Tap + and choose 'New shop'.") in both locales.
+    - Added tourStep4Title/tourStep4Body in EN and DE for the new online-search step.
+    - `_launchNavigation`: changed `complete()` → `advance(2)` so navigation advances to step 3 instead of ending the tour.
+    - Added supermarketsProvider listener in HomeScreen: when on step 3 and a new shop is added, calls `complete()` and triggers celebration.
+    - "New shop" FAB button: opens ShopSearchScreen on tourStep == 3 (was 0); `TourHintBanner` in ShopSearchScreen now shows on step 3.
+    - `TourSpotlight`: extended to 4 dots; step 3 mapped to tourNewShopKey (same as step 0); fab-sub update guard includes step 3; switch statements cover step 3 → tourStep4Title/Body.
+
 125. Add online shop search as the first step of the intro tour.
     - Tour step 0 now opens ShopSearchScreen (instead of StoreEditorScreen) when the user taps 'New shop' during the tour.
     - TourHintBanner added to ShopSearchScreen explaining that searching by location is faster than creating a shop manually.

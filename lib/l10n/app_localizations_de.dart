@@ -60,11 +60,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tourSkip => 'Tour überspringen';
 
   @override
-  String get tourStep1Title => 'Markt finden';
+  String get tourStep1Title => 'Markt anlegen';
 
   @override
-  String get tourStep1Body =>
-      'Tippe auf + und wähle \'Neuer Markt\', um Märkte online zu suchen.';
+  String get tourStep1Body => 'Tippe auf + und wähle \'Neuer Markt\'.';
 
   @override
   String get tourShopSearchHint =>
@@ -91,6 +90,13 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get tourStep3Body =>
       'Tippe auf den Play-Button neben deiner Liste, um deinen ersten Einkauf zu starten.';
+
+  @override
+  String get tourStep4Title => 'Märkte online suchen';
+
+  @override
+  String get tourStep4Body =>
+      'Tippe auf + → Neuer Markt, um nahegelegene Märkte zu suchen. Importieren ist schneller als ein Layout von Hand zu zeichnen.';
 
   @override
   String get shops => 'Märkte';

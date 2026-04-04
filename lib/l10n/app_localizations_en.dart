@@ -58,11 +58,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tourSkip => 'Skip tour';
 
   @override
-  String get tourStep1Title => 'Find a shop';
+  String get tourStep1Title => 'Create a shop';
 
   @override
-  String get tourStep1Body =>
-      'Tap + and choose \'New shop\' to search for shops online.';
+  String get tourStep1Body => 'Tap + and choose \'New shop\'.';
 
   @override
   String get tourShopSearchHint =>
@@ -89,6 +88,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get tourStep3Body =>
       'Tap the play button next to your list to start your first shopping trip.';
+
+  @override
+  String get tourStep4Title => 'Find shops online';
+
+  @override
+  String get tourStep4Body =>
+      'Tap + → New shop to search for nearby shops. Importing is faster than drawing a layout from scratch.';
 
   @override
   String get shops => 'Shops';

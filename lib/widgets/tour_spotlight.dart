@@ -39,7 +39,9 @@ class _TourSpotlightState extends ConsumerState<TourSpotlight> with RouteAware {
   GlobalKey get _targetKey {
     if (_step == 2) return tourPlayKey;
     final expanded = ref.read(tourFabExpandedProvider);
-    if (expanded) return _step == 0 ? tourNewShopKey : tourNewListKey;
+    if (expanded) {
+      return (_step == 0 || _step == 3) ? tourNewShopKey : tourNewListKey;
+    }
     return tourFabKey;
   }
 
@@ -58,7 +60,7 @@ class _TourSpotlightState extends ConsumerState<TourSpotlight> with RouteAware {
         }
       });
       _fabSub = ref.listenManual(tourFabExpandedProvider, (prev, next) {
-        if (_step >= 0 && _step < 2) _scheduleRead();
+        if ((_step >= 0 && _step < 2) || _step == 3) _scheduleRead();
       });
       if (_step >= 0) _scheduleRead();
     });
@@ -159,12 +161,14 @@ class _TourSpotlightState extends ConsumerState<TourSpotlight> with RouteAware {
     final title = switch (_step) {
       0 => l.tourStep1Title,
       1 => l.tourStep2Title,
-      _ => l.tourStep3Title,
+      2 => l.tourStep3Title,
+      _ => l.tourStep4Title,
     };
     final body = switch (_step) {
       0 => l.tourStep1Body,
       1 => l.tourStep2Body,
-      _ => l.tourStep3Body,
+      2 => l.tourStep3Body,
+      _ => l.tourStep4Body,
     };
 
     return Stack(
@@ -197,7 +201,7 @@ class _TourSpotlightState extends ConsumerState<TourSpotlight> with RouteAware {
                 children: [
                   Row(
                     children: [
-                      ...List.generate(3, (i) {
+                      ...List.generate(4, (i) {
                         final active = i == _step;
                         final done = i < _step;
                         return Padding(

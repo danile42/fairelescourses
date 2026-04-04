@@ -50,8 +50,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final session = ref.watch(navSessionProvider);
 
     // Auto-advance tour steps based on app state.
-    ref.listen(supermarketsProvider, (_, next) {
+    ref.listen(supermarketsProvider, (prev, next) {
       if (next.isNotEmpty) ref.read(tourStepProvider.notifier).advance(0);
+      if (prev != null &&
+          next.length > prev.length &&
+          ref.read(tourStepProvider) == 3) {
+        ref.read(tourStepProvider.notifier).complete();
+        ref.read(celebrationTriggerProvider.notifier).trigger();
+      }
     });
     ref.listen(shoppingListsProvider, (_, next) {
       if (next.isNotEmpty) ref.read(tourStepProvider.notifier).advance(1);
@@ -159,7 +165,7 @@ class _HomeFabState extends ConsumerState<_HomeFab> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => tourStep == 0
+                  builder: (_) => tourStep == 3
                       ? const ShopSearchScreen()
                       : const StoreEditorScreen(),
                 ),
@@ -451,9 +457,8 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
       Hive.box<String>('settings').get(_singleNavKey) == 'true';
 
   void _launchNavigation(ShoppingList list, {required bool collaborative}) {
-    final isTourFinalStep = ref.read(tourStepProvider) == 2;
-    if (isTourFinalStep) {
-      ref.read(tourStepProvider.notifier).complete();
+    if (ref.read(tourStepProvider) == 2) {
+      ref.read(tourStepProvider.notifier).advance(2);
     }
     final stores = ref.read(supermarketsProvider);
     final plan = NavigationPlanner.plan(list, stores);
@@ -472,9 +477,6 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
         ),
       ),
     ).then((result) {
-      if (isTourFinalStep && result == true && mounted) {
-        ref.read(celebrationTriggerProvider.notifier).trigger();
-      }
       if (!collaborative && mounted) {
         Hive.box<String>('settings').delete(_singleNavKey);
         setState(() {});

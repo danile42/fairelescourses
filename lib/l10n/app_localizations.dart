@@ -197,13 +197,13 @@ abstract class AppLocalizations {
   /// No description provided for @tourStep1Title.
   ///
   /// In en, this message translates to:
-  /// **'Find a shop'**
+  /// **'Create a shop'**
   String get tourStep1Title;
 
   /// No description provided for @tourStep1Body.
   ///
   /// In en, this message translates to:
-  /// **'Tap + and choose \'New shop\' to search for shops online.'**
+  /// **'Tap + and choose \'New shop\'.'**
   String get tourStep1Body;
 
   /// No description provided for @tourShopSearchHint.
@@ -247,6 +247,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap the play button next to your list to start your first shopping trip.'**
   String get tourStep3Body;
+
+  /// No description provided for @tourStep4Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Find shops online'**
+  String get tourStep4Title;
+
+  /// No description provided for @tourStep4Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap + → New shop to search for nearby shops. Importing is faster than drawing a layout from scratch.'**
+  String get tourStep4Body;
 
   /// No description provided for @shops.
   ///

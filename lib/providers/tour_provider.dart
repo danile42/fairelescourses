@@ -13,6 +13,7 @@ final tourRouteObserver = RouteObserver<ModalRoute<void>>();
 ///  0 = step 1: create a store.
 ///  1 = step 2: create a shopping list.
 ///  2 = step 3: start navigation.
+///  3 = step 4: find a shop online.
 final tourStepProvider = NotifierProvider<TourStepNotifier, int>(
   TourStepNotifier.new,
 );

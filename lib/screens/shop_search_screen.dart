@@ -509,7 +509,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
         ],
       ),
       bottomNavigationBar: TourHintBanner(
-        visibleOnStep: 0,
+        visibleOnStep: 3,
         message: (l) => l.tourShopSearchHint,
       ),
       body: Column(
