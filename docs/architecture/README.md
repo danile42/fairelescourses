@@ -1,8 +1,8 @@
-# Fairelescourses — Architecture Overview
+# Fairelescourses — Architecture overview
 
 Fairelescourses is a Flutter (Android-first) supermarket navigation app. Users map their local shops as a grid, build shopping lists, and the app plans an optimised walking route through the store. Households can share lists and navigate collaboratively in real time via Firebase.
 
-## Document Index
+## Document index
 
 | Document | Contents |
 |---|---|
@@ -13,7 +13,7 @@ Fairelescourses is a Flutter (Android-first) supermarket navigation app. Users m
 | [persistence.md](persistence.md) | Local (Hive) and remote (Firestore) storage schemas |
 | [key-flows.md](key-flows.md) | Sequence diagrams for the most important user journeys |
 
-## High-Level Architecture
+## High-level architecture
 
 ```mermaid
 graph TB
@@ -56,7 +56,7 @@ graph TB
     OverpassService --> Overpass
 ```
 
-## Technology Stack
+## Technology stack
 
 | Concern | Library / Version |
 |---|---|
@@ -70,7 +70,7 @@ graph TB
 | Localisation | Flutter intl, ARB files (EN + DE) |
 | Encryption | encrypt ^5.0.3 (AES-256-CBC) |
 
-## Directory Layout
+## Directory layout
 
 ```
 lib/

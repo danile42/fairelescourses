@@ -1,8 +1,8 @@
-# Screens & Navigation
+# Screens & navigation
 
 The app uses Flutter's standard `Navigator` (push/pop) — there is no named-route or go_router setup. All routes are pushed imperatively from within screen callbacks.
 
-## Screen Hierarchy
+## Screen hierarchy
 
 ```mermaid
 flowchart TD
@@ -24,7 +24,7 @@ flowchart TD
     Search -->|"Import shop"| StoreEditor
 ```
 
-## Screen Descriptions
+## Screen descriptions
 
 ### HomeScreen (`lib/screens/home_screen.dart`)
 
@@ -122,7 +122,7 @@ Household management and app settings:
 - **Theme colour**: colour picker → `seedColorProvider`.
 - **Reset data**: wipes all Hive boxes with a confirmation dialog.
 
-## Widget Hierarchy (simplified)
+## Widget hierarchy (simplified)
 
 ```mermaid
 flowchart TD

@@ -1,8 +1,8 @@
-# Data Models
+# Data models
 
 All persistent models live in `lib/models/`. Runtime-only models are also kept there for co-location.
 
-## Class Diagram
+## Class diagram
 
 ```mermaid
 classDiagram
@@ -115,7 +115,7 @@ classDiagram
 
 > **Note — Supermarket floors:** Ground floor data is stored directly on the `Supermarket` object. Additional floors are serialised in `floorsRaw` and accessed via `floorAt(index)` as `ShopFloor` views. `floorAt(0)` returns a synthetic `ShopFloor` built from `Supermarket`'s own fields.
 
-## Model Details
+## Model details
 
 ### Supermarket
 

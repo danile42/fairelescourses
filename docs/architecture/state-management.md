@@ -1,8 +1,8 @@
-# State Management
+# State management
 
 The app uses **Riverpod 3** throughout. There are no `StatefulWidget`s that own domain state — all mutable application state lives in Riverpod notifiers.
 
-## Provider Graph
+## Provider graph
 
 ```mermaid
 flowchart LR
@@ -48,7 +48,7 @@ flowchart LR
     localOnlyProvider -.->|"gates init"| firebaseAppProvider
 ```
 
-## Provider Reference
+## Provider reference
 
 | Provider | Type | File | Description |
 |---|---|---|---|
@@ -69,7 +69,7 @@ flowchart LR
 | `tourStepProvider` | `Notifier<int>` | tour_provider.dart | Current onboarding step (0-3). Advances on milestones. |
 | `tourCompleteProvider` | `Notifier<bool>` | tour_provider.dart | `true` once tour is finished or skipped. Persisted in Hive. |
 
-## State Lifecycle
+## State lifecycle
 
 ```mermaid
 flowchart TD
@@ -85,9 +85,9 @@ flowchart TD
     I --> J["HomeScreen watches firestoreSyncProvider\n→ activates Firestore listeners"]
 ```
 
-## Notifier Patterns
+## Notifier patterns
 
-### Dual-Write (Hive + Firestore)
+### Dual-write (Hive + Firestore)
 
 Both `SupermarketNotifier` and `ShoppingListNotifier` follow this pattern for every mutating operation:
 
@@ -99,11 +99,11 @@ Both `SupermarketNotifier` and `ShoppingListNotifier` follow this pattern for ev
 
 Deletions follow the same order and also remove the Firestore document.
 
-### Firestore → Local Sync
+### Firestore → local sync
 
 `firestoreSyncProvider` subscribes to Firestore streams for both shops and lists. On each event it calls `notifier.mergeFromRemote(items)` which reconciles remote data into the local Hive box, avoiding duplicates and respecting local deletions.
 
-### Tour State Machine
+### Tour state machine
 
 `tourStepProvider` advances through steps 0–3:
 

@@ -2,7 +2,7 @@
 
 Services are thin clients for external systems. They are accessed via Riverpod providers and contain no UI logic.
 
-## Service Overview
+## Service overview
 
 ```mermaid
 flowchart LR
@@ -50,7 +50,7 @@ All shopping list data is encrypted client-side before being sent to Firestore:
 
 Shop layouts (grid structure and goods) are **not encrypted** — they are community-shareable data.
 
-### Firestore Collections
+### Firestore collections
 
 | Path | Encrypted | Description |
 |---|---|---|
@@ -59,7 +59,7 @@ Shop layouts (grid structure and goods) are **not encrypted** — they are commu
 | `h/{pathId}/l/{listId}` | Yes (`d` field) | Shopping lists per household |
 | `h/{pathId}/nav/current` | No | Active collaborative nav session |
 
-### Key Methods
+### Key methods
 
 | Method | Description |
 |---|---|
@@ -137,11 +137,11 @@ Searches OpenStreetMap for physical shops near a coordinate.
 - **Endpoint**: Overpass API (interpreter endpoint)
 - **Method**: `searchNearby(lat, lng, radius, categories) → List<OsmShop>`
 
-### Supported OSM Shop Categories (17)
+### Supported OSM shop categories (17)
 
 `supermarket`, `convenience`, `electronics`, `computer`, `doityourself`, `hardware`, `bakery`, `butcher`, `pharmacy`, `clothes`, `department_store`, `furniture`, `books`, `sports`, `garden_centre`, `pet`, `florist`, `shoes`
 
-### OsmShop Fields
+### OsmShop fields
 
 | Field | Source |
 |---|---|
@@ -152,7 +152,7 @@ Searches OpenStreetMap for physical shops near a coordinate.
 | `lat`, `lng` | Node coords or way centroid |
 | `category` | Matched `shop=*` value |
 
-### Query Strategy
+### Query strategy
 
 - Builds a single Overpass QL query for all requested categories within `radius` metres.
 - Handles both `node` and `way` elements (uses `center` lat/lng for ways).

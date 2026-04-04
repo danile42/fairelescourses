@@ -1,10 +1,10 @@
-# Key User Flows
+# Key user flows
 
 Sequence diagrams for the most important journeys through the app.
 
 ---
 
-## 1. Create a Shop and Navigate a List
+## 1. Create a shop and navigate a list
 
 ```mermaid
 sequenceDiagram
@@ -56,7 +56,7 @@ sequenceDiagram
 
 ---
 
-## 2. Collaborative Navigation
+## 2. Collaborative navigation
 
 ```mermaid
 sequenceDiagram
@@ -96,7 +96,7 @@ sequenceDiagram
 
 ---
 
-## 3. Search and Import a Shop
+## 3. Search and import a shop
 
 ```mermaid
 sequenceDiagram
@@ -136,7 +136,7 @@ sequenceDiagram
 
 ---
 
-## 4. Join a Household
+## 4. Join a household
 
 ```mermaid
 sequenceDiagram
@@ -163,7 +163,7 @@ sequenceDiagram
 
 ---
 
-## 5. Navigation Planning Algorithm
+## 5. Navigation planning algorithm
 
 ```mermaid
 flowchart TD
