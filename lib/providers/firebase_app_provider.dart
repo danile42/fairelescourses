@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 
@@ -16,7 +17,11 @@ class FirebaseAppNotifier extends Notifier<FirebaseApp> {
     if (creds != null) {
       try {
         return Firebase.app(_customAppName);
-      } catch (_) {}
+      } catch (e) {
+        debugPrint(
+          'Custom Firebase app not yet initialized, using default: $e',
+        );
+      }
     }
     return Firebase.app();
   }
@@ -61,7 +66,9 @@ Future<void> clearCustomFirebaseCredentials(
   await box.delete(_credsKey);
   try {
     await Firebase.app(_customAppName).delete();
-  } catch (_) {}
+  } catch (e) {
+    debugPrint('Could not delete custom Firebase app (may not exist): $e');
+  }
   notifier.setApp(Firebase.app());
 }
 
@@ -72,7 +79,8 @@ FirebaseCredentials? loadSavedFirebaseCredentials() {
   if (saved == null) return null;
   try {
     return FirebaseCredentials.fromJson(saved);
-  } catch (_) {
+  } catch (e) {
+    debugPrint('Failed to parse saved Firebase credentials: $e');
     return null;
   }
 }
@@ -80,7 +88,9 @@ FirebaseCredentials? loadSavedFirebaseCredentials() {
 Future<FirebaseApp> _initNamedApp(FirebaseCredentials creds) async {
   try {
     await Firebase.app(_customAppName).delete();
-  } catch (_) {}
+  } catch (e) {
+    debugPrint('Could not delete stale custom Firebase app: $e');
+  }
   return Firebase.initializeApp(
     name: _customAppName,
     options: FirebaseOptions(

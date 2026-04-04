@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
+
 class FirebaseCredentials {
   final String projectId;
   final String apiKey;
@@ -52,7 +54,8 @@ class FirebaseCredentials {
         messagingSenderId: info['project_number'] as String,
         storageBucket: info['storage_bucket'] as String,
       );
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Failed to parse google-services.json: $e');
       return null;
     }
   }

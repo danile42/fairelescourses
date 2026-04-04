@@ -376,6 +376,10 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - New group `osmCategoryLabel – localised strings` using `AppLocalizationsEn()` directly.
     - Tests: every category key resolves to a non-empty string, spot-checks for supermarket/pharmacy/bakery, unknown key returns key itself, all 18 categories produce distinct labels.
 
+117. Add debugPrint logging to empty catch blocks in Firebase initialization (improvement-analysis #4).
+    - firebase_app_provider.dart: logged in build(), clearCustomFirebaseCredentials(), _initNamedApp(), and loadSavedFirebaseCredentials().
+    - firebase_credentials.dart: logged parse failure in fromGoogleServicesJson().
+
 116. Log errors from fire-and-forget Firestore writes instead of silently discarding them (improvement-analysis #3).
     - Replaced `.ignore()` with `.catchError((Object e) => debugPrint(...)).ignore()` on all upsertList, deleteList, upsertShop, deleteShop, upsertPublicCells, upsertNavSession, and deleteNavSession calls.
     - Added `import 'package:flutter/foundation.dart'` to the two provider files.
