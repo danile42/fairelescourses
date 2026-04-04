@@ -381,6 +381,12 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - `shopping_list_provider_test.dart`: 2 new tests for `toggleItem` out-of-bounds guard; 2 new tests in `syncFromRemote with household` verifying local-only list preservation and re-upload.
     - `supermarket_provider_test.dart`: 2 new tests in `syncFromRemote with household` verifying local-only shop preservation and re-upload.
 
+122. Check that the first 7 problems in improvement-analysis.md have been fixed, and if so, remove them from the file.
+    - Verified fixes #1–5 and #7 in source (duplicate mounted check, 3-pass matching, Firestore error logging, Firebase catch blocks, toggleItem bounds check, syncFromRemote conflict resolution). Fix #6 (orphaned session TTL) not yet implemented — no TTL field or expiry logic found.
+    - Removed fixed items #1–5 and #7 from improvement-analysis.md; renumbered remaining 10 items (#6 → #1, UX #8–16 → #2–10); updated summary table.
+
+123. Update prompts.md and commit.
+
 120. Preserve local-only items in syncFromRemote instead of silently deleting them (improvement-analysis #7).
     - shopping_list_provider: re-uploads local-only lists to Firestore instead of deleting them when they're absent from the remote snapshot.
     - supermarket_provider: same for shops.
