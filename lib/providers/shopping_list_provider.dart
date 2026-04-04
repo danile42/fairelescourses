@@ -79,6 +79,7 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
     final list = _box.get(listId);
     if (list == null) return;
     final items = list.items.toList();
+    if (index < 0 || index >= items.length) return;
     items[index] = items[index].copyWith(checked: !items[index].checked);
     final updated = list.copyWith(items: items);
     await _box.put(listId, updated);
