@@ -32,6 +32,7 @@ class _TourSpotlightState extends ConsumerState<TourSpotlight> with RouteAware {
   OverlayEntry? _entry;
   Rect? _targetRect;
   int _step = -1;
+  bool _routeIsCurrent = true;
   ProviderSubscription<int>? _stepSub;
   ProviderSubscription<bool>? _fabSub;
 
@@ -73,6 +74,7 @@ class _TourSpotlightState extends ConsumerState<TourSpotlight> with RouteAware {
   /// A new screen was pushed on top — hide the overlay without losing state.
   @override
   void didPushNext() {
+    _routeIsCurrent = false;
     _entry?.remove();
     _entry = null;
   }
@@ -80,6 +82,7 @@ class _TourSpotlightState extends ConsumerState<TourSpotlight> with RouteAware {
   /// Returned to this screen — restore the overlay.
   @override
   void didPopNext() {
+    _routeIsCurrent = true;
     if (_step >= 0) _scheduleRead();
   }
 
@@ -107,6 +110,7 @@ class _TourSpotlightState extends ConsumerState<TourSpotlight> with RouteAware {
         return;
       }
       _targetRect = box.localToGlobal(Offset.zero) & box.size;
+      if (!_routeIsCurrent) return;
       if (_entry == null) {
         _entry = OverlayEntry(builder: _buildOverlay);
         Overlay.of(context).insert(_entry!);

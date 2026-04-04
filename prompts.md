@@ -277,6 +277,12 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - `ListEditorScreen`: shows banner on step 1 ("Give your list a name and add at least one item, then tap Save.") via `bottomNavigationBar`.
     - l10n: fixed `tourStep1Title` "Create a store" → "Create a shop"; simplified `tourStep1Body`; added `tourShopEditorHint` and `tourListEditorHint` in EN + DE.
 
+101. Fix tour spotlight re-appearing on sub-screens and misplaced after return.
+    - Added `bool _routeIsCurrent = true` field to `_TourSpotlightState`.
+    - `didPushNext` sets `_routeIsCurrent = false` before clearing the entry.
+    - `didPopNext` sets `_routeIsCurrent = true` before calling `_scheduleRead`.
+    - `_scheduleRead` guards entry creation/insertion with `if (!_routeIsCurrent) return` after computing `_targetRect`, so provider change callbacks that fire while a sub-screen is open (e.g. step 0→1 on shop save) no longer inject the overlay into the editor screen, and the FAB position is only read after the home screen is fully restored.
+
 100. Hide tour spotlight when another screen is pushed on top of HomeScreen.
     - Added `tourRouteObserver` (RouteObserver<ModalRoute<void>>) in tour_provider.dart; registered in MaterialApp.navigatorObservers.
     - `_TourSpotlightState` now mixes in `RouteAware`: subscribes in `didChangeDependencies`, unsubscribes in `dispose`.
