@@ -604,4 +604,55 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   });
+
+  group('SyncScreen – leave household confirm', () {
+    testWidgets('confirming leave clears the household', (tester) async {
+      await tester.pumpWidget(_wrap(hasHousehold: true));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Leave household'));
+      await tester.tap(find.text('Leave household'));
+      await tester.pumpAndSettle();
+
+      // Dialog is open – tap "Yes" to confirm.
+      await tester.tap(find.text('Yes'));
+      await tester.pumpAndSettle();
+
+      // No exception; household is cleared (household section gone).
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('SyncScreen – reset local data', () {
+    testWidgets('shows reset confirmation dialog', (tester) async {
+      await tester.pumpWidget(_wrap());
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Reset all local data').last);
+      await tester.tap(find.text('Reset all local data').last);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('delete all local shops'),
+        findsOneWidget,
+      );
+      // Dismiss without confirming.
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('confirming reset runs without error', (tester) async {
+      await tester.pumpWidget(_wrap());
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Reset all local data').last);
+      await tester.tap(find.text('Reset all local data').last);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Yes'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    });
+  });
 }

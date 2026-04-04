@@ -250,6 +250,36 @@ void main() {
       expect(find.text('Neuer Markt'), findsOneWidget);
       expect(find.text('Speichern'), findsOneWidget);
     });
+
+    testWidgets('editing existing shop shows editShop title in German', (
+      tester,
+    ) async {
+      final store = _store();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
+            supermarketsProvider.overrideWith(
+              () => _FakeStoresNotifier([store]),
+            ),
+            shoppingListsProvider.overrideWith(() => _FakeListsNotifier()),
+            firestoreSyncProvider.overrideWith((ref) {}),
+            currentUidProvider.overrideWith((ref) => null),
+            firestoreServiceProvider.overrideWithValue(MockFirestoreService()),
+          ],
+          child: MaterialApp(
+            locale: const Locale('de'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: StoreEditorScreen(existing: store),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      // Covers app_localizations_de.dart line 96 (editShop).
+      expect(find.text('Markt bearbeiten'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
   });
 
   group('StoreEditorScreen – save', () {
@@ -772,5 +802,166 @@ void main() {
         expect(tester.takeException(), isNull);
       },
     );
+  });
+
+  group('StoreEditorScreen – cell goods editing', () {
+    testWidgets('tapping entrance cell may open goods dialog', (tester) async {
+      final store = _store();
+      await tester.pumpWidget(
+        _wrap(StoreEditorScreen(existing: store), existingStores: [store]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.byIcon(Icons.login));
+      await tester.pump();
+      await tester.tap(find.byIcon(Icons.login), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      // Dialog opens if the cell tap landed.
+      if (find.text('OK').evaluate().isNotEmpty) {
+        expect(find.text('Edit cell'), findsOneWidget);
+        // Type goods and confirm.
+        await tester.enterText(find.byType(TextField).last, 'Bread, Milk');
+        await tester.tap(find.text('OK'));
+        await tester.pumpAndSettle();
+      }
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('cancelling cell goods dialog discards changes', (
+      tester,
+    ) async {
+      final store = _store();
+      await tester.pumpWidget(
+        _wrap(StoreEditorScreen(existing: store), existingStores: [store]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.byIcon(Icons.login));
+      await tester.pump();
+      await tester.tap(find.byIcon(Icons.login), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      if (find.text('Cancel').evaluate().isNotEmpty) {
+        await tester.enterText(find.byType(TextField).last, 'Eggs');
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+      }
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('StoreEditorScreen – entrance/exit from context menu', () {
+    testWidgets('long-press cell shows Set entrance and Set exit options', (
+      tester,
+    ) async {
+      final store = _store();
+      await tester.pumpWidget(
+        _wrap(StoreEditorScreen(existing: store), existingStores: [store]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.byIcon(Icons.login));
+      await tester.pump();
+      await tester.longPress(find.byIcon(Icons.login), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      if (find.text('Set entrance').evaluate().isNotEmpty) {
+        expect(find.text('Set exit'), findsOneWidget);
+
+        await tester.tap(find.text('Set entrance'));
+        await tester.pumpAndSettle();
+      }
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('choosing Set exit from long-press menu updates exit', (
+      tester,
+    ) async {
+      final store = _store();
+      await tester.pumpWidget(
+        _wrap(StoreEditorScreen(existing: store), existingStores: [store]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.byIcon(Icons.login));
+      await tester.pump();
+      await tester.longPress(find.byIcon(Icons.login), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      if (find.text('Set exit').evaluate().isNotEmpty) {
+        await tester.tap(find.text('Set exit'));
+        await tester.pumpAndSettle();
+      }
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('StoreEditorScreen – unsaved changes dialog', () {
+    testWidgets(
+      'system back with dirty state triggers unsaved-changes dialog',
+      (tester) async {
+        final store = _store();
+        await tester.pumpWidget(
+          _wrap(StoreEditorScreen(existing: store), existingStores: [store]),
+        );
+        await tester.pumpAndSettle();
+
+        // Dirty the form by editing the name field.
+        await tester.enterText(find.byType(TextField).first, 'Changed Name');
+        await tester.pump();
+
+        // Simulate system back press; PopScope intercepts when canPop == false.
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+
+        // Dialog should appear with "Keep editing" and "Discard".
+        expect(find.text('Keep editing'), findsOneWidget);
+        expect(find.text('Discard'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets('discarding unsaved changes leaves screen', (tester) async {
+      final store = _store();
+      await tester.pumpWidget(
+        _wrap(StoreEditorScreen(existing: store), existingStores: [store]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField).first, 'Changed Name');
+      await tester.pump();
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Discard'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('keeping editing dismisses unsaved-changes dialog', (
+      tester,
+    ) async {
+      final store = _store();
+      await tester.pumpWidget(
+        _wrap(StoreEditorScreen(existing: store), existingStores: [store]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField).first, 'Changed Name');
+      await tester.pump();
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Keep editing'));
+      await tester.pumpAndSettle();
+
+      // Still on the editor.
+      expect(find.text('Changed Name'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
   });
 }

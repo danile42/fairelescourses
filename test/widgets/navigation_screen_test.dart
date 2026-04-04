@@ -710,30 +710,89 @@ void main() {
 
   // ── German locale ─────────────────────────────────────────────────────────
 
+  Widget _wrapDe(NavigationPlan plan, {List<ShoppingItem>? listItems}) {
+    final items =
+        listItems ??
+        plan.storePlans
+            .expand((s) => s.stops)
+            .expand((stop) => stop.items)
+            .map((name) => ShoppingItem(name: name))
+            .toList();
+    return ProviderScope(
+      overrides: [
+        navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
+        shoppingListsProvider.overrideWith(() => _FakeListsNotifier(items)),
+        supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+      ],
+      child: MaterialApp(
+        locale: const Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: NavigationScreen(plan: plan, listId: _listId),
+      ),
+    );
+  }
+
   group('NavigationScreen – German locale', () {
     testWidgets('renders in German without error', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
-            shoppingListsProvider.overrideWith(
-              () => _FakeListsNotifier([ShoppingItem(name: 'Milch')]),
-            ),
-            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
-          ],
-          child: MaterialApp(
-            locale: const Locale('de'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: NavigationScreen(
-              plan: _singleStorePlan(['Milch']),
-              listId: _listId,
-            ),
-          ),
-        ),
-      );
+      await tester.pumpWidget(_wrapDe(_singleStorePlan(['Milch'])));
       await tester.pumpAndSettle();
       expect(find.text('Navigation'), findsOneWidget);
+    });
+
+    testWidgets('German done view shows "Abschließen" and progress', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrapDe(_singleStorePlan(['Milch'])));
+      await tester.pumpAndSettle();
+
+      // Check the item to reach done view.
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Alle Artikel eingesammelt!'), findsOneWidget);
+      expect(find.text('Abschließen'), findsOneWidget);
+    });
+
+    testWidgets('German unmatched items label shown in list view', (
+      tester,
+    ) async {
+      final plan = NavigationPlan(
+        storePlans: [
+          StorePlan(
+            storeId: 's1',
+            storeName: 'Testmarkt',
+            stops: [NavigationStop(cell: 'A1', items: ['Milch'])],
+            unmatched: [],
+          ),
+        ],
+        globalUnmatched: ['Käse'],
+      );
+      await tester.pumpWidget(_wrapDe(plan));
+      await tester.pumpAndSettle();
+
+      // Switch to list view to see unmatched section.
+      await tester.tap(find.byIcon(Icons.list));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('In keinem Markt'), findsWidgets);
+    });
+
+    testWidgets('German two-store plan shows "Nächster Markt" button', (
+      tester,
+    ) async {
+      final plan = _twoStorePlan(
+        store1Items: ['Milch'],
+        store2Items: ['Brot'],
+      );
+      await tester.pumpWidget(_wrapDe(plan));
+      await tester.pumpAndSettle();
+
+      // Check item at store one to reach done view.
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nächster Markt'), findsOneWidget);
     });
   });
 
@@ -1099,6 +1158,91 @@ void main() {
 
       expect(find.text('Next shop'), findsOneWidget);
       expect(find.text('Finish'), findsNothing);
+    });
+  });
+
+  // ── Empty plan with no items ───────────────────────────────────────────────
+
+  group('NavigationScreen – empty plan no unmatched', () {
+    testWidgets('shows search_off icon when plan is fully empty', (
+      tester,
+    ) async {
+      final plan = NavigationPlan(storePlans: [], globalUnmatched: []);
+      await tester.pumpWidget(_wrap(plan));
+      await tester.pumpAndSettle();
+
+      // Shows navigation title and search_off icon.
+      expect(find.text('Navigation'), findsOneWidget);
+      expect(find.byIcon(Icons.search_off), findsOneWidget);
+    });
+  });
+
+  // ── Cancel option in collect-later sheet ──────────────────────────────────
+
+  group('NavigationScreen – collect later cancel', () {
+    testWidgets('tapping Cancel in collect-later sheet dismisses it', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap(_singleStorePlan(['Milk', 'Bread'])));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.schedule).first);
+      await tester.pumpAndSettle();
+
+      // Bottom sheet is open; tap Cancel.
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+
+      // Sheet is dismissed; both items still have schedule buttons.
+      expect(find.byIcon(Icons.schedule), findsNWidgets(2));
+    });
+  });
+
+  // ── List view progress counting with deferred items ───────────────────────
+
+  group('NavigationScreen – list view progress', () {
+    testWidgets('list view counts checked items in overall progress', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(_twoStorePlan(store1Items: ['Milk'], store2Items: ['Bread'])),
+      );
+      await tester.pumpAndSettle();
+
+      // Switch to list view.
+      await tester.tap(find.byIcon(Icons.list));
+      await tester.pumpAndSettle();
+
+      // Check 'Milk' – progress bar should update (no exception).
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    });
+  });
+
+  // ── Done view deferred-to-new-list button ─────────────────────────────────
+
+  group('NavigationScreen – done view new list button', () {
+    testWidgets('deferred-to-new-list section shows "New list" button', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap(_singleStorePlan(['Milk', 'Bread'])));
+      await tester.pumpAndSettle();
+
+      // Defer 'Milk' to new list.
+      await tester.tap(find.byIcon(Icons.schedule).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.playlist_add));
+      await tester.pumpAndSettle();
+
+      // Check 'Bread' to complete the store (index 1 — Milk is at index 0 but disabled).
+      await tester.tap(find.byType(Checkbox).at(1));
+      await tester.pumpAndSettle();
+
+      // Done view at last store with deferred items shows "New list" button.
+      expect(find.text('New list'), findsOneWidget);
     });
   });
 }

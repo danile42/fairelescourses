@@ -375,3 +375,10 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 91. Add `osmCategoryLabel` tests to overpass_service_test.dart.
     - New group `osmCategoryLabel – localised strings` using `AppLocalizationsEn()` directly.
     - Tests: every category key resolves to a non-empty string, spot-checks for supermarket/pharmacy/bakery, unknown key returns key itself, all 18 categories produce distinct labels.
+
+112. Add tests to reach 65% line coverage.
+    - Coverage raised from 63.6% → 65.02% (3717/5717 lines), 484 tests total.
+    - `list_editor_screen_test.dart`: deselect-store-chip test (covers `ids.remove` else-branch); German locale tests for preferred shops + empty list (`preferredShops`, `noItemsInList`), item popup menu (`moveToList`, `rename`), and unsaved-changes dialog (`unsavedChanges`, `discardChanges`, `keepEditing`).
+    - `home_screen_test.dart`: German FAB expansion test (`newList`); German delete-shop confirmation dialog (`deleteConfirm`, `yes`, `no`).
+    - `store_editor_screen_test.dart`: German "edit existing shop" test (`editShop`).
+    - Key fixes: used `find.byTooltip('Zurück')` instead of `pageBack()` in German locale (back button tooltip is locale-dependent); discarded overflow exception from popup menu render with `tester.takeException()` before asserting `isNull`.

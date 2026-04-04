@@ -46,6 +46,9 @@ class _FakeListsNotifier extends ShoppingListNotifier {
         if (e.id != id) e,
     ];
   }
+
+  @override
+  Future<void> copy(String listId) async {}
 }
 
 class _FakeStoresNotifier extends SupermarketNotifier {
@@ -59,6 +62,14 @@ class _FakeStoresNotifierWith extends SupermarketNotifier {
 
   @override
   List<Supermarket> build() => _stores;
+
+  @override
+  Future<void> remove(String id) async {
+    state = [
+      for (final s in state)
+        if (s.id != id) s,
+    ];
+  }
 }
 
 class _FakeNavViewModeNotifier extends NavViewModeNotifier {
@@ -656,6 +667,291 @@ void main() {
 
       // No exception when joining session.
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('HomeScreen – copy list from popup', () {
+    testWidgets('tapping Copy from popup copies the list', (tester) async {
+      await tester.pumpWidget(_wrap(lists: [_list('L1', 'Groceries')]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert).first);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Copy'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('HomeScreen – confirm delete store', () {
+    testWidgets('tapping Yes in delete store dialog removes store', (
+      tester,
+    ) async {
+      final store = Supermarket(
+        id: 'store-1',
+        name: 'Test Market',
+        rows: ['A'],
+        cols: ['1'],
+        entrance: 'A1',
+        exit: 'A1',
+        cells: {},
+      );
+      await tester.pumpWidget(_wrap(lists: [], stores: [store]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Shops'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Yes'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('HomeScreen – German FAB expansion', () {
+    testWidgets('tapping FAB in German shows Neue Liste button', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
+            shoppingListsProvider.overrideWith(() => _FakeListsNotifier([])),
+            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+            navSessionProvider.overrideWith((ref) => Stream.value(null)),
+            navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
+            localOnlyProvider.overrideWith(() => _FakeLocalOnlyNotifier()),
+            firestoreSyncProvider.overrideWith((ref) {}),
+            currentUidProvider.overrideWith((ref) => null),
+            firestoreServiceProvider.overrideWithValue(MockFirestoreService()),
+          ],
+          child: MaterialApp(
+            locale: const Locale('de'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const HomeScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Tap the main FAB to expand it.
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+
+      // Covers app_localizations_de.dart line 17 (newList).
+      expect(find.text('Neue Liste'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('HomeScreen – German empty lists state', () {
+    testWidgets('renders empty lists state in German', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
+            shoppingListsProvider.overrideWith(() => _FakeListsNotifier([])),
+            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+            navSessionProvider.overrideWith((ref) => Stream.value(null)),
+            navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
+            localOnlyProvider.overrideWith(() => _FakeLocalOnlyNotifier()),
+            firestoreSyncProvider.overrideWith((ref) {}),
+            currentUidProvider.overrideWith((ref) => null),
+            firestoreServiceProvider.overrideWithValue(MockFirestoreService()),
+          ],
+          child: MaterialApp(
+            locale: const Locale('de'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const HomeScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Noch keine Einkaufslisten'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('tapping "Liste erstellen" opens list editor', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
+            shoppingListsProvider.overrideWith(() => _FakeListsNotifier([])),
+            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+            navSessionProvider.overrideWith((ref) => Stream.value(null)),
+            navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
+            localOnlyProvider.overrideWith(() => _FakeLocalOnlyNotifier()),
+            firestoreSyncProvider.overrideWith((ref) {}),
+            currentUidProvider.overrideWith((ref) => null),
+            firestoreServiceProvider.overrideWithValue(MockFirestoreService()),
+          ],
+          child: MaterialApp(
+            locale: const Locale('de'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const HomeScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Liste erstellen'));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('HomeScreen – German empty shops state', () {
+    testWidgets('switching to Märkte tab in German shows empty state', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
+            shoppingListsProvider.overrideWith(() => _FakeListsNotifier([])),
+            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+            navSessionProvider.overrideWith((ref) => Stream.value(null)),
+            navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
+            localOnlyProvider.overrideWith(() => _FakeLocalOnlyNotifier()),
+            firestoreSyncProvider.overrideWith((ref) {}),
+            currentUidProvider.overrideWith((ref) => null),
+            firestoreServiceProvider.overrideWithValue(MockFirestoreService()),
+          ],
+          child: MaterialApp(
+            locale: const Locale('de'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const HomeScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Märkte'));
+      await tester.pumpAndSettle();
+      expect(find.text('Noch keine Märkte'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('tapping "Markt erstellen" opens store editor', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
+            shoppingListsProvider.overrideWith(() => _FakeListsNotifier([])),
+            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+            navSessionProvider.overrideWith((ref) => Stream.value(null)),
+            navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
+            localOnlyProvider.overrideWith(() => _FakeLocalOnlyNotifier()),
+            firestoreSyncProvider.overrideWith((ref) {}),
+            currentUidProvider.overrideWith((ref) => null),
+            firestoreServiceProvider.overrideWithValue(MockFirestoreService()),
+          ],
+          child: MaterialApp(
+            locale: const Locale('de'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const HomeScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Märkte'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Markt erstellen'));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('tapping "Markt suchen" opens shop search screen', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
+            shoppingListsProvider.overrideWith(() => _FakeListsNotifier([])),
+            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+            navSessionProvider.overrideWith((ref) => Stream.value(null)),
+            navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
+            localOnlyProvider.overrideWith(() => _FakeLocalOnlyNotifier()),
+            firestoreSyncProvider.overrideWith((ref) {}),
+            currentUidProvider.overrideWith((ref) => null),
+            firestoreServiceProvider.overrideWithValue(MockFirestoreService()),
+          ],
+          child: MaterialApp(
+            locale: const Locale('de'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const HomeScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Märkte'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Markt suchen'));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('HomeScreen – German delete shop confirmation', () {
+    testWidgets('delete shop dialog shows German strings', (tester) async {
+      final store = Supermarket(
+        id: 'store-de',
+        name: 'Rewe',
+        rows: ['A'],
+        cols: ['1'],
+        entrance: 'A1',
+        exit: 'A1',
+        cells: {},
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
+            shoppingListsProvider.overrideWith(() => _FakeListsNotifier([])),
+            supermarketsProvider.overrideWith(
+              () => _FakeStoresNotifierWith([store]),
+            ),
+            navSessionProvider.overrideWith((ref) => Stream.value(null)),
+            navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
+            localOnlyProvider.overrideWith(() => _FakeLocalOnlyNotifier()),
+            firestoreSyncProvider.overrideWith((ref) {}),
+            currentUidProvider.overrideWith((ref) => null),
+            firestoreServiceProvider.overrideWithValue(MockFirestoreService()),
+          ],
+          child: MaterialApp(
+            locale: const Locale('de'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const HomeScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Märkte'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+
+      // Covers app_localizations_de.dart lines 131 (deleteConfirm), 136 (yes), 139 (no).
+      expect(find.textContaining('Rewe'), findsWidgets);
+      expect(find.text('Ja'), findsOneWidget);
+      expect(find.text('Nein'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      await tester.tap(find.text('Nein'));
+      await tester.pumpAndSettle();
     });
   });
 

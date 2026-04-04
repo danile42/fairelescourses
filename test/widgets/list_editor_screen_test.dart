@@ -761,6 +761,248 @@ void main() {
     });
   });
 
+  group('ListEditorScreen – store selector', () {
+    testWidgets(
+      'shows FilterChip for each store and tapping it updates selection',
+      (tester) async {
+        final store = Supermarket(
+          id: 's1',
+          name: 'Rewe',
+          rows: ['A'],
+          cols: ['1'],
+          entrance: 'A1',
+          exit: 'A1',
+          cells: {},
+        );
+        await tester.pumpWidget(_wrap(_list(), stores: [store]));
+        await tester.pumpAndSettle();
+
+        // FilterChip for the store is visible.
+        expect(find.text('Rewe'), findsOneWidget);
+
+        // Tap the chip to select it.
+        await tester.tap(find.text('Rewe'));
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+      },
+    );
+  });
+
+  group('ListEditorScreen – rename updates item correctly', () {
+    testWidgets('renaming via last TextField updates item name', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap(_list()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Rename'));
+      await tester.pumpAndSettle();
+
+      // The LAST TextField is the Autocomplete dialog field.
+      await tester.enterText(find.byType(TextField).last, 'Yoghurt');
+      await tester.pump();
+      await tester.tap(find.text('Save').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Yoghurt'), findsOneWidget);
+    });
+  });
+
+  group('ListEditorScreen – deselect store chip', () {
+    testWidgets('tapping a selected store chip deselects it', (tester) async {
+      final store = Supermarket(
+        id: 's1',
+        name: 'Rewe',
+        rows: ['A'],
+        cols: ['1'],
+        entrance: 'A1',
+        exit: 'A1',
+        cells: {},
+      );
+      // Start with the store pre-selected in preferredStoreIds.
+      final list = ShoppingList(
+        id: 'L1',
+        name: 'Groceries',
+        preferredStoreIds: ['s1'],
+        items: [ShoppingItem(name: 'Milk')],
+      );
+      await tester.pumpWidget(_wrap(list, stores: [store]));
+      await tester.pumpAndSettle();
+
+      // The chip is selected — tapping triggers the else-branch (ids.remove).
+      await tester.tap(find.text('Rewe'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('ListEditorScreen – German preferred shops and empty list', () {
+    testWidgets('shows preferredShops and noItemsInList strings in German', (
+      tester,
+    ) async {
+      final store = Supermarket(
+        id: 's1',
+        name: 'Rewe',
+        rows: ['A'],
+        cols: ['1'],
+        entrance: 'A1',
+        exit: 'A1',
+        cells: {},
+      );
+      final mockSvc = MockFirestoreService();
+      when(() => mockSvc.upsertList(any(), any())).thenAnswer((_) async {});
+      when(() => mockSvc.deleteList(any(), any())).thenAnswer((_) async {});
+
+      final emptyList = _list(items: []);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
+            shoppingListsProvider.overrideWith(
+              () => _FakeListsNotifier([emptyList]),
+            ),
+            supermarketsProvider.overrideWith(
+              () => _FakeStoresNotifierWith([store]),
+            ),
+            navSessionProvider.overrideWith((ref) => Stream.value(null)),
+            navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
+            localOnlyProvider.overrideWith(() => _FakeLocalOnlyNotifier()),
+            firestoreSyncProvider.overrideWith((ref) {}),
+            currentUidProvider.overrideWith((ref) => null),
+            firestoreServiceProvider.overrideWithValue(mockSvc),
+          ],
+          child: MaterialApp(
+            locale: const Locale('de'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: ListEditorScreen(list: emptyList, isNew: false),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Covers app_localizations_de.dart lines 179 and 182.
+      expect(find.text('Bevorzugte Märkte (optional)'), findsOneWidget);
+      expect(find.textContaining('Noch keine Artikel'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('ListEditorScreen – German item popup menu', () {
+    testWidgets('popup menu in German shows moveToList and rename', (
+      tester,
+    ) async {
+      final list1 = _list(id: 'L1', name: 'Einkauf');
+      final list2 = _list(id: 'L2', name: 'Hardware', items: []);
+      final mockSvc = MockFirestoreService();
+      when(() => mockSvc.upsertList(any(), any())).thenAnswer((_) async {});
+      when(() => mockSvc.deleteList(any(), any())).thenAnswer((_) async {});
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
+            shoppingListsProvider.overrideWith(
+              () => _FakeListsNotifier([list1, list2]),
+            ),
+            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+            navSessionProvider.overrideWith((ref) => Stream.value(null)),
+            navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
+            localOnlyProvider.overrideWith(() => _FakeLocalOnlyNotifier()),
+            firestoreSyncProvider.overrideWith((ref) {}),
+            currentUidProvider.overrideWith((ref) => null),
+            firestoreServiceProvider.overrideWithValue(mockSvc),
+          ],
+          child: MaterialApp(
+            locale: const Locale('de'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: ListEditorScreen(list: list1, isNew: false),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert).first);
+      await tester.pumpAndSettle();
+
+      // Covers app_localizations_de.dart lines 636 and 645.
+      expect(find.text('In Liste verschieben'), findsOneWidget);
+      expect(find.text('Umbenennen'), findsOneWidget);
+
+      // Dismiss popup — ignore overflow errors from the menu rendering.
+      tester.takeException();
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+    });
+  });
+
+  group('ListEditorScreen – German unsaved changes dialog', () {
+    testWidgets('unsaved changes dialog shows German strings', (tester) async {
+      final mockSvc = MockFirestoreService();
+      when(() => mockSvc.upsertList(any(), any())).thenAnswer((_) async {});
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
+            shoppingListsProvider.overrideWith(
+              () => _FakeListsNotifier([_list()]),
+            ),
+            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+            navSessionProvider.overrideWith((ref) => Stream.value(null)),
+            firestoreSyncProvider.overrideWith((ref) {}),
+            currentUidProvider.overrideWith((ref) => null),
+            firestoreServiceProvider.overrideWithValue(mockSvc),
+          ],
+          child: MaterialApp(
+            locale: const Locale('de'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Builder(
+              builder: (ctx) => Scaffold(
+                body: TextButton(
+                  onPressed: () => Navigator.of(ctx).push(
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          ListEditorScreen(list: _list(), isNew: false),
+                    ),
+                  ),
+                  child: const Text('Open'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+
+      // Make a change to mark dirty.
+      await tester.enterText(find.byType(TextField).last, 'Butter');
+      await tester.pump();
+      await tester.tap(find.byIcon(Icons.add_circle));
+      await tester.pumpAndSettle();
+
+      // In German locale the back button tooltip is 'Zurück', so pageBack() fails.
+      await tester.tap(find.byTooltip('Zurück'));
+      await tester.pumpAndSettle();
+
+      // Covers app_localizations_de.dart lines 294, 297, 300.
+      expect(find.text('Verwerfen'), findsOneWidget);
+      expect(find.text('Weiter bearbeiten'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      await tester.tap(find.text('Verwerfen'));
+      await tester.pumpAndSettle();
+    });
+  });
+
   // start navigation must run LAST: pushing NavigationScreen leaves persistent
   // timers that prevent pumpAndSettle() from ever returning in subsequent tests.
   group('ListEditorScreen – start navigation', () {
