@@ -376,6 +376,9 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - New group `osmCategoryLabel – localised strings` using `AppLocalizationsEn()` directly.
     - Tests: every category key resolves to a non-empty string, spot-checks for supermarket/pharmacy/bakery, unknown key returns key itself, all 18 categories produce distinct labels.
 
+115. Align ShopFloor.findCell() with Supermarket's 3-pass matching strategy (improvement-analysis #2).
+    - Replaced plain substring match with exact → all-words → substring passes so individual-floor searches return the same quality matches as full-store searches.
+
 114. Fix duplicate `mounted` check in navigation_screen.dart (improvement-analysis #1).
     - Removed the second redundant `if (!mounted) return;` at line 417.
 

@@ -56,22 +56,56 @@ class ShopFloor {
     return null;
   }
 
+  /// Find which cell contains [item] using the same 3-pass strategy as
+  /// [Supermarket.findCellWithFloor]: exact → all-words → substring.
   String? findCell(String item) {
     final q = item.toLowerCase().trim();
+
+    // Pass 1: exact match
     for (final entry in cells.entries) {
       for (final tag in entry.value) {
-        if (tag.toLowerCase().contains(q) || q.contains(tag.toLowerCase())) {
-          return entry.key;
-        }
+        if (tag.toLowerCase() == q) return entry.key;
       }
     }
     for (final entry in subcells.entries) {
       for (final tag in entry.value) {
-        if (tag.toLowerCase().contains(q) || q.contains(tag.toLowerCase())) {
-          return entry.key.split(':').first;
+        if (tag.toLowerCase() == q) return entry.key.split(':').first;
+      }
+    }
+
+    // Pass 2: all-words match
+    final words = q.split(' ').where((w) => w.isNotEmpty).toList();
+    if (words.length > 1) {
+      for (final entry in cells.entries) {
+        for (final tag in entry.value) {
+          final t = tag.toLowerCase();
+          if (words.every((w) => t.contains(w))) return entry.key;
+        }
+      }
+      for (final entry in subcells.entries) {
+        for (final tag in entry.value) {
+          final t = tag.toLowerCase();
+          if (words.every((w) => t.contains(w))) {
+            return entry.key.split(':').first;
+          }
         }
       }
     }
+
+    // Pass 3: substring match
+    for (final entry in cells.entries) {
+      for (final tag in entry.value) {
+        final t = tag.toLowerCase();
+        if (t.contains(q) || q.contains(t)) return entry.key;
+      }
+    }
+    for (final entry in subcells.entries) {
+      for (final tag in entry.value) {
+        final t = tag.toLowerCase();
+        if (t.contains(q) || q.contains(t)) return entry.key.split(':').first;
+      }
+    }
+
     return null;
   }
 
