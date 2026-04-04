@@ -80,22 +80,27 @@ class _TourSpotlightState extends ConsumerState<TourSpotlight> with RouteAware {
   }
 
   /// Returned to this screen — restore the overlay once the pop animation ends.
+  ///
+  /// HomeScreen's primary [animation] stays at completed throughout.
+  /// It is the [secondaryAnimation] that transitions from completed → dismissed
+  /// as the sub-screen slides away, so we wait for dismissed before reading
+  /// widget positions.
   @override
   void didPopNext() {
     _routeIsCurrent = true;
-    final animation = ModalRoute.of(context)?.animation;
-    if (animation == null || animation.status == AnimationStatus.completed) {
+    final secondary = ModalRoute.of(context)?.secondaryAnimation;
+    if (secondary == null || secondary.status == AnimationStatus.dismissed) {
       if (_step >= 0) _scheduleRead();
     } else {
-      animation.addStatusListener(_onRouteAnimationStatus);
+      secondary.addStatusListener(_onSecondaryAnimationStatus);
     }
   }
 
-  void _onRouteAnimationStatus(AnimationStatus status) {
-    if (status == AnimationStatus.completed) {
+  void _onSecondaryAnimationStatus(AnimationStatus status) {
+    if (status == AnimationStatus.dismissed) {
       ModalRoute.of(
         context,
-      )?.animation?.removeStatusListener(_onRouteAnimationStatus);
+      )?.secondaryAnimation?.removeStatusListener(_onSecondaryAnimationStatus);
       if (_routeIsCurrent && _step >= 0) _scheduleRead();
     }
   }
