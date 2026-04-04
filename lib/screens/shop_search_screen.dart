@@ -729,10 +729,35 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     final showOsmSection = hasOsm || _osmLoading || _osmError != null;
 
     if (!hasFirestore && !showOsmSection) {
+      if (_selectedBrands.isNotEmpty) {
+        return Center(
+          child: Text(
+            l.noShopsMatchFilter,
+            style: const TextStyle(color: Colors.grey),
+          ),
+        );
+      }
       return Center(
-        child: Text(
-          _selectedBrands.isNotEmpty ? l.noShopsMatchFilter : l.noShopsFound,
-          style: const TextStyle(color: Colors.grey),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(l.noShopsFound, style: const TextStyle(color: Colors.grey)),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => StoreEditorScreen(
+                    focusItems: widget.focusItem != null
+                        ? [widget.focusItem!]
+                        : const [],
+                  ),
+                ),
+              ),
+              icon: const Icon(Icons.add),
+              label: Text(l.newShop),
+            ),
+          ],
         ),
       );
     }

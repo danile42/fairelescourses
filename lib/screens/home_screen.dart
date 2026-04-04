@@ -161,14 +161,9 @@ class _HomeFabState extends ConsumerState<_HomeFab> {
             onTap: () {
               setState(() => _expanded = false);
               ref.read(tourFabExpandedProvider.notifier).set(false);
-              final tourStep = ref.read(tourStepProvider);
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => tourStep == 3
-                      ? const ShopSearchScreen()
-                      : const StoreEditorScreen(),
-                ),
+                MaterialPageRoute(builder: (_) => const ShopSearchScreen()),
               );
             },
           ),

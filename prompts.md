@@ -376,6 +376,10 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - New group `osmCategoryLabel – localised strings` using `AppLocalizationsEn()` directly.
     - Tests: every category key resolves to a non-empty string, spot-checks for supermarket/pharmacy/bakery, unknown key returns key itself, all 18 categories produce distinct labels.
 
+127. "New shop" always opens shop search; "Create from scratch" only offered when search returns no results.
+    - Removed the tourStep == 3 condition — "New shop" FAB unconditionally opens ShopSearchScreen.
+    - ShopSearchScreen: when search has been performed and both Firestore and OSM return nothing (and no brand filter is active), shows a "New shop" OutlinedButton to open StoreEditorScreen from scratch.
+
 126. Correct the tour: keep the original 3 steps, add a new step 4 after navigation that guides the user to find shops online.
     - Reverted tourStep1Title/tourStep1Body to original ("Create a shop" / "Tap + and choose 'New shop'.") in both locales.
     - Added tourStep4Title/tourStep4Body in EN and DE for the new online-search step.
