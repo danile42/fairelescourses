@@ -349,6 +349,15 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - Grid view: adjacent (non-current, non-done) stop cards get `secondaryContainer` background alongside the existing `primaryContainer` for the current stop.
     - List view: `_buildItemRow` gains a `highlighted` flag; adjacent items are wrapped in a semi-transparent `secondaryContainer` `ColoredBox` (45% opacity). List iteration changed from `expand` to nested `for` loops to carry stop context per item.
 
+106. Analyze the architecture of the project and write documentation including diagrams (with PlantUML) to enable future developers to understand the project. Write this in a directory docs/architecture as markdown files.
+    - Created `docs/architecture/README.md`: high-level overview, tech stack table, directory layout, top-level component diagram.
+    - Created `docs/architecture/data-models.md`: PlantUML class diagram for all models (Supermarket, ShopFloor, ShoppingList, NavigationPlan, NavSession, FirebaseCredentials) with field/method details.
+    - Created `docs/architecture/state-management.md`: Riverpod provider graph, full provider reference table, startup lifecycle diagram, dual-write and Firestore sync patterns, tour state machine.
+    - Created `docs/architecture/screens-navigation.md`: screen hierarchy diagram, push/pop navigation map, per-screen description, simplified widget tree diagram.
+    - Created `docs/architecture/services.md`: service component diagram, FirestoreService (auth, encryption, Firestore schema, methods), NavigationPlanner algorithm flowchart, NominatimService, OverpassService.
+    - Created `docs/architecture/persistence.md`: storage architecture diagram, Hive box layout, settings key reference, full Firestore document schema, data consistency model.
+    - Created `docs/architecture/key-flows.md`: PlantUML sequence diagrams for create-shop-and-navigate, collaborative navigation, search-and-import, join-household, and navigation planning algorithm.
+
 91. Add `osmCategoryLabel` tests to overpass_service_test.dart.
     - New group `osmCategoryLabel – localised strings` using `AppLocalizationsEn()` directly.
     - Tests: every category key resolves to a non-empty string, spot-checks for supermarket/pharmacy/bakery, unknown key returns key itself, all 18 categories produce distinct labels.
