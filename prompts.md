@@ -271,6 +271,13 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - SyncScreen AppBar title updated to `configTitle`.
     - Tests: sync icon finder updated to `settings_outlined`; German title assertion updated to "Einstellungen".
 
+98. Upgrade interactive tour to a spotlight overlay pointing at actual buttons.
+    - `TourSpotlight` (ConsumerStatefulWidget, tour_spotlight.dart) manages a full-screen `OverlayEntry`: dark scrim with a circular cutout over the target button, white ring border, and a floating callout card with step dots + skip button.
+    - Two global keys exported from tour_spotlight.dart: `tourFabKey` (applied to the FAB) and `tourPlayKey` (applied to the first list's play button when `i == 0`).
+    - Uses `ref.listenManual` + `addPostFrameCallback` with retry (up to 15 frames) to locate the target RenderBox after navigation transitions.
+    - Callout positions itself above or below the spotlight circle depending on screen position.
+    - `TourCard` widget removed (replaced by the callout inside the overlay).
+
 97. Replace first-start help screen with an interactive 3-step tour.
     - `TourStepNotifier` (NotifierProvider<int>) in tour_provider.dart: initialises from Hive (`introSeen`); -1 = inactive, 0/1/2 = current step; `advance(fromStep)` guards idempotency; `complete()` persists to Hive and sets -1.
     - `TourCard` widget (lib/widgets/tour_card.dart): animated step-dot progress indicator, icon + title + body for each step, "Skip tour" button; shown at bottom of HomeScreen body column; disappears when step == -1.

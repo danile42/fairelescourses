@@ -11,7 +11,7 @@ import '../providers/nav_session_provider.dart';
 import '../providers/shopping_list_provider.dart';
 import '../providers/supermarket_provider.dart';
 import '../providers/tour_provider.dart';
-import '../widgets/tour_card.dart';
+import '../widgets/tour_spotlight.dart';
 import 'help_screen.dart';
 import 'list_editor_screen.dart';
 import 'store_editor_screen.dart';
@@ -117,7 +117,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ],
               ),
             ),
-            const TourCard(),
+            const TourSpotlight(),
           ],
         ),
         floatingActionButton: _HomeFab(lists: lists),
@@ -180,6 +180,7 @@ class _HomeFabState extends ConsumerState<_HomeFab> {
           const SizedBox(height: 8),
         ],
         FloatingActionButton(
+          key: tourFabKey,
           onPressed: () => setState(() => _expanded = !_expanded),
           child: AnimatedRotation(
             turns: _expanded ? 0.125 : 0,
@@ -612,6 +613,7 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
                                   ),
                                 ] else
                                   IconButton(
+                                    key: i == 0 ? tourPlayKey : null,
                                     icon: const Icon(Icons.play_arrow),
                                     tooltip: l.generatePlan,
                                     onPressed: hasActiveCollabSession
