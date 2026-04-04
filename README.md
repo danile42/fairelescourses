@@ -67,46 +67,7 @@ You draw each shop's floor plan as a grid, tag every cell with the goods it cont
 
 ## Architecture
 
-```
-lib/
-├── main.dart                  # App entry point; Firebase init; Hive setup
-├── firebase_options.dart      # Generated Firebase config (built-in instance)
-├── models/                    # Plain Dart data classes + Hive adapters
-│   ├── supermarket.dart       # Shop model; findCellWithFloor(); split helpers
-│   ├── shopping_list.dart     # List + ShoppingItem models
-│   ├── navigation_plan.dart   # NavigationPlan / StorePlan / NavigationStop
-│   ├── shop_floor.dart        # Additional-floor data
-│   ├── nav_session.dart       # Collaborative session state
-│   └── firebase_credentials.dart
-├── providers/                 # Riverpod NotifierProviders
-│   ├── supermarket_provider.dart
-│   ├── shopping_list_provider.dart
-│   ├── household_provider.dart
-│   ├── firestore_sync_provider.dart
-│   ├── home_location_provider.dart
-│   ├── local_only_provider.dart
-│   ├── nav_session_provider.dart
-│   └── firebase_app_provider.dart
-├── services/
-│   ├── navigation_planner.dart  # Route planning (nearest-neighbour heuristic)
-│   ├── firestore_service.dart   # Encrypted Firestore read/write
-│   ├── nominatim_service.dart   # Geocoding via Nominatim
-│   └── overpass_service.dart    # OSM shop discovery via Overpass API
-├── screens/
-│   ├── home_screen.dart
-│   ├── list_editor_screen.dart
-│   ├── store_editor_screen.dart
-│   ├── navigation_screen.dart
-│   ├── sync_screen.dart
-│   ├── shop_search_screen.dart
-│   └── help_screen.dart        # General, shop-editor, and Firebase help
-└── widgets/
-    └── store_grid.dart         # Interactive grid widget with split-cell support
-```
-
-**State management:** Riverpod 2 (`NotifierProvider`, `StreamProvider`)
-**Persistence:** Hive 2 (local), Firestore (cloud, encrypted)
-**Routing:** `Navigator.push` / `PopScope` (no named routes)
+See [`docs/architecture/`](docs/architecture/) for detailed architecture documentation, including component diagrams, data flow, and design decisions.
 
 ---
 
@@ -148,9 +109,9 @@ To enable Codecov on your fork:
 
 ## Written by Claude
 
-Every line of code in this repository was written by [Claude](https://claude.ai) (Anthropic's AI assistant) — specifically **Claude Sonnet 4.6**, used via [Claude Code](https://claude.ai/claude-code), Anthropic's CLI tool.
+Every line of code in this repository was written by [Claude](https://claude.ai) (Anthropic's AI assistant) — specifically **Claude Sonnet 4.6**, used via [Claude Code](https://claude.ai/claude-code), Anthropic's CLI tool. All documentation, including architecture docs and diagrams, was written by Claude as well.
 
-The human author provided product direction through natural-language prompts (see [`prompts.md`](prompts.md)) and reviewed the results on a device, but did not write, edit, or modify a single line of source code. The complete prompt history is preserved in `prompts.md`.
+The human author provided product direction through natural-language prompts (see [`prompts.md`](prompts.md)) and reviewed the results on a device, but did not write, edit, or modify a single line of source code or documentation. The complete prompt history is preserved in `prompts.md`.
 
 > **Note:** The numbering in `prompts.md` reflects the order in which Claude logged the entries, which does not always match the exact order the prompts were given — especially toward the end of the file, where multi-session context compression occasionally caused entries to be recorded slightly out of sequence.
 
