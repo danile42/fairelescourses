@@ -9,6 +9,12 @@ import '../providers/tour_provider.dart';
 /// Applied to the main FAB so the spotlight can locate it.
 final tourFabKey = GlobalKey(debugLabel: 'tourFab');
 
+/// Applied to the "New shop" mini button when the FAB is expanded.
+final tourNewShopKey = GlobalKey(debugLabel: 'tourNewShop');
+
+/// Applied to the "New list" mini button when the FAB is expanded.
+final tourNewListKey = GlobalKey(debugLabel: 'tourNewList');
+
 /// Applied to the play button of the first list card.
 final tourPlayKey = GlobalKey(debugLabel: 'tourPlay');
 
@@ -26,9 +32,15 @@ class _TourSpotlightState extends ConsumerState<TourSpotlight> {
   OverlayEntry? _entry;
   Rect? _targetRect;
   int _step = -1;
-  ProviderSubscription<int>? _sub;
+  ProviderSubscription<int>? _stepSub;
+  ProviderSubscription<bool>? _fabSub;
 
-  GlobalKey get _targetKey => _step == 2 ? tourPlayKey : tourFabKey;
+  GlobalKey get _targetKey {
+    if (_step == 2) return tourPlayKey;
+    final expanded = ref.read(tourFabExpandedProvider);
+    if (expanded) return _step == 0 ? tourNewShopKey : tourNewListKey;
+    return tourFabKey;
+  }
 
   @override
   void initState() {
@@ -36,7 +48,7 @@ class _TourSpotlightState extends ConsumerState<TourSpotlight> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _step = ref.read(tourStepProvider);
-      _sub = ref.listenManual(tourStepProvider, (_, next) {
+      _stepSub = ref.listenManual(tourStepProvider, (_, next) {
         _step = next;
         if (next < 0) {
           _removeEntry();
@@ -44,13 +56,17 @@ class _TourSpotlightState extends ConsumerState<TourSpotlight> {
           _scheduleRead();
         }
       });
+      _fabSub = ref.listenManual(tourFabExpandedProvider, (prev, next) {
+        if (_step >= 0 && _step < 2) _scheduleRead();
+      });
       if (_step >= 0) _scheduleRead();
     });
   }
 
   @override
   void dispose() {
-    _sub?.close();
+    _stepSub?.close();
+    _fabSub?.close();
     _removeEntry();
     super.dispose();
   }

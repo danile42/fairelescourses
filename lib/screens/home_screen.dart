@@ -147,10 +147,12 @@ class _HomeFabState extends ConsumerState<_HomeFab> {
       children: [
         if (_expanded) ...[
           _MiniButton(
+            key: tourNewShopKey,
             label: l.newShop,
             icon: Icons.store,
             onTap: () {
               setState(() => _expanded = false);
+              ref.read(tourFabExpandedProvider.notifier).set(false);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const StoreEditorScreen()),
@@ -159,10 +161,12 @@ class _HomeFabState extends ConsumerState<_HomeFab> {
           ),
           const SizedBox(height: 8),
           _MiniButton(
+            key: tourNewListKey,
             label: l.newList,
             icon: Icons.list_alt,
             onTap: () {
               setState(() => _expanded = false);
+              ref.read(tourFabExpandedProvider.notifier).set(false);
               final newList = ShoppingList(
                 id: _uuid.v4(),
                 name: '',
@@ -181,7 +185,11 @@ class _HomeFabState extends ConsumerState<_HomeFab> {
         ],
         FloatingActionButton(
           key: tourFabKey,
-          onPressed: () => setState(() => _expanded = !_expanded),
+          onPressed: () {
+            final next = !_expanded;
+            setState(() => _expanded = next);
+            ref.read(tourFabExpandedProvider.notifier).set(next);
+          },
           child: AnimatedRotation(
             turns: _expanded ? 0.125 : 0,
             duration: const Duration(milliseconds: 200),
@@ -198,6 +206,7 @@ class _MiniButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
   const _MiniButton({
+    super.key,
     required this.label,
     required this.icon,
     required this.onTap,

@@ -12,6 +12,18 @@ final tourStepProvider = NotifierProvider<TourStepNotifier, int>(
   TourStepNotifier.new,
 );
 
+/// Tracks whether the FAB is currently expanded (showing its mini buttons).
+/// Updated by _HomeFabState so the spotlight can follow the expanded buttons.
+final tourFabExpandedProvider = NotifierProvider<TourFabExpandedNotifier, bool>(
+  TourFabExpandedNotifier.new,
+);
+
+class TourFabExpandedNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+  void set(bool v) => state = v;
+}
+
 class TourStepNotifier extends Notifier<int> {
   @override
   int build() {

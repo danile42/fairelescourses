@@ -271,6 +271,11 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - SyncScreen AppBar title updated to `configTitle`.
     - Tests: sync icon finder updated to `settings_outlined`; German title assertion updated to "Einstellungen".
 
+99. Fix tour spotlight hidden by expanded FAB: shift spotlight to the mini button.
+    - Added `tourNewShopKey` and `tourNewListKey` GlobalKeys; applied to `_MiniButton` widgets (added `super.key` to `_MiniButton` constructor).
+    - Added `tourFabExpandedProvider` (NotifierProvider<bool>) in tour_provider.dart; `_HomeFabState` updates it on expand/collapse and when a mini button is tapped.
+    - `TourSpotlight` adds a second `listenManual` subscription to `tourFabExpandedProvider`; when the FAB expands on step 0/1, `_scheduleRead` re-fires and the spotlight moves to `tourNewShopKey` / `tourNewListKey`.
+
 98. Upgrade interactive tour to a spotlight overlay pointing at actual buttons.
     - `TourSpotlight` (ConsumerStatefulWidget, tour_spotlight.dart) manages a full-screen `OverlayEntry`: dark scrim with a circular cutout over the target button, white ring border, and a floating callout card with step dots + skip button.
     - Two global keys exported from tour_spotlight.dart: `tourFabKey` (applied to the FAB) and `tourPlayKey` (applied to the first list's play button when `i == 0`).
