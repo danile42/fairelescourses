@@ -102,13 +102,35 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
   }
 
   /// Called by the Firestore sync listener. Merges remote state into Hive and memory.
+  ///
+  /// Local lists not present in the remote snapshot are re-uploaded rather than
+  /// deleted, so a list created locally while offline (or whose initial upload
+  /// failed) is not silently lost on the next sync event.
   Future<void> syncFromRemote(List<ShoppingList> remote) async {
     final remoteIds = remote.map((l) => l.id).toSet();
     for (final l in remote) {
       await _box.put(l.id, l);
     }
+    final hid = _hid;
     for (final key in _box.keys.toList()) {
-      if (!remoteIds.contains(key)) await _box.delete(key);
+      if (!remoteIds.contains(key)) {
+        if (hid != null) {
+          final local = _box.get(key as String);
+          if (local != null) {
+            // Re-upload local-only item instead of deleting it.
+            ref
+                .read(firestoreServiceProvider)
+                .upsertList(hid, local)
+                .catchError(
+                  (Object e) =>
+                      debugPrint('Firestore re-upload upsertList error: $e'),
+                )
+                .ignore();
+          }
+        } else {
+          await _box.delete(key);
+        }
+      }
     }
     _sync();
   }

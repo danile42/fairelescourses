@@ -376,6 +376,11 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - New group `osmCategoryLabel – localised strings` using `AppLocalizationsEn()` directly.
     - Tests: every category key resolves to a non-empty string, spot-checks for supermarket/pharmacy/bakery, unknown key returns key itself, all 18 categories produce distinct labels.
 
+120. Preserve local-only items in syncFromRemote instead of silently deleting them (improvement-analysis #7).
+    - shopping_list_provider: re-uploads local-only lists to Firestore instead of deleting them when they're absent from the remote snapshot.
+    - supermarket_provider: same for shops.
+    - When not in a household (no hid), local-only items are still cleaned up as before.
+
 119. Auto-expire orphaned collaborative navigation sessions older than 24 hours (improvement-analysis #6).
     - Added `startedAt` field to NavSession model.
     - navSessionStream() now returns null for sessions where startedAt is >24h ago, so guests see no active session banner for host-crashed sessions.

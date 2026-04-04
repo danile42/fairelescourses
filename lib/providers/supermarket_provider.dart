@@ -101,16 +101,38 @@ class SupermarketNotifier extends Notifier<List<Supermarket>> {
     }
   }
 
-  /// Called by the Firestore sync listener. Replaces state with remote data.
+  /// Called by the Firestore sync listener. Merges remote state into Hive and memory.
+  ///
+  /// Local shops not present in the remote snapshot are re-uploaded rather than
+  /// deleted, so a shop created locally while offline (or whose initial upload
+  /// failed) is not silently lost on the next sync event.
   Future<void> syncFromRemote(List<Supermarket> remote) async {
     final remoteIds = remote.map((s) => s.id).toSet();
     for (final s in remote) {
       await _box.put(s.id, s);
     }
+    final hid = _hid;
     for (final key in _box.keys.toList()) {
-      if (!remoteIds.contains(key)) await _box.delete(key);
+      if (!remoteIds.contains(key)) {
+        if (hid != null) {
+          final local = _box.get(key as String);
+          if (local != null) {
+            // Re-upload local-only shop instead of deleting it.
+            ref
+                .read(firestoreServiceProvider)
+                .upsertShop(hid, local)
+                .catchError(
+                  (Object e) =>
+                      debugPrint('Firestore re-upload upsertShop error: $e'),
+                )
+                .ignore();
+          }
+        } else {
+          await _box.delete(key);
+        }
+      }
     }
-    state = remote;
+    state = _box.values.toList();
   }
 
   /// Upload all local shops to Firestore (called when joining a household).
