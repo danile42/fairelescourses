@@ -376,6 +376,14 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - New group `osmCategoryLabel – localised strings` using `AppLocalizationsEn()` directly.
     - Tests: every category key resolves to a non-empty string, spot-checks for supermarket/pharmacy/bakery, unknown key returns key itself, all 18 categories produce distinct labels.
 
+130. Remove the "find shops online" 4th tour step — online search is now the default.
+    - Reverted _launchNavigation to complete() + celebration trigger on navigation success (step 2 is again the final step).
+    - Removed the supermarketsProvider step-3 completion listener.
+    - tour_spotlight.dart: back to 3 dots, removed step-3 key/fab-sub/switch cases.
+    - Removed TourHintBanner (visibleOnStep: 3) from ShopSearchScreen and its now-unused import.
+    - Removed tourStep4Title/tourStep4Body from both ARBs and regenerated l10n.
+    - Removed step-3 comment from tour_provider.dart.
+
 129. Show introductory help screen before the interactive tour starts on first launch.
     - Added helpSeenKey = 'helpSeen' constant to tour_provider.dart.
     - _HomeScreenState.initState: if helpSeen is not set and tourStepProvider >= 0, marks helpSeen immediately (so force-quit doesn't re-show it) then pushes HelpScreen.

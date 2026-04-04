@@ -279,8 +279,6 @@
   "tourStep2Body": "Tippe auf + und wähle 'Neue Liste'. Füge die gewünschten Artikel hinzu.",
   "tourStep3Title": "Navigation starten",
   "tourStep3Body": "Tippe auf den Play-Button neben deiner Liste, um deinen ersten Einkauf zu starten.",
-  "tourStep4Title": "Märkte online suchen",
-  "tourStep4Body": "Tippe auf + → Neuer Markt, um nahegelegene Märkte zu suchen. Importieren ist schneller als ein Layout von Hand zu zeichnen.",
   "helpShopsTitle": "Märkte",
   "helpShopsBody": "Lege einen Markt an und zeichne sein Layout als Raster. Weise Waren den Feldern zu, damit die App weiß, wo jedes Produkt zu finden ist.",
   "helpListsTitle": "Einkaufslisten",

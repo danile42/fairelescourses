@@ -90,13 +90,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Tap the play button next to your list to start your first shopping trip.';
 
   @override
-  String get tourStep4Title => 'Find shops online';
-
-  @override
-  String get tourStep4Body =>
-      'Tap + → New shop to search for nearby shops. Importing is faster than drawing a layout from scratch.';
-
-  @override
   String get shops => 'Shops';
 
   @override
