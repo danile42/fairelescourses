@@ -358,6 +358,13 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - Created `docs/architecture/persistence.md`: storage architecture diagram, Hive box layout, settings key reference, full Firestore document schema, data consistency model.
     - Created `docs/architecture/key-flows.md`: PlantUML sequence diagrams for create-shop-and-navigate, collaborative navigation, search-and-import, join-household, and navigation planning algorithm.
 
+109. Convert the architecture diagrams from PlantUML to Mermaid so they render directly on GitHub.
+
+110. Do not use title case in the docs — use regular sentence case even in headings.
+
+111. Add automated dependency updates via Dependabot (weekly PRs for pub packages and GitHub Actions).
+    - Created `.github/dependabot.yml` with two update targets: `pub` (pubspec.yaml) and `github-actions` (.github/workflows/).
+
 108. Create end-user documentation with Mermaid diagrams covering all features; written to docs/user-guide.md.
 
 107. Analyze the project for potential bugs and UX improvements; write findings to improvement-analysis.md.
