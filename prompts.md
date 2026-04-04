@@ -271,6 +271,12 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - SyncScreen AppBar title updated to `configTitle`.
     - Tests: sync icon finder updated to `settings_outlined`; German title assertion updated to "Einstellungen".
 
+100. Hide tour spotlight when another screen is pushed on top of HomeScreen.
+    - Added `tourRouteObserver` (RouteObserver<ModalRoute<void>>) in tour_provider.dart; registered in MaterialApp.navigatorObservers.
+    - `_TourSpotlightState` now mixes in `RouteAware`: subscribes in `didChangeDependencies`, unsubscribes in `dispose`.
+    - `didPushNext`: removes OverlayEntry (overlay hidden while sub-screen is open, step state preserved).
+    - `didPopNext`: calls `_scheduleRead()` to re-show and re-position the spotlight on return.
+
 99. Fix tour spotlight hidden by expanded FAB: shift spotlight to the mini button.
     - Added `tourNewShopKey` and `tourNewListKey` GlobalKeys; applied to `_MiniButton` widgets (added `super.key` to `_MiniButton` constructor).
     - Added `tourFabExpandedProvider` (NotifierProvider<bool>) in tour_provider.dart; `_HomeFabState` updates it on expand/collapse and when a mini button is tapped.

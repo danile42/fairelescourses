@@ -10,6 +10,7 @@ import 'models/supermarket.dart';
 import 'models/shopping_list.dart';
 import 'providers/firebase_app_provider.dart';
 import 'providers/seed_color_provider.dart';
+import 'providers/tour_provider.dart';
 import 'screens/home_screen.dart';
 import 'package:fairelescourses/l10n/app_localizations.dart';
 
@@ -55,6 +56,7 @@ class FairelesCourses extends ConsumerWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: seedColor),
         useMaterial3: true,
       ),
+      navigatorObservers: [tourRouteObserver],
       home: const HomeScreen(),
     );
   }

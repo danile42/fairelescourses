@@ -28,7 +28,7 @@ class TourSpotlight extends ConsumerStatefulWidget {
   ConsumerState<TourSpotlight> createState() => _TourSpotlightState();
 }
 
-class _TourSpotlightState extends ConsumerState<TourSpotlight> {
+class _TourSpotlightState extends ConsumerState<TourSpotlight> with RouteAware {
   OverlayEntry? _entry;
   Rect? _targetRect;
   int _step = -1;
@@ -64,7 +64,28 @@ class _TourSpotlightState extends ConsumerState<TourSpotlight> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route != null) tourRouteObserver.subscribe(this, route);
+  }
+
+  /// A new screen was pushed on top — hide the overlay without losing state.
+  @override
+  void didPushNext() {
+    _entry?.remove();
+    _entry = null;
+  }
+
+  /// Returned to this screen — restore the overlay.
+  @override
+  void didPopNext() {
+    if (_step >= 0) _scheduleRead();
+  }
+
+  @override
   void dispose() {
+    tourRouteObserver.unsubscribe(this);
     _stepSub?.close();
     _fabSub?.close();
     _removeEntry();

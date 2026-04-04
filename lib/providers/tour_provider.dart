@@ -1,7 +1,12 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 
 const tourIntroKey = 'introSeen';
+
+/// Passed to [MaterialApp.navigatorObservers] so [TourSpotlight] can
+/// hide/show itself when other screens are pushed on top of HomeScreen.
+final tourRouteObserver = RouteObserver<ModalRoute<void>>();
 
 /// Current interactive tour step.
 /// -1 = inactive (tour completed or skipped).
