@@ -1,4 +1,4 @@
-# Fairelescourses — User Guide
+# Fairelescourses — User guide
 
 **Version 0.9.21**
 
@@ -6,20 +6,20 @@ Fairelescourses is a supermarket navigation assistant. You draw your shops as gr
 
 ---
 
-## Table of Contents
+## Table of contents
 
-1. [Quick Start](#1-quick-start)
-2. [Home Screen](#2-home-screen)
-3. [Creating and Editing Shops](#3-creating-and-editing-shops)
-4. [Shopping Lists](#4-shopping-lists)
+1. [Quick start](#1-quick-start)
+2. [Home screen](#2-home-screen)
+3. [Creating and editing shops](#3-creating-and-editing-shops)
+4. [Shopping lists](#4-shopping-lists)
 5. [Navigation](#5-navigation)
-6. [Finding Shops](#6-finding-shops)
-7. [Households and Sync](#7-households-and-sync)
+6. [Finding shops](#6-finding-shops)
+7. [Households and sync](#7-households-and-sync)
 8. [Settings](#8-settings)
 
 ---
 
-## 1. Quick Start
+## 1. Quick start
 
 When you open the app for the first time, a three-step tour guides you through the basics.
 
@@ -38,7 +38,7 @@ A spotlight circles the button you need to tap at each step. Tap **Skip tour** a
 
 ---
 
-## 2. Home Screen
+## 2. Home screen
 
 The home screen has two tabs: **Shopping Lists** and **Shops**.
 
@@ -57,7 +57,7 @@ flowchart TD
     AppBar --> Settings["⚙ Settings"]
 ```
 
-### Shopping Lists tab
+### Shopping lists tab
 
 Each list card shows:
 - The list name
@@ -78,7 +78,7 @@ Each shop card shows its name and grid size (e.g. **5×4**). Multi-floor shops a
 
 Tap the card to open the shop editor. Tap the trash icon to delete the shop (with confirmation).
 
-### Floating Action Button
+### Floating action button
 
 Tap **+** to expand two quick-create buttons:
 - **New shop** — opens the shop editor
@@ -86,7 +86,7 @@ Tap **+** to expand two quick-create buttons:
 
 ---
 
-## 3. Creating and Editing Shops
+## 3. Creating and editing shops
 
 A "shop" in Fairelescourses is a grid where each cell represents a shelf, aisle section, or area of the store, and goods are assigned to those cells.
 
@@ -149,7 +149,7 @@ Each floor has its own grid, entrance, and exit. New floors inherit the dimensio
 
 ---
 
-## 4. Shopping Lists
+## 4. Shopping lists
 
 ### 4.1 Creating a list
 
@@ -268,7 +268,7 @@ When all items are resolved, a **Finish** button appears. Tapping it:
 
 ---
 
-## 6. Finding Shops
+## 6. Finding shops
 
 The **search** icon in the app bar opens the shop search screen. You can discover shops from three sources:
 
@@ -314,7 +314,7 @@ Shop location data is from **OpenStreetMap contributors (ODbL)**.
 
 ---
 
-## 7. Households and Sync
+## 7. Households and sync
 
 Households let multiple people share shops and shopping lists, and check off items together in real time.
 
@@ -412,7 +412,7 @@ Tap **Reset all local data** to delete all local shops, lists, and settings. A c
 
 ---
 
-## Appendix: Key Flows at a Glance
+## Appendix: Key flows at a glance
 
 ### Planning a shopping trip
 
@@ -437,6 +437,7 @@ sequenceDiagram
 ```
 
 ### Joining and using a household
+
 
 ```mermaid
 sequenceDiagram
