@@ -411,6 +411,8 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - firebase_app_provider.dart: logged in build(), clearCustomFirebaseCredentials(), _initNamedApp(), and loadSavedFirebaseCredentials().
     - firebase_credentials.dart: logged parse failure in fromGoogleServicesJson().
 
+118. Add Dependabot badge to README.md alongside the CI and Codecov badges.
+
 117. Replace the Architecture section in README.md with a link to the detailed architecture docs. Extend the "Written by Claude" note to cover all documentation and diagrams as well.
 
 116. Log errors from fire-and-forget Firestore writes instead of silently discarding them (improvement-analysis #3).

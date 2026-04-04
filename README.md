@@ -6,6 +6,7 @@ Fairelescourses lets you map out the layout of your local shops as a grid, assig
 
 [![CI](https://github.com/danile42/fairelescourses/actions/workflows/ci.yml/badge.svg)](https://github.com/danile42/fairelescourses/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/danile42/fairelescourses/branch/main/graph/badge.svg)](https://codecov.io/gh/danile42/fairelescourses)
+[![Dependabot](https://img.shields.io/badge/Dependabot-enabled-025E8C?logo=Dependabot)](https://github.com/danile42/fairelescourses/security/dependabot)
 
 ---
 
