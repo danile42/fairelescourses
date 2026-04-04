@@ -58,10 +58,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tourSkip => 'Skip tour';
 
   @override
-  String get tourStep1Title => 'Create a shop';
+  String get tourStep1Title => 'Find a shop';
 
   @override
-  String get tourStep1Body => 'Tap + and choose \'New shop\'.';
+  String get tourStep1Body =>
+      'Tap + and choose \'New shop\' to search for shops online.';
+
+  @override
+  String get tourShopSearchHint =>
+      'Search by location to find nearby shops — faster than creating one manually.';
 
   @override
   String get tourShopEditorHint =>

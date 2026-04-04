@@ -60,10 +60,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tourSkip => 'Tour überspringen';
 
   @override
-  String get tourStep1Title => 'Markt anlegen';
+  String get tourStep1Title => 'Markt finden';
 
   @override
-  String get tourStep1Body => 'Tippe auf + und wähle \'Neuer Markt\'.';
+  String get tourStep1Body =>
+      'Tippe auf + und wähle \'Neuer Markt\', um Märkte online zu suchen.';
+
+  @override
+  String get tourShopSearchHint =>
+      'Suche nach Standort, um nahegelegene Märkte zu finden – schneller als manuell anlegen.';
 
   @override
   String get tourShopEditorHint =>

@@ -197,14 +197,20 @@ abstract class AppLocalizations {
   /// No description provided for @tourStep1Title.
   ///
   /// In en, this message translates to:
-  /// **'Create a shop'**
+  /// **'Find a shop'**
   String get tourStep1Title;
 
   /// No description provided for @tourStep1Body.
   ///
   /// In en, this message translates to:
-  /// **'Tap + and choose \'New shop\'.'**
+  /// **'Tap + and choose \'New shop\' to search for shops online.'**
   String get tourStep1Body;
+
+  /// No description provided for @tourShopSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by location to find nearby shops — faster than creating one manually.'**
+  String get tourShopSearchHint;
 
   /// No description provided for @tourShopEditorHint.
   ///

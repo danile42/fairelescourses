@@ -15,6 +15,7 @@ import '../providers/supermarket_provider.dart';
 import '../services/firestore_service.dart';
 import '../services/nominatim_service.dart';
 import '../services/overpass_service.dart';
+import '../widgets/tour_hint_banner.dart';
 import 'store_editor_screen.dart';
 
 enum _SearchMode { byName, byItem, byLocation }
@@ -506,6 +507,10 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
               onPressed: () => setState(() => _showMap = !_showMap),
             ),
         ],
+      ),
+      bottomNavigationBar: TourHintBanner(
+        visibleOnStep: 0,
+        message: (l) => l.tourShopSearchHint,
       ),
       body: Column(
         children: [
