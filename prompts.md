@@ -376,6 +376,9 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - New group `osmCategoryLabel – localised strings` using `AppLocalizationsEn()` directly.
     - Tests: every category key resolves to a non-empty string, spot-checks for supermarket/pharmacy/bakery, unknown key returns key itself, all 18 categories produce distinct labels.
 
+114. Fix duplicate `mounted` check in navigation_screen.dart (improvement-analysis #1).
+    - Removed the second redundant `if (!mounted) return;` at line 417.
+
 113. Fix dart formatting failures in CI and add a git pre-commit hook to prevent future occurrences.
     - Ran `dart format lib/ test/` to reformat 4 test files.
     - Created `.git/hooks/pre-commit` running `dart format --output=none --set-exit-if-changed lib/ test/` to block unformatted commits.

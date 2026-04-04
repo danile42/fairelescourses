@@ -415,7 +415,6 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
       );
     }
     if (!mounted) return;
-    if (!mounted) return;
     final allShopGoods = ref
         .read(supermarketsProvider)
         .expand(
