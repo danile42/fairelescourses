@@ -385,6 +385,8 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - Verified fixes #1–5 and #7 in source (duplicate mounted check, 3-pass matching, Firestore error logging, Firebase catch blocks, toggleItem bounds check, syncFromRemote conflict resolution). Fix #6 (orphaned session TTL) not yet implemented — no TTL field or expiry logic found.
     - Removed fixed items #1–5 and #7 from improvement-analysis.md; renumbered remaining 10 items (#6 → #1, UX #8–16 → #2–10); updated summary table.
 
+124. Remove the now-fixed orphaned-session entry from improvement-analysis.md and renumber remaining items 1–9.
+
 123. Update prompts.md and commit.
 
 120. Preserve local-only items in syncFromRemote instead of silently deleting them (improvement-analysis #7).
