@@ -361,11 +361,14 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 109. Convert the architecture diagrams from PlantUML to Mermaid so they render directly on GitHub.
 
 110. Do not use title case in the docs — use regular sentence case even in headings.
+    - Applied to `docs/user-guide.md`: converted all 27 headings from title case to sentence case.
 
 111. Add automated dependency updates via Dependabot (weekly PRs for pub packages and GitHub Actions).
     - Created `.github/dependabot.yml` with two update targets: `pub` (pubspec.yaml) and `github-actions` (.github/workflows/).
 
 108. Create end-user documentation with Mermaid diagrams covering all features; written to docs/user-guide.md.
+    - Eight sections covering quick-start tour, home screen, shop grid editor (cells, splits, floors), shopping lists, navigation, shop search, household sync, and settings.
+    - Six Mermaid diagrams: quick-start flow, home screen structure, multi-floor tab navigation, full navigation session flow, planning a shopping trip (sequence), joining a household (sequence), and the 3-pass item-matching flowchart.
 
 107. Analyze the project for potential bugs and UX improvements; write findings to improvement-analysis.md.
 
