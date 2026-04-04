@@ -376,6 +376,10 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - New group `osmCategoryLabel – localised strings` using `AppLocalizationsEn()` directly.
     - Tests: every category key resolves to a non-empty string, spot-checks for supermarket/pharmacy/bakery, unknown key returns key itself, all 18 categories produce distinct labels.
 
+128. Fix tour spotlight circle misplaced "a little too high" at step 1 (Create a shopping list).
+    - Root cause: tourNewShopKey/tourNewListKey were on the _MiniButton StatelessWidget, so findRenderObject() returned the full Row (label + FAB). The Row is much wider than tall, so spotRadius = max(row_width, row_height) / 2 + 20 produced a large circle extending upward into the "New shop" area.
+    - Fix: moved the GlobalKeys to the FloatingActionButton.small inside _MiniButton (via new fabKey parameter). Now the spotlight targets the 40×40 FAB bounding box, producing a tight, correctly-centred circle.
+
 127. "New shop" always opens shop search; "Create from scratch" only offered when search returns no results.
     - Removed the tourStep == 3 condition — "New shop" FAB unconditionally opens ShopSearchScreen.
     - ShopSearchScreen: when search has been performed and both Firestore and OSM return nothing (and no brand filter is active), shows a "New shop" OutlinedButton to open StoreEditorScreen from scratch.

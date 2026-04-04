@@ -155,7 +155,7 @@ class _HomeFabState extends ConsumerState<_HomeFab> {
       children: [
         if (_expanded) ...[
           _MiniButton(
-            key: tourNewShopKey,
+            fabKey: tourNewShopKey,
             label: l.newShop,
             icon: Icons.store,
             onTap: () {
@@ -169,7 +169,7 @@ class _HomeFabState extends ConsumerState<_HomeFab> {
           ),
           const SizedBox(height: 8),
           _MiniButton(
-            key: tourNewListKey,
+            fabKey: tourNewListKey,
             label: l.newList,
             icon: Icons.list_alt,
             onTap: () {
@@ -210,11 +210,13 @@ class _HomeFabState extends ConsumerState<_HomeFab> {
 }
 
 class _MiniButton extends StatelessWidget {
+  final Key? fabKey;
   final String label;
   final IconData icon;
   final VoidCallback onTap;
   const _MiniButton({
     super.key,
+    this.fabKey,
     required this.label,
     required this.icon,
     required this.onTap,
@@ -239,6 +241,7 @@ class _MiniButton extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         FloatingActionButton.small(
+          key: fabKey,
           heroTag: label,
           onPressed: onTap,
           child: Icon(icon),
