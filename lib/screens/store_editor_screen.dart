@@ -9,6 +9,7 @@ import '../providers/supermarket_provider.dart';
 import '../providers/shopping_list_provider.dart';
 import '../services/nominatim_service.dart';
 import '../widgets/store_grid.dart';
+import '../widgets/tour_hint_banner.dart';
 import 'help_screen.dart';
 
 enum _ExitAction { save, discard }
@@ -1133,6 +1134,10 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
                 ),
               ),
           ],
+        ),
+        bottomNavigationBar: TourHintBanner(
+          visibleOnStep: 0,
+          message: (l) => l.tourShopEditorHint,
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),

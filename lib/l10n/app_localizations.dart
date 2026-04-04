@@ -197,14 +197,26 @@ abstract class AppLocalizations {
   /// No description provided for @tourStep1Title.
   ///
   /// In en, this message translates to:
-  /// **'Create a store'**
+  /// **'Create a shop'**
   String get tourStep1Title;
 
   /// No description provided for @tourStep1Body.
   ///
   /// In en, this message translates to:
-  /// **'Tap + and choose \'New shop\'. Draw the layout as a grid and assign goods to cells.'**
+  /// **'Tap + and choose \'New shop\'.'**
   String get tourStep1Body;
+
+  /// No description provided for @tourShopEditorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Give your shop a name, tap any cell and enter a product, then tap Save.'**
+  String get tourShopEditorHint;
+
+  /// No description provided for @tourListEditorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Give your list a name and add at least one item, then tap Save.'**
+  String get tourListEditorHint;
 
   /// No description provided for @tourStep2Title.
   ///

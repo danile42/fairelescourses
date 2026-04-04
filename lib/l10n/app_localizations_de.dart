@@ -63,8 +63,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tourStep1Title => 'Markt anlegen';
 
   @override
-  String get tourStep1Body =>
-      'Tippe auf + und wähle \'Neuer Markt\'. Zeichne den Grundriss als Raster und weise den Feldern Waren zu.';
+  String get tourStep1Body => 'Tippe auf + und wähle \'Neuer Markt\'.';
+
+  @override
+  String get tourShopEditorHint =>
+      'Gib dem Markt einen Namen, tippe auf ein Feld und trage ein Produkt ein, dann tippe auf Speichern.';
+
+  @override
+  String get tourListEditorHint =>
+      'Gib der Liste einen Namen und füge mindestens einen Artikel hinzu, dann tippe auf Speichern.';
 
   @override
   String get tourStep2Title => 'Einkaufsliste erstellen';

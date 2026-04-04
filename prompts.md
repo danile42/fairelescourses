@@ -271,6 +271,12 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - SyncScreen AppBar title updated to `configTitle`.
     - Tests: sync icon finder updated to `settings_outlined`; German title assertion updated to "Einstellungen".
 
+101. Show tour hint banners inside editor screens; fix "store" → "shop" wording.
+    - New `TourHintBanner` widget (lib/widgets/tour_hint_banner.dart): slim primaryContainer bar at the bottom of an editor screen; only shown when `tourStepProvider == visibleOnStep`; includes a school icon, the hint message, and a Skip button.
+    - `StoreEditorScreen`: shows banner on step 0 ("Give your shop a name, tap any cell and enter a product, then tap Save.") via `bottomNavigationBar`.
+    - `ListEditorScreen`: shows banner on step 1 ("Give your list a name and add at least one item, then tap Save.") via `bottomNavigationBar`.
+    - l10n: fixed `tourStep1Title` "Create a store" → "Create a shop"; simplified `tourStep1Body`; added `tourShopEditorHint` and `tourListEditorHint` in EN + DE.
+
 100. Hide tour spotlight when another screen is pushed on top of HomeScreen.
     - Added `tourRouteObserver` (RouteObserver<ModalRoute<void>>) in tour_provider.dart; registered in MaterialApp.navigatorObservers.
     - `_TourSpotlightState` now mixes in `RouteAware`: subscribes in `didChangeDependencies`, unsubscribes in `dispose`.

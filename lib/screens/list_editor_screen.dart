@@ -11,6 +11,7 @@ import '../providers/shopping_list_provider.dart';
 import '../providers/supermarket_provider.dart';
 import '../services/navigation_planner.dart';
 import 'navigation_screen.dart';
+import '../widgets/tour_hint_banner.dart';
 
 enum _ExitAction { save, discard }
 
@@ -291,6 +292,10 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
               child: Text(l.save, style: const TextStyle(color: Colors.white)),
             ),
           ],
+        ),
+        bottomNavigationBar: TourHintBanner(
+          visibleOnStep: 1,
+          message: (l) => l.tourListEditorHint,
         ),
         body: Column(
           children: [
