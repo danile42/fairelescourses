@@ -376,6 +376,10 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - New group `osmCategoryLabel – localised strings` using `AppLocalizationsEn()` directly.
     - Tests: every category key resolves to a non-empty string, spot-checks for supermarket/pharmacy/bakery, unknown key returns key itself, all 18 categories produce distinct labels.
 
+119. Auto-expire orphaned collaborative navigation sessions older than 24 hours (improvement-analysis #6).
+    - Added `startedAt` field to NavSession model.
+    - navSessionStream() now returns null for sessions where startedAt is >24h ago, so guests see no active session banner for host-crashed sessions.
+
 118. Add bounds check to toggleItem to prevent IndexError in concurrent collaborative sessions (improvement-analysis #5).
     - Added `if (index < 0 || index >= items.length) return;` before the index access.
 

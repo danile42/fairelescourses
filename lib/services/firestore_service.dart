@@ -236,9 +236,20 @@ class FirestoreService {
       _navDoc(hid).snapshots().map((snap) {
         if (!snap.exists || snap.data() == null) return null;
         final data = snap.data()!;
+        final ts = data['startedAt'];
+        DateTime? startedAt;
+        if (ts is Timestamp) {
+          startedAt = ts.toDate();
+          // Treat sessions older than 24 hours as expired orphans.
+          if (DateTime.now().difference(startedAt) >
+              const Duration(hours: 24)) {
+            return null;
+          }
+        }
         return NavSession(
           listId: data['listId'] as String,
           startedBy: data['startedBy'] as String,
+          startedAt: startedAt,
         );
       });
 
