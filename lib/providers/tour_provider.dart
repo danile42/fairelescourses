@@ -4,6 +4,11 @@ import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 
 const tourIntroKey = 'introSeen';
 
+/// Hive key that records whether the introductory help screen has been shown.
+/// Set to 'true' the moment the screen is pushed so a force-quit doesn't
+/// re-show it on the next launch.
+const helpSeenKey = 'helpSeen';
+
 /// Passed to [MaterialApp.navigatorObservers] so [TourSpotlight] can
 /// hide/show itself when other screens are pushed on top of HomeScreen.
 final tourRouteObserver = RouteObserver<ModalRoute<void>>();

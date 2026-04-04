@@ -376,6 +376,11 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - New group `osmCategoryLabel – localised strings` using `AppLocalizationsEn()` directly.
     - Tests: every category key resolves to a non-empty string, spot-checks for supermarket/pharmacy/bakery, unknown key returns key itself, all 18 categories produce distinct labels.
 
+129. Show introductory help screen before the interactive tour starts on first launch.
+    - Added helpSeenKey = 'helpSeen' constant to tour_provider.dart.
+    - _HomeScreenState.initState: if helpSeen is not set and tourStepProvider >= 0, marks helpSeen immediately (so force-quit doesn't re-show it) then pushes HelpScreen.
+    - TourSpotlight naturally suppresses itself while HelpScreen is on top (via existing didPushNext); reappears at step 0 once the user taps "Get started" and the route is popped.
+
 128. Fix tour spotlight circle misplaced "a little too high" at step 1 (Create a shopping list).
     - Root cause: tourNewShopKey/tourNewListKey were on the _MiniButton StatelessWidget, so findRenderObject() returned the full Row (label + FAB). The Row is much wider than tall, so spotRadius = max(row_width, row_height) / 2 + 20 produced a large circle extending upward into the "New shop" area.
     - Fix: moved the GlobalKeys to the FloatingActionButton.small inside _MiniButton (via new fabKey parameter). Now the spotlight targets the 40×40 FAB bounding box, producing a tight, correctly-centred circle.

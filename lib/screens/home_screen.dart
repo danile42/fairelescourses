@@ -32,6 +32,22 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final box = Hive.box<String>('settings');
+      if (box.get(helpSeenKey) != 'true' && ref.read(tourStepProvider) >= 0) {
+        box.put(helpSeenKey, 'true');
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const HelpScreen()),
+        );
+      }
+    });
+  }
+
   void _openHelp() {
     Navigator.push(
       context,
