@@ -17,6 +17,18 @@ final tourStepProvider = NotifierProvider<TourStepNotifier, int>(
   TourStepNotifier.new,
 );
 
+/// Incremented each time the celebration should fire.
+/// [CelebrationOverlay] watches for changes and starts the animation.
+final celebrationTriggerProvider = NotifierProvider<_CelebrationTrigger, int>(
+  _CelebrationTrigger.new,
+);
+
+class _CelebrationTrigger extends Notifier<int> {
+  @override
+  int build() => 0;
+  void trigger() => state++;
+}
+
 /// Tracks whether the FAB is currently expanded (showing its mini buttons).
 /// Updated by _HomeFabState so the spotlight can follow the expanded buttons.
 final tourFabExpandedProvider = NotifierProvider<TourFabExpandedNotifier, bool>(

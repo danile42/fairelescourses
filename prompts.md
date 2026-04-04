@@ -277,6 +277,11 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - `ListEditorScreen`: shows banner on step 1 ("Give your list a name and add at least one item, then tap Save.") via `bottomNavigationBar`.
     - l10n: fixed `tourStep1Title` "Create a store" → "Create a shop"; simplified `tourStep1Body`; added `tourShopEditorHint` and `tourListEditorHint` in EN + DE.
 
+105. Delay tour celebration until the Finish button is pressed in NavigationScreen.
+    - Added `celebrationTriggerProvider` (int counter) to tour_provider.dart; `CelebrationOverlay` now watches this instead of `tourStepProvider`, firing whenever the counter increments.
+    - `_launchNavigation` captures `isTourFinalStep` before calling `complete()`. In the `.then()` callback, if `isTourFinalStep && result == true` (Finish was pressed, not Back), it calls `celebrationTriggerProvider.notifier.trigger()`.
+    - Skipping the tour or pressing Back during navigation no longer triggers the celebration.
+
 104. Show confetti celebration when the intro tour completes.
     - New `CelebrationOverlay` widget (lib/widgets/celebration_overlay.dart): `ConsumerStatefulWidget` with `SingleTickerProviderStateMixin`; watches `tourStepProvider` via `listenManual` and triggers when transitioning from any step ≥ 0 to -1.
     - Manages an `OverlayEntry` with a 3.8-second `AnimationController`; entry is inserted on start and removed when the animation completes.

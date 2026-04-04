@@ -39,8 +39,8 @@ class _CelebrationOverlayState extends ConsumerState<CelebrationOverlay>
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _sub = ref.listenManual(tourStepProvider, (prev, next) {
-        if (next == -1 && prev != null && prev >= 0) _startCelebration();
+      _sub = ref.listenManual(celebrationTriggerProvider, (prev, next) {
+        if (next > (prev ?? 0)) _startCelebration();
       });
     });
   }

@@ -446,7 +446,8 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
       Hive.box<String>('settings').get(_singleNavKey) == 'true';
 
   void _launchNavigation(ShoppingList list, {required bool collaborative}) {
-    if (ref.read(tourStepProvider) == 2) {
+    final isTourFinalStep = ref.read(tourStepProvider) == 2;
+    if (isTourFinalStep) {
       ref.read(tourStepProvider.notifier).complete();
     }
     final stores = ref.read(supermarketsProvider);
@@ -465,7 +466,10 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
           isHost: collaborative,
         ),
       ),
-    ).then((_) {
+    ).then((result) {
+      if (isTourFinalStep && result == true && mounted) {
+        ref.read(celebrationTriggerProvider.notifier).trigger();
+      }
       if (!collaborative && mounted) {
         Hive.box<String>('settings').delete(_singleNavKey);
         setState(() {});
