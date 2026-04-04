@@ -652,4 +652,107 @@ void main() {
       expect(s.floorsRaw, isNull);
     });
   });
+
+  group('ShopFloor.findCell – 3-pass matching', () {
+    ShopFloor makeFloor({
+      Map<String, List<String>> cells = const {},
+      Map<String, List<String>> subcells = const {},
+    }) => ShopFloor(
+      name: 'Floor',
+      rows: ['A', 'B', 'C'],
+      cols: ['1', '2', '3'],
+      entrance: 'A1',
+      exit: 'C3',
+      cells: Map.from(cells),
+      subcells: Map.from(subcells),
+    );
+
+    test('exact match returns cell', () {
+      final f = makeFloor(
+        cells: {
+          'A1': ['Milch'],
+        },
+      );
+      expect(f.findCell('Milch'), 'A1');
+    });
+
+    test('exact match is case-insensitive', () {
+      final f = makeFloor(
+        cells: {
+          'B2': ['Brot'],
+        },
+      );
+      expect(f.findCell('brot'), 'B2');
+      expect(f.findCell('BROT'), 'B2');
+    });
+
+    test('exact match wins over earlier substring match', () {
+      // 'Vollmilch' contains 'Milch' as a substring and is inserted first,
+      // so old substring-only code would return A1; pass-1 exact must return B1.
+      final f = makeFloor(
+        cells: {
+          'A1': ['Vollmilch'],
+          'B1': ['Milch'],
+        },
+      );
+      expect(f.findCell('Milch'), 'B1');
+    });
+
+    test('all-words match finds tag when query words are in different order', () {
+      // Old substring code: 'bio vollmilch'.contains('vollmilch bio') = false → null.
+      // New pass-2: every word in query appears somewhere in tag → A1.
+      final f = makeFloor(
+        cells: {
+          'A1': ['Bio Vollmilch'],
+        },
+      );
+      expect(f.findCell('Vollmilch Bio'), 'A1');
+    });
+
+    test('substring match works as pass-3 fallback', () {
+      final f = makeFloor(
+        cells: {
+          'A1': ['Sparkling Water'],
+        },
+      );
+      expect(f.findCell('water'), 'A1');
+    });
+
+    test('no match returns null', () {
+      final f = makeFloor(
+        cells: {
+          'A1': ['Bread'],
+        },
+      );
+      expect(f.findCell('Fish'), isNull);
+    });
+
+    test('empty floor returns null', () {
+      final f = makeFloor();
+      expect(f.findCell('Milk'), isNull);
+    });
+
+    test('subcell exact match returns base cell id', () {
+      final f = makeFloor(
+        subcells: {
+          'B2:col:0': ['Käse'],
+        },
+      );
+      expect(f.findCell('Käse'), 'B2');
+    });
+
+    test('subcell exact match beats earlier cell substring match', () {
+      // 'Rohmilchkäse' in A1 contains 'käse' as substring (pass 3).
+      // 'Käse' in subcell B2 is an exact match (pass 1) → must return B2.
+      final f = makeFloor(
+        cells: {
+          'A1': ['Rohmilchkäse'],
+        },
+        subcells: {
+          'B2:col:0': ['Käse'],
+        },
+      );
+      expect(f.findCell('Käse'), 'B2');
+    });
+  });
 }

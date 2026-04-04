@@ -376,6 +376,11 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - New group `osmCategoryLabel – localised strings` using `AppLocalizationsEn()` directly.
     - Tests: every category key resolves to a non-empty string, spot-checks for supermarket/pharmacy/bakery, unknown key returns key itself, all 18 categories produce distinct labels.
 
+121. Add tests for improvement-analysis fixes #2, #5, and #7.
+    - `supermarket_test.dart`: 9 new tests in `ShopFloor.findCell – 3-pass matching` covering exact, all-words, and substring passes, subcell matching, and pass-priority ordering.
+    - `shopping_list_provider_test.dart`: 2 new tests for `toggleItem` out-of-bounds guard; 2 new tests in `syncFromRemote with household` verifying local-only list preservation and re-upload.
+    - `supermarket_provider_test.dart`: 2 new tests in `syncFromRemote with household` verifying local-only shop preservation and re-upload.
+
 120. Preserve local-only items in syncFromRemote instead of silently deleting them (improvement-analysis #7).
     - shopping_list_provider: re-uploads local-only lists to Firestore instead of deleting them when they're absent from the remote snapshot.
     - supermarket_provider: same for shops.

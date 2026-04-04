@@ -20,6 +20,27 @@ class _NullHouseholdNotifier extends HouseholdNotifier {
   String? build() => null;
 }
 
+class _FakeHouseholdNotifier extends HouseholdNotifier {
+  @override
+  String? build() => 'hh-test';
+}
+
+ProviderContainer _makeContainerWithHousehold() {
+  final mock = MockFirestoreService();
+  when(() => mock.upsertShop(any(), any())).thenAnswer((_) async {});
+  when(() => mock.deleteShop(any(), any())).thenAnswer((_) async {});
+  when(() => mock.upsertPublicCells(any())).thenAnswer((_) async {});
+  return ProviderContainer(
+    overrides: [
+      householdProvider.overrideWith(() => _FakeHouseholdNotifier()),
+      localOnlyProvider.overrideWith(() => _FalseLocalOnlyNotifier()),
+      firestoreServiceProvider.overrideWithValue(mock),
+      currentUidProvider.overrideWith((ref) => null),
+      firestoreSyncProvider.overrideWith((ref) {}),
+    ],
+  );
+}
+
 class _FalseLocalOnlyNotifier extends LocalOnlyNotifier {
   @override
   bool build() => false;
@@ -245,6 +266,49 @@ void main() {
         verifyNever(() => _mockFrom(container).upsertPublicCells(any()));
       },
     );
+  });
+
+  group('SupermarketNotifier – syncFromRemote with household', () {
+    test('preserves local-only shops instead of deleting them', () async {
+      final container = _makeContainerWithHousehold();
+      addTearDown(container.dispose);
+      final notifier = container.read(supermarketsProvider.notifier);
+
+      await notifier.add(_store('LocalShop'), syncToFirestore: false);
+      clearInteractions(_mockFrom(container));
+
+      await notifier.syncFromRemote([_store('RemoteShop')]);
+
+      final state = container.read(supermarketsProvider);
+      expect(
+        state.any((s) => s.id == 'LocalShop'),
+        isTrue,
+        reason: 'local-only shop must be preserved',
+      );
+      expect(
+        state.any((s) => s.id == 'RemoteShop'),
+        isTrue,
+        reason: 'remote shop must be added',
+      );
+    });
+
+    test('re-uploads local-only shops to Firestore', () async {
+      final container = _makeContainerWithHousehold();
+      addTearDown(container.dispose);
+      final notifier = container.read(supermarketsProvider.notifier);
+
+      await notifier.add(_store('LocalShop'), syncToFirestore: false);
+      clearInteractions(_mockFrom(container));
+
+      await notifier.syncFromRemote([_store('RemoteShop')]);
+
+      // Pump event queue so fire-and-forget upsertShop futures resolve.
+      await Future<void>.delayed(Duration.zero);
+
+      verify(
+        () => _mockFrom(container).upsertShop('hh-test', any()),
+      ).called(greaterThanOrEqualTo(1));
+    });
   });
 
   group('SupermarketNotifier – syncToFirestore: false', () {

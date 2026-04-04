@@ -40,6 +40,22 @@ class _NullHouseholdNotifier extends HouseholdNotifier {
   String? build() => null;
 }
 
+class _FakeHouseholdNotifier extends HouseholdNotifier {
+  @override
+  String? build() => 'hh-test';
+}
+
+ProviderContainer makeContainerWithHousehold(
+  Box<ShoppingList> box,
+  MockFirestoreService mock,
+) => ProviderContainer(
+  overrides: [
+    shoppingListBoxProvider.overrideWithValue(box),
+    householdProvider.overrideWith(() => _FakeHouseholdNotifier()),
+    firestoreServiceProvider.overrideWithValue(mock),
+  ],
+);
+
 ShoppingList makeList(String id, List<String> itemNames) => ShoppingList(
   id: id,
   name: 'List $id',
@@ -249,6 +265,78 @@ void main() {
       final all = container.read(shoppingListsProvider);
       expect(all.length, 1);
       expect(all.first.id, 'remote-1');
+    });
+
+    test('toggleItem with out-of-bounds index is a no-op', () async {
+      final list = makeList('L1', ['Milk']);
+      await box.put('L1', list);
+      final container = makeContainer(box);
+      addTearDown(container.dispose);
+      // index 1 is beyond the single item at index 0
+      await container.read(shoppingListsProvider.notifier).toggleItem('L1', 1);
+      expect(
+        container.read(shoppingListsProvider).first.items[0].checked,
+        isFalse,
+      );
+    });
+
+    test('toggleItem with negative index is a no-op', () async {
+      final list = makeList('L1', ['Milk']);
+      await box.put('L1', list);
+      final container = makeContainer(box);
+      addTearDown(container.dispose);
+      await container.read(shoppingListsProvider.notifier).toggleItem('L1', -1);
+      expect(
+        container.read(shoppingListsProvider).first.items[0].checked,
+        isFalse,
+      );
+    });
+  });
+
+  group('ShoppingListNotifier – syncFromRemote with household', () {
+    test('preserves local-only lists instead of deleting them', () async {
+      await box.put('local-only', makeList('local-only', ['Offline Item']));
+      final mock = MockFirestoreService();
+      when(() => mock.upsertList(any(), any())).thenAnswer((_) async {});
+      when(() => mock.deleteList(any(), any())).thenAnswer((_) async {});
+      final container = makeContainerWithHousehold(box, mock);
+      addTearDown(container.dispose);
+
+      await container.read(shoppingListsProvider.notifier).syncFromRemote([
+        makeList('remote-1', ['Remote Item']),
+      ]);
+
+      final all = container.read(shoppingListsProvider);
+      expect(
+        all.any((l) => l.id == 'local-only'),
+        isTrue,
+        reason: 'local-only list must be preserved',
+      );
+      expect(
+        all.any((l) => l.id == 'remote-1'),
+        isTrue,
+        reason: 'remote list must be added',
+      );
+    });
+
+    test('re-uploads local-only lists to Firestore', () async {
+      await box.put('local-only', makeList('local-only', ['Offline Item']));
+      final mock = MockFirestoreService();
+      when(() => mock.upsertList(any(), any())).thenAnswer((_) async {});
+      when(() => mock.deleteList(any(), any())).thenAnswer((_) async {});
+      final container = makeContainerWithHousehold(box, mock);
+      addTearDown(container.dispose);
+
+      await container.read(shoppingListsProvider.notifier).syncFromRemote([
+        makeList('remote-1', ['Remote Item']),
+      ]);
+
+      // Pump the event queue so fire-and-forget upsertList futures resolve.
+      await Future<void>.delayed(Duration.zero);
+
+      verify(
+        () => mock.upsertList('hh-test', any()),
+      ).called(greaterThanOrEqualTo(1));
     });
   });
 }
