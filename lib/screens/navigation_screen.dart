@@ -93,7 +93,13 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         // Host creates the session document.
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (_cachedHid != null) {
-            _cachedSvc!.upsertNavSession(_cachedHid!, widget.listId).ignore();
+            _cachedSvc!
+                .upsertNavSession(_cachedHid!, widget.listId)
+                .catchError(
+                  (Object e) =>
+                      debugPrint('Firestore upsertNavSession error: $e'),
+                )
+                .ignore();
           }
         });
       }
@@ -285,12 +291,23 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   }
 
   void _finishTour() {
-    ref.read(shoppingListsProvider.notifier).uncheckAll(widget.listId).ignore();
+    ref
+        .read(shoppingListsProvider.notifier)
+        .uncheckAll(widget.listId)
+        .catchError((Object e) => debugPrint('uncheckAll error: $e'))
+        .ignore();
     // Host deletes the collaborative session here (while still mounted,
     // so ref.read is legal). Doing it in dispose() would also fire on back.
     if (widget.isCollaborative && widget.isHost) {
       final hid = _cachedHid;
-      if (hid != null) _cachedSvc?.deleteNavSession(hid).ignore();
+      if (hid != null) {
+        _cachedSvc
+            ?.deleteNavSession(hid)
+            .catchError(
+              (Object e) => debugPrint('Firestore deleteNavSession error: $e'),
+            )
+            .ignore();
+      }
     }
     Navigator.pop(context, true); // true = tour finished, not just paused
   }

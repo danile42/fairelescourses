@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -34,7 +35,13 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
     _sync();
     final hid = _hid;
     if (hid != null) {
-      ref.read(firestoreServiceProvider).upsertList(hid, l).ignore();
+      ref
+          .read(firestoreServiceProvider)
+          .upsertList(hid, l)
+          .catchError(
+            (Object e) => debugPrint('Firestore upsertList error: $e'),
+          )
+          .ignore();
     }
   }
 
@@ -43,7 +50,13 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
     _sync();
     final hid = _hid;
     if (hid != null) {
-      ref.read(firestoreServiceProvider).upsertList(hid, l).ignore();
+      ref
+          .read(firestoreServiceProvider)
+          .upsertList(hid, l)
+          .catchError(
+            (Object e) => debugPrint('Firestore upsertList error: $e'),
+          )
+          .ignore();
     }
   }
 
@@ -52,7 +65,13 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
     _sync();
     final hid = _hid;
     if (hid != null) {
-      ref.read(firestoreServiceProvider).deleteList(hid, id).ignore();
+      ref
+          .read(firestoreServiceProvider)
+          .deleteList(hid, id)
+          .catchError(
+            (Object e) => debugPrint('Firestore deleteList error: $e'),
+          )
+          .ignore();
     }
   }
 

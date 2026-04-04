@@ -501,7 +501,14 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
       if (session != null && session.listId == id) {
         final hid = ref.read(householdProvider);
         if (hid != null) {
-          ref.read(firestoreServiceProvider).deleteNavSession(hid).ignore();
+          ref
+              .read(firestoreServiceProvider)
+              .deleteNavSession(hid)
+              .catchError(
+                (Object e) =>
+                    debugPrint('Firestore deleteNavSession error: $e'),
+              )
+              .ignore();
         }
       }
     }

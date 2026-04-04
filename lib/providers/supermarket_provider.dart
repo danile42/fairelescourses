@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import '../models/supermarket.dart';
@@ -39,10 +40,22 @@ class SupermarketNotifier extends Notifier<List<Supermarket>> {
     if (!syncToFirestore) return;
     final hid = _hid;
     if (hid != null) {
-      ref.read(firestoreServiceProvider).upsertShop(hid, s).ignore();
+      ref
+          .read(firestoreServiceProvider)
+          .upsertShop(hid, s)
+          .catchError(
+            (Object e) => debugPrint('Firestore upsertShop error: $e'),
+          )
+          .ignore();
     }
     if (s.osmId != null && !ref.read(localOnlyProvider)) {
-      ref.read(firestoreServiceProvider).upsertPublicCells(s).ignore();
+      ref
+          .read(firestoreServiceProvider)
+          .upsertPublicCells(s)
+          .catchError(
+            (Object e) => debugPrint('Firestore upsertPublicCells error: $e'),
+          )
+          .ignore();
     }
   }
 
@@ -54,10 +67,22 @@ class SupermarketNotifier extends Notifier<List<Supermarket>> {
     state = [for (final e in state) e.id == s.id ? s : e];
     final hid = _hid;
     if (hid != null) {
-      ref.read(firestoreServiceProvider).upsertShop(hid, s).ignore();
+      ref
+          .read(firestoreServiceProvider)
+          .upsertShop(hid, s)
+          .catchError(
+            (Object e) => debugPrint('Firestore upsertShop error: $e'),
+          )
+          .ignore();
     }
     if (s.osmId != null && !ref.read(localOnlyProvider)) {
-      ref.read(firestoreServiceProvider).upsertPublicCells(s).ignore();
+      ref
+          .read(firestoreServiceProvider)
+          .upsertPublicCells(s)
+          .catchError(
+            (Object e) => debugPrint('Firestore upsertPublicCells error: $e'),
+          )
+          .ignore();
     }
   }
 
@@ -66,7 +91,13 @@ class SupermarketNotifier extends Notifier<List<Supermarket>> {
     state = state.where((s) => s.id != id).toList();
     final hid = _hid;
     if (hid != null) {
-      ref.read(firestoreServiceProvider).deleteShop(hid, id).ignore();
+      ref
+          .read(firestoreServiceProvider)
+          .deleteShop(hid, id)
+          .catchError(
+            (Object e) => debugPrint('Firestore deleteShop error: $e'),
+          )
+          .ignore();
     }
   }
 
