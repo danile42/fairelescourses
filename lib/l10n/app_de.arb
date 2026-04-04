@@ -324,5 +324,7 @@
   "menuColorTitle": "Menüfarbe",
   "resetLocalDataTitle": "Alle lokalen Daten zurücksetzen",
   "resetLocalDataConfirm": "Dadurch werden alle lokalen Märkte, Listen und Einstellungen gelöscht. Fortfahren?",
-  "resetLocalDataDone": "Alle lokalen Daten wurden zurückgesetzt."
+  "resetLocalDataDone": "Alle lokalen Daten wurden zurückgesetzt.",
+  "celebrationTitle": "Alles bereit!",
+  "celebrationBody": "Viel Spaß beim Einkaufen!"
 }

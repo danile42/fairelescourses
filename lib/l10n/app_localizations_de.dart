@@ -842,4 +842,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get resetLocalDataDone => 'Alle lokalen Daten wurden zurückgesetzt.';
+
+  @override
+  String get celebrationTitle => 'Alles bereit!';
+
+  @override
+  String get celebrationBody => 'Viel Spaß beim Einkaufen!';
 }

@@ -11,6 +11,7 @@ import '../providers/nav_session_provider.dart';
 import '../providers/shopping_list_provider.dart';
 import '../providers/supermarket_provider.dart';
 import '../providers/tour_provider.dart';
+import '../widgets/celebration_overlay.dart';
 import '../widgets/tour_spotlight.dart';
 import 'help_screen.dart';
 import 'list_editor_screen.dart';
@@ -118,6 +119,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
             const TourSpotlight(),
+            const CelebrationOverlay(),
           ],
         ),
         floatingActionButton: _HomeFab(lists: lists),

@@ -324,5 +324,7 @@
   "menuColorTitle": "Menu color",
   "resetLocalDataTitle": "Reset all local data",
   "resetLocalDataConfirm": "This will delete all local shops, lists, and settings. Continue?",
-  "resetLocalDataDone": "All local data has been reset."
+  "resetLocalDataDone": "All local data has been reset.",
+  "celebrationTitle": "You're all set!",
+  "celebrationBody": "Happy shopping!"
 }

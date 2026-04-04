@@ -1621,6 +1621,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All local data has been reset.'**
   String get resetLocalDataDone;
+
+  /// No description provided for @celebrationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re all set!'**
+  String get celebrationTitle;
+
+  /// No description provided for @celebrationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Happy shopping!'**
+  String get celebrationBody;
 }
 
 class _AppLocalizationsDelegate

@@ -832,4 +832,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get resetLocalDataDone => 'All local data has been reset.';
+
+  @override
+  String get celebrationTitle => 'You\'re all set!';
+
+  @override
+  String get celebrationBody => 'Happy shopping!';
 }
