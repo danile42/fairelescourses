@@ -15,48 +15,45 @@ Fairelescourses is a Flutter (Android-first) supermarket navigation app. Users m
 
 ## High-Level Architecture
 
-```plantuml
-@startuml high-level
-skinparam componentStyle rectangle
-skinparam backgroundColor #FAFAFA
+```mermaid
+graph TB
+    subgraph App["Flutter App"]
+        subgraph UI["UI Layer"]
+            Screens
+            Widgets
+        end
+        subgraph State["State Layer"]
+            Riverpod["Riverpod Providers"]
+        end
+        subgraph SvcLayer["Service Layer"]
+            FirestoreService
+            NavigationPlanner
+            NominatimService
+            OverpassService
+        end
+        subgraph PersistLayer["Persistence Layer"]
+            Hive["Hive (local)"]
+        end
+    end
 
-package "Flutter App" {
-  package "UI Layer" {
-    [Screens] #lightblue
-    [Widgets] #lightblue
-  }
-  package "State Layer" {
-    [Riverpod Providers] #lightyellow
-  }
-  package "Service Layer" {
-    [FirestoreService] #lightgreen
-    [NavigationPlanner] #lightgreen
-    [NominatimService] #lightgreen
-    [OverpassService] #lightgreen
-  }
-  package "Persistence Layer" {
-    [Hive (local)] #lightsalmon
-  }
-}
+    subgraph Firebase
+        Auth["Firebase Auth"]
+        Firestore["Cloud Firestore"]
+    end
 
-cloud "Firebase" {
-  [Firebase Auth]
-  [Cloud Firestore]
-}
-cloud "OpenStreetMap" {
-  [Nominatim API]
-  [Overpass API]
-}
+    subgraph OSM["OpenStreetMap"]
+        Nominatim["Nominatim API"]
+        Overpass["Overpass API"]
+    end
 
-[Screens] --> [Riverpod Providers] : watch / read
-[Riverpod Providers] --> [FirestoreService]
-[Riverpod Providers] --> [NavigationPlanner]
-[Riverpod Providers] --> [Hive (local)]
-[FirestoreService] --> [Firebase Auth]
-[FirestoreService] --> [Cloud Firestore]
-[NominatimService] --> [Nominatim API]
-[OverpassService] --> [Overpass API]
-@enduml
+    Screens -->|"watch / read"| Riverpod
+    Riverpod --> FirestoreService
+    Riverpod --> NavigationPlanner
+    Riverpod --> Hive
+    FirestoreService --> Auth
+    FirestoreService --> Firestore
+    NominatimService --> Nominatim
+    OverpassService --> Overpass
 ```
 
 ## Technology Stack

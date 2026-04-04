@@ -4,52 +4,48 @@ The app uses **Riverpod 3** throughout. There are no `StatefulWidget`s that own 
 
 ## Provider Graph
 
-```plantuml
-@startuml providers
-skinparam backgroundColor #FAFAFA
-skinparam componentStyle rectangle
+```mermaid
+flowchart LR
+    subgraph FB["Firebase"]
+        firebaseAppProvider["firebaseAppProvider\nNotifier"]
+        firestoreServiceProvider["firestoreServiceProvider\nProvider"]
+        currentUidProvider["currentUidProvider\nProvider"]
+    end
 
-together {
-  [firebaseAppProvider\n(Notifier<FirebaseApp>)] #lightgreen
-  [firestoreServiceProvider\n(Provider<FirestoreService>)] #lightgreen
-  [currentUidProvider\n(Provider<String?>)] #lightgreen
-}
+    subgraph Cfg["Config"]
+        householdProvider["householdProvider\nNotifier"]
+        localOnlyProvider["localOnlyProvider\nNotifier"]
+    end
 
-together {
-  [householdProvider\n(Notifier<String?>)] #lightyellow
-  [localOnlyProvider\n(Notifier<bool>)] #lightyellow
-}
+    subgraph Data["Data"]
+        supermarketsProvider["supermarketsProvider\nNotifier"]
+        supermarketBoxProvider["supermarketBoxProvider\nProvider"]
+        shoppingListsProvider["shoppingListsProvider\nNotifier"]
+        shoppingListBoxProvider["shoppingListBoxProvider\nProvider"]
+    end
 
-together {
-  [supermarketsProvider\n(Notifier<List<Supermarket>>)] #lightblue
-  [supermarketBoxProvider\n(Provider<Box<Supermarket>>)] #lightblue
-  [shoppingListsProvider\n(Notifier<List<ShoppingList>>)] #lightblue
-  [shoppingListBoxProvider\n(Provider<Box<ShoppingList>>)] #lightblue
-}
+    subgraph Nav["Navigation"]
+        navSessionProvider["navSessionProvider\nStreamProvider"]
+        navViewModeProvider["navViewModeProvider\nNotifier"]
+    end
 
-together {
-  [navSessionProvider\n(Stream<NavSession?>)] #lightsalmon
-  [navViewModeProvider\n(Notifier<bool>)] #lightsalmon
-}
+    subgraph Prefs["Preferences"]
+        seedColorProvider["seedColorProvider\nNotifier"]
+        homeLocationProvider["homeLocationProvider\nNotifier"]
+        tourStepProvider["tourStepProvider\nNotifier"]
+        tourCompleteProvider["tourCompleteProvider\nNotifier"]
+    end
 
-together {
-  [seedColorProvider\n(Notifier<Color>)] #white
-  [homeLocationProvider\n(Notifier<HomeLocation?>)] #white
-  [tourStepProvider\n(Notifier<int>)] #white
-  [tourCompleteProvider\n(Notifier<bool>)] #white
-}
-
-[firestoreServiceProvider] --> [firebaseAppProvider] : reads
-[currentUidProvider] --> [firestoreServiceProvider] : reads
-[supermarketsProvider] --> [firestoreServiceProvider] : syncs via
-[supermarketsProvider] --> [supermarketBoxProvider] : persists via
-[shoppingListsProvider] --> [firestoreServiceProvider] : syncs via
-[shoppingListsProvider] --> [shoppingListBoxProvider] : persists via
-[navSessionProvider] --> [firestoreServiceProvider] : streams from
-[householdProvider] ..> [supermarketsProvider] : triggers re-upload
-[householdProvider] ..> [shoppingListsProvider] : triggers re-upload
-[localOnlyProvider] ..> [firebaseAppProvider] : gates init
-@enduml
+    firestoreServiceProvider -->|reads| firebaseAppProvider
+    currentUidProvider -->|reads| firestoreServiceProvider
+    supermarketsProvider -->|"syncs via"| firestoreServiceProvider
+    supermarketsProvider -->|"persists via"| supermarketBoxProvider
+    shoppingListsProvider -->|"syncs via"| firestoreServiceProvider
+    shoppingListsProvider -->|"persists via"| shoppingListBoxProvider
+    navSessionProvider -->|"streams from"| firestoreServiceProvider
+    householdProvider -.->|"triggers re-upload"| supermarketsProvider
+    householdProvider -.->|"triggers re-upload"| shoppingListsProvider
+    localOnlyProvider -.->|"gates init"| firebaseAppProvider
 ```
 
 ## Provider Reference
@@ -75,25 +71,18 @@ together {
 
 ## State Lifecycle
 
-```plantuml
-@startuml lifecycle
-skinparam backgroundColor #FAFAFA
-
-start
-:App launch\nmain()|
-:Open Hive boxes|
-:Register Hive adapters (generated)|
-if (localOnly?) then (yes)
-  :Skip Firebase init|
-else (no)
-  :Init Firebase (default or custom credentials)|
-  :Anonymous sign-in|
-endif
-:ProviderScope wraps app|
-:MaterialApp watches seedColorProvider|
-:HomeScreen watches firestoreSyncProvider\n→ activates Firestore listeners|
-stop
-@enduml
+```mermaid
+flowchart TD
+    A([App launch / main]) --> B[Open Hive boxes]
+    B --> C[Register Hive adapters]
+    C --> D{localOnly?}
+    D -->|yes| E[Skip Firebase init]
+    D -->|no| F["Init Firebase\n(default or custom credentials)"]
+    F --> G[Anonymous sign-in]
+    G --> H
+    E --> H[ProviderScope wraps app]
+    H --> I[MaterialApp watches seedColorProvider]
+    I --> J["HomeScreen watches firestoreSyncProvider\n→ activates Firestore listeners"]
 ```
 
 ## Notifier Patterns

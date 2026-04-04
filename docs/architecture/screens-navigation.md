@@ -4,32 +4,24 @@ The app uses Flutter's standard `Navigator` (push/pop) — there is no named-rou
 
 ## Screen Hierarchy
 
-```plantuml
-@startuml screens
-skinparam backgroundColor #FAFAFA
-skinparam componentStyle rectangle
+```mermaid
+flowchart TD
+    Home["HomeScreen\n(2 tabs: Lists / Shops)"]
+    ListEditor["ListEditorScreen\n(create / edit list)"]
+    StoreEditor["StoreEditorScreen\n(create / edit shop grid)"]
+    Nav["NavigationScreen\n(active navigation)"]
+    Search["ShopSearchScreen\n(search & import shops)"]
+    Help["HelpScreen\n(4-page guide)"]
+    Sync["SyncScreen\n(household + settings)"]
 
-[HomeScreen\n(2 tabs: Lists / Shops)] as Home #lightblue
-
-[ListEditorScreen\n(create / edit list)] as ListEditor
-[StoreEditorScreen\n(create / edit shop grid)] as StoreEditor
-[NavigationScreen\n(active navigation)] as Nav
-[ShopSearchScreen\n(search & import shops)] as Search
-[HelpScreen\n(4-page guide)] as Help
-[SyncScreen\n(household + settings)] as Sync
-
-Home --> ListEditor : FAB → New list\nor Edit list
-Home --> StoreEditor : FAB → New shop\nor Edit shop
-Home --> Nav : Play button on list
-Home --> Search : AppBar → Search icon
-Home --> Help : AppBar → Help icon
-Home --> Sync : AppBar → Settings icon
-
-ListEditor --> Nav : Generate plan button
-
-StoreEditor --> Search : (returns import data)
-Search --> StoreEditor : Import shop
-@enduml
+    Home -->|"FAB → New list / Edit list"| ListEditor
+    Home -->|"FAB → New shop / Edit shop"| StoreEditor
+    Home -->|"Play button on list"| Nav
+    Home -->|"AppBar → Search icon"| Search
+    Home -->|"AppBar → Help icon"| Help
+    Home -->|"AppBar → Settings icon"| Sync
+    ListEditor -->|"Generate plan button"| Nav
+    Search -->|"Import shop"| StoreEditor
 ```
 
 ## Screen Descriptions
@@ -132,33 +124,30 @@ Household management and app settings:
 
 ## Widget Hierarchy (simplified)
 
-```plantuml
-@startuml widget-tree
-skinparam backgroundColor #FAFAFA
+```mermaid
+flowchart TD
+    subgraph HomeScreen
+        HS1[Scaffold]
+        HS2[TabBar]
+        HS3[TabBarView]
+        HS4["ShoppingListCard ×N"]
+        HS5["SupermarketCard ×N"]
+        HS6[SpeedDial FAB]
+        HS7[TourSpotlight overlay]
+        HS8[CelebrationOverlay overlay]
+    end
 
-package HomeScreen {
-  [Scaffold]
-  [TabBar]
-  [TabBarView]
-  [ShoppingListCard] <<repeated>>
-  [SupermarketCard] <<repeated>>
-  [SpeedDial FAB]
-  [TourSpotlight <<overlay>>]
-  [CelebrationOverlay <<overlay>>]
-}
+    subgraph NavigationScreen
+        NS1[Scaffold]
+        NS2[TabBar per store]
+        NS3[MiniMap - grid view]
+        NS4[StopCard list - list view]
+        NS5[CelebrationOverlay overlay]
+    end
 
-package NavigationScreen {
-  [Scaffold]
-  [TabBar <<per store>>]
-  [MiniMap] <<grid view>>
-  [StopCard list] <<list view>>
-  [CelebrationOverlay <<overlay>>]
-}
-
-package StoreEditorScreen {
-  [Scaffold]
-  [StoreGrid]
-  [TourHintBanner]
-}
-@enduml
+    subgraph StoreEditorScreen
+        SE1[Scaffold]
+        SE2[StoreGrid]
+        SE3[TourHintBanner]
+    end
 ```

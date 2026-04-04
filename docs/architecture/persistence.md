@@ -4,31 +4,27 @@ The app is **offline-first**. All user data is stored locally in Hive. Firestore
 
 ## Storage Architecture
 
-```plantuml
-@startuml persistence
-skinparam backgroundColor #FAFAFA
-skinparam componentStyle rectangle
+```mermaid
+flowchart TB
+    subgraph Hive["Hive (local)"]
+        HiveShops[("supermarkets\nBox&lt;Supermarket&gt;")]
+        HiveLists[("shopping_lists\nBox&lt;ShoppingList&gt;")]
+        HiveSettings[("settings\nBox&lt;String&gt;")]
+    end
 
-package "Hive (local)" {
-  database "supermarkets\nBox<Supermarket>" as HiveShops #lightsalmon
-  database "shopping_lists\nBox<ShoppingList>" as HiveLists #lightsalmon
-  database "settings\nBox<String>" as HiveSettings #lightsalmon
-}
+    subgraph Firestore["Firestore (remote, optional)"]
+        FSShops[("shops/{shopId}")]
+        FSPublic[("public_shops/{osmId}")]
+        FSLists[("h/{pathId}/l/{listId}")]
+        FSNav[("h/{pathId}/nav/current")]
+    end
 
-package "Firestore (remote, optional)" {
-  database "shops/{shopId}" as FSShops #lightblue
-  database "public_shops/{osmId}" as FSPublic #lightblue
-  database "h/{pathId}/l/{listId}" as FSLists #lightblue
-  database "h/{pathId}/nav/current" as FSNav #lightblue
-}
-
-[SupermarketNotifier] --> HiveShops : reads/writes
-[SupermarketNotifier] --> FSShops : syncs (if household)
-[ShoppingListNotifier] --> HiveLists : reads/writes
-[ShoppingListNotifier] --> FSLists : syncs (if household, encrypted)
-[navSessionProvider] --> FSNav : streams
-[FirestoreService] ..> FSPublic : read/write OSM templates
-@enduml
+    SupermarketNotifier -->|"reads/writes"| HiveShops
+    SupermarketNotifier -->|"syncs (if household)"| FSShops
+    ShoppingListNotifier -->|"reads/writes"| HiveLists
+    ShoppingListNotifier -->|"syncs (household, encrypted)"| FSLists
+    navSessionProvider -->|"streams"| FSNav
+    FirestoreService -.->|"read/write OSM templates"| FSPublic
 ```
 
 ---

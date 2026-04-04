@@ -4,32 +4,29 @@ Services are thin clients for external systems. They are accessed via Riverpod p
 
 ## Service Overview
 
-```plantuml
-@startuml services
-skinparam backgroundColor #FAFAFA
-skinparam componentStyle rectangle
+```mermaid
+flowchart LR
+    subgraph Services["lib/services/"]
+        FirestoreService
+        NavigationPlanner
+        NominatimService
+        OverpassService
+    end
 
-package "lib/services/" {
-  [FirestoreService] #lightgreen
-  [NavigationPlanner] #lightyellow
-  [NominatimService] #lightblue
-  [OverpassService] #lightblue
-}
+    subgraph Firebase
+        Auth["Firebase Auth"]
+        Firestore["Cloud Firestore"]
+    end
 
-cloud Firebase {
-  [Firebase Auth]
-  [Cloud Firestore]
-}
-cloud OpenStreetMap {
-  [Nominatim REST API\nnominatim.openstreetmap.org]
-  [Overpass REST API\noverpass-api.de]
-}
+    subgraph OSM["OpenStreetMap"]
+        Nominatim["Nominatim REST API\nnominatim.openstreetmap.org"]
+        Overpass["Overpass REST API\noverpass-api.de"]
+    end
 
-[FirestoreService] --> [Firebase Auth] : anonymous sign-in
-[FirestoreService] --> [Cloud Firestore] : CRUD + streams
-[NominatimService] --> [Nominatim REST API] : geocode address
-[OverpassService] --> [Overpass API] : nearby shop search
-@enduml
+    FirestoreService -->|"anonymous sign-in"| Auth
+    FirestoreService -->|"CRUD + streams"| Firestore
+    NominatimService -->|"geocode address"| Nominatim
+    OverpassService -->|"nearby shop search"| Overpass
 ```
 
 ---
@@ -89,30 +86,25 @@ Pure Dart service — no I/O. Converts a `ShoppingList` + `List<Supermarket>` in
 
 ### Algorithm
 
-```plantuml
-@startuml planner
-skinparam backgroundColor #FAFAFA
-
-start
-:Input: ShoppingList + List<Supermarket>|
-:Order stores: preferred first, then rest|
-:For each item in list:|
-  :Find first store that stocks it|
-  :Assign item to that store's plan|
-  :Items not found anywhere → globalUnmatched|
-:For each store plan:|
-  :Group assigned items by cell|
-  :For each floor (ground first, then upper):|
-    :Build NavigationStop list per cell|
-    if (stops ≤ 10?) then (yes)
-      :Exact TSP via bitmask DP\nO(n² × 2^n)|
-    else (no)
-      :Nearest-neighbour heuristic\nO(n²)|
-    endif
-    :Route: entrance → sorted stops → exit|
-:Return NavigationPlan|
-stop
-@enduml
+```mermaid
+flowchart TD
+    A([Input: ShoppingList + List of Supermarkets]) --> B[Order stores: preferred first then rest]
+    B --> C[For each item in list]
+    C --> D["Three-pass cell search\n1. Exact tag match\n2. All words match\n3. Substring match"]
+    D --> E{Found in a store?}
+    E -->|yes| F[Assign item to first matching store]
+    E -->|no| G[Add to globalUnmatched]
+    F --> H[For each store plan]
+    G --> H
+    H --> I[Group assigned items by cell]
+    I --> J["For each floor (ground first, then upper)"]
+    J --> K[Build NavigationStop list per cell]
+    K --> L{stops ≤ 10?}
+    L -->|yes| M["Exact TSP via bitmask DP\nO(n² × 2ⁿ)"]
+    L -->|no| N["Nearest-neighbour heuristic\nO(n²)"]
+    M --> O["Route: entrance → sorted stops → exit"]
+    N --> O
+    O --> P([Return NavigationPlan])
 ```
 
 - **Manhattan distance** is used as the cost metric (grid movement).

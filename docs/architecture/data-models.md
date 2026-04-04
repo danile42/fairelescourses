@@ -4,126 +4,116 @@ All persistent models live in `lib/models/`. Runtime-only models are also kept t
 
 ## Class Diagram
 
-```plantuml
-@startuml data-models
-skinparam classAttributeIconSize 0
-skinparam backgroundColor #FAFAFA
+```mermaid
+classDiagram
+    class Supermarket {
+        <<HiveType 0>>
+        +id String
+        +name String
+        +rows List~String~
+        +cols List~String~
+        +entrance String
+        +exit String
+        +cells Map~String, List~String~~
+        +subcells Map~String, List~String~~
+        +address String
+        +lat double
+        +lng double
+        +parentId String
+        +osmId int
+        +osmCategory String
+        +osmCategories List~String~
+        +floorsRaw List~dynamic~
+        +groundFloorName String
+        +ownerUid String
+        +distance(a, b) int
+        +findCell(item) String
+        +findCellWithFloor(item) Record
+        +floorAt(index) ShopFloor
+        +isSplit(cellId) bool
+        +copyWith() Supermarket
+        +toMap() Map
+        +fromMap(map) Supermarket
+    }
 
-class Supermarket <<HiveType 0>> {
-  +id: String
-  +name: String
-  +rows: List<String>
-  +cols: List<String>
-  +entrance: String
-  +exit: String
-  +cells: Map<String, List<String>>
-  +subcells: Map<String, List<String>>
-  +address: String?
-  +lat: double?
-  +lng: double?
-  +parentId: String?
-  +osmId: int?
-  +osmCategory: String?
-  +osmCategories: List<String>
-  +floorsRaw: List<dynamic>?
-  +groundFloorName: String?
-  +ownerUid: String? (not persisted)
-  --
-  +distance(a, b): int
-  +findCell(item): String?
-  +findCellWithFloor(item): (int, String)?
-  +floorAt(index): ShopFloor
-  +isSplit(cellId): bool
-  +copyWith(...): Supermarket
-  +toMap() / fromMap()
-}
+    class ShopFloor {
+        +name String
+        +rows List~String~
+        +cols List~String~
+        +entrance String
+        +exit String
+        +cells Map~String, List~String~~
+        +subcells Map~String, List~String~~
+        +distance(a, b) int
+        +isNeighbour(a, b) bool
+        +findCell(item) String
+        +toMap() Map
+        +fromMap(map) ShopFloor
+    }
 
-class ShopFloor {
-  +name: String
-  +rows: List<String>
-  +cols: List<String>
-  +entrance: String
-  +exit: String
-  +cells: Map<String, List<String>>
-  +subcells: Map<String, List<String>>
-  --
-  +distance(a, b): int
-  +isNeighbour(a, b): bool
-  +findCell(item): String?
-  +toMap() / fromMap()
-}
+    class ShoppingList {
+        <<HiveType 2>>
+        +id String
+        +name String
+        +preferredStoreIds List~String~
+        +items List~ShoppingItem~
+        +checkedCount int
+        +copyWith() ShoppingList
+        +toMap() Map
+        +fromMap(map) ShoppingList
+    }
 
-class ShoppingList <<HiveType 2>> {
-  +id: String
-  +name: String
-  +preferredStoreIds: List<String>
-  +items: List<ShoppingItem>
-  --
-  +checkedCount: int
-  +copyWith(...): ShoppingList
-  +toMap() / fromMap()
-}
+    class ShoppingItem {
+        <<HiveType 1>>
+        +name String
+        +checked bool
+    }
 
-class ShoppingItem <<HiveType 1>> {
-  +name: String
-  +checked: bool
-}
+    class NavigationPlan {
+        <<runtime only>>
+        +storePlans List~StorePlan~
+        +globalUnmatched List~String~
+    }
 
-class NavigationPlan <<runtime only>> {
-  +storePlans: List<StorePlan>
-  +globalUnmatched: List<String>
-}
+    class StorePlan {
+        <<runtime only>>
+        +storeId String
+        +storeName String
+        +stops List~NavigationStop~
+        +unmatched List~String~
+        +totalItems int
+    }
 
-class StorePlan <<runtime only>> {
-  +storeId: String
-  +storeName: String
-  +stops: List<NavigationStop>
-  +unmatched: List<String>
-  --
-  +totalItems: int
-}
+    class NavigationStop {
+        <<runtime only>>
+        +cell String
+        +items List~String~
+        +floor int
+    }
 
-class NavigationStop <<runtime only>> {
-  +cell: String
-  +items: List<String>
-  +floor: int
-}
+    class NavSession {
+        <<Firestore only>>
+        +listId String
+        +startedBy String
+    }
 
-class NavSession <<Firestore only>> {
-  +listId: String
-  +startedBy: String
-}
+    class FirebaseCredentials {
+        <<settings box>>
+        +projectId String
+        +apiKey String
+        +appId String
+        +messagingSenderId String
+        +storageBucket String
+        +fromJson(json) FirebaseCredentials
+    }
 
-class FirebaseCredentials <<settings box>> {
-  +projectId: String
-  +apiKey: String
-  +appId: String
-  +messagingSenderId: String
-  +storageBucket: String
-  --
-  +fromJson(json): FirebaseCredentials
-}
-
-Supermarket "1" *-- "0..*" ShopFloor : floorAt(1+)
-ShoppingList "1" *-- "1..*" ShoppingItem
-NavigationPlan "1" *-- "1..*" StorePlan
-StorePlan "1" *-- "1..*" NavigationStop
-
-note top of Supermarket
-  Ground floor data is stored
-  directly on Supermarket.
-  Additional floors are serialised
-  in floorsRaw and accessed via
-  floorAt(index) as ShopFloor views.
-end note
-
-note right of ShopFloor
-  Ground floor (index 0) is a
-  synthetic ShopFloor view over
-  Supermarket's own fields.
-end note
-@enduml
+    Supermarket "1" *-- "0..*" ShopFloor : floorAt(1+)
+    ShoppingList "1" *-- "1..*" ShoppingItem
+    NavigationPlan "1" *-- "1..*" StorePlan
+    StorePlan "1" *-- "1..*" NavigationStop
 ```
+
+> **Note — Supermarket floors:** Ground floor data is stored directly on the `Supermarket` object. Additional floors are serialised in `floorsRaw` and accessed via `floorAt(index)` as `ShopFloor` views. `floorAt(0)` returns a synthetic `ShopFloor` built from `Supermarket`'s own fields.
 
 ## Model Details
 
