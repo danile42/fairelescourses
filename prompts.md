@@ -277,6 +277,10 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - `ListEditorScreen`: shows banner on step 1 ("Give your list a name and add at least one item, then tap Save.") via `bottomNavigationBar`.
     - l10n: fixed `tourStep1Title` "Create a store" → "Create a shop"; simplified `tourStep1Body`; added `tourShopEditorHint` and `tourListEditorHint` in EN + DE.
 
+102. Fix tour spotlight misplaced (too far left) when returning to HomeScreen.
+    - Root cause: `didPopNext` called `_scheduleRead` while the pop animation was still running, so the FAB's global position was read mid-slide.
+    - Fix: `didPopNext` now checks `animation.status`; if not yet completed, attaches a `StatusListener` (`_onRouteAnimationStatus`) and only calls `_scheduleRead` once the animation reaches `AnimationStatus.completed`.
+
 101. Fix tour spotlight re-appearing on sub-screens and misplaced after return.
     - Added `bool _routeIsCurrent = true` field to `_TourSpotlightState`.
     - `didPushNext` sets `_routeIsCurrent = false` before clearing the entry.

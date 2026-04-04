@@ -79,11 +79,25 @@ class _TourSpotlightState extends ConsumerState<TourSpotlight> with RouteAware {
     _entry = null;
   }
 
-  /// Returned to this screen — restore the overlay.
+  /// Returned to this screen — restore the overlay once the pop animation ends.
   @override
   void didPopNext() {
     _routeIsCurrent = true;
-    if (_step >= 0) _scheduleRead();
+    final animation = ModalRoute.of(context)?.animation;
+    if (animation == null || animation.status == AnimationStatus.completed) {
+      if (_step >= 0) _scheduleRead();
+    } else {
+      animation.addStatusListener(_onRouteAnimationStatus);
+    }
+  }
+
+  void _onRouteAnimationStatus(AnimationStatus status) {
+    if (status == AnimationStatus.completed) {
+      ModalRoute.of(
+        context,
+      )?.animation?.removeStatusListener(_onRouteAnimationStatus);
+      if (_routeIsCurrent && _step >= 0) _scheduleRead();
+    }
   }
 
   @override
