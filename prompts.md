@@ -358,6 +358,8 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - Created `docs/architecture/persistence.md`: storage architecture diagram, Hive box layout, settings key reference, full Firestore document schema, data consistency model.
     - Created `docs/architecture/key-flows.md`: PlantUML sequence diagrams for create-shop-and-navigate, collaborative navigation, search-and-import, join-household, and navigation planning algorithm.
 
+107. Analyze the project for potential bugs and UX improvements; write findings to improvement-analysis.md.
+
 91. Add `osmCategoryLabel` tests to overpass_service_test.dart.
     - New group `osmCategoryLabel – localised strings` using `AppLocalizationsEn()` directly.
     - Tests: every category key resolves to a non-empty string, spot-checks for supermarket/pharmacy/bakery, unknown key returns key itself, all 18 categories produce distinct labels.
