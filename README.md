@@ -152,6 +152,8 @@ Every line of code in this repository was written by [Claude](https://claude.ai)
 
 The human author provided product direction through natural-language prompts (see [`prompts.md`](prompts.md)) and reviewed the results on a device, but did not write, edit, or modify a single line of source code. The complete prompt history is preserved in `prompts.md`.
 
+> **Note:** The numbering in `prompts.md` reflects the order in which Claude logged the entries, which does not always match the exact order the prompts were given — especially toward the end of the file, where multi-session context compression occasionally caused entries to be recorded slightly out of sequence.
+
 This project was built incrementally over many sessions: each prompt added a feature, fixed a bug, or refined existing behaviour, with Claude Code committing each change directly to `main`. The git history is therefore an accurate record of the AI-driven development process.
 
 ---
