@@ -21,20 +21,13 @@ Fairelescourses is a supermarket navigation assistant. You draw your shops as gr
 
 ## 1. Quick start
 
-When you open the app for the first time, a three-step tour guides you through the basics.
+When you open the app for the first time, the help screen explains the basics. The **?** button in the top-right corner opens it again whenever you need a reminder.
 
-```mermaid
-flowchart LR
-    A([Open app]) --> B[Step 1\nCreate a shop]
-    B --> C[Step 2\nCreate a shopping list]
-    C --> D[Step 3\nStart navigation]
-    D --> E([🎉 You're all set!])
+To get started:
 
-    style A fill:#e8f5e9
-    style E fill:#e8f5e9
-```
-
-A spotlight circles the button you need to tap at each step. Tap **Skip tour** at any time if you'd rather explore on your own. The **?** button in the top-right corner opens the help screen whenever you need a reminder.
+1. Create a **shop** — draw its grid and assign goods to cells.
+2. Create a **shopping list** — add the items you want to buy.
+3. Tap the **play** button next to your list to start your first shopping trip.
 
 ---
 
@@ -264,7 +257,6 @@ When a store has multiple floors, the navigator guides you floor by floor. A flo
 When all items are resolved, a **Finish** button appears. Tapping it:
 1. Unchecks all items in the list (resetting it for reuse).
 2. Returns you to the home screen.
-3. If this was the final step of the onboarding tour, a confetti celebration appears.
 
 ---
 
