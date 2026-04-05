@@ -196,23 +196,47 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
         final shops = _mode == _SearchMode.byItem
             ? await svc.searchByItem(q)
             : await svc.searchByName(q);
-        if (mounted) {
-          setState(() {
-            _firestoreResults = shops
-                .map((s) => ShopSearchResult(shop: s))
-                .toList();
-            _osmResults = [];
-            _loading = false;
-            _searched = true;
-          });
-          if (_mode == _SearchMode.byName && shops.isEmpty) {
-            final home = ref.read(homeLocationProvider);
-            if (home != null) {
-              _lastLat = home.lat;
-              _lastLng = home.lng;
-              _osmNameFilter = q.toLowerCase();
-              _retryOsm();
-            }
+        if (!mounted) return;
+        List<ShopSearchResult> results = shops
+            .map((s) => ShopSearchResult(shop: s))
+            .toList();
+        if (_mode == _SearchMode.byItem) {
+          // Also include locally-stored shops that contain the queried item.
+          final remoteIds = shops.map((s) => s.id).toSet();
+          final qLower = q.toLowerCase().trim();
+          final localMatches = ref
+              .read(supermarketsProvider)
+              .where(
+                (s) =>
+                    !remoteIds.contains(s.id) &&
+                    (s.cells.values.any(
+                          (goods) => goods.any(
+                            (g) => g.toLowerCase().trim() == qLower,
+                          ),
+                        ) ||
+                        s.subcells.values.any(
+                          (goods) => goods.any(
+                            (g) => g.toLowerCase().trim() == qLower,
+                          ),
+                        )),
+              )
+              .map((s) => ShopSearchResult(shop: s))
+              .toList();
+          results = [...localMatches, ...results];
+        }
+        setState(() {
+          _firestoreResults = results;
+          _osmResults = [];
+          _loading = false;
+          _searched = true;
+        });
+        if (_mode == _SearchMode.byName && shops.isEmpty) {
+          final home = ref.read(homeLocationProvider);
+          if (home != null) {
+            _lastLat = home.lat;
+            _lastLng = home.lng;
+            _osmNameFilter = q.toLowerCase();
+            _retryOsm();
           }
         }
       }
