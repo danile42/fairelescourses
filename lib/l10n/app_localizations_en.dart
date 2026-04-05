@@ -842,4 +842,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get celebrationBody => 'Happy shopping!';
+
+  @override
+  String navListUpdated(int n) {
+    return '$n new item(s) added to the list.';
+  }
+
+  @override
+  String get navUpdateRoute => 'Update route';
 }

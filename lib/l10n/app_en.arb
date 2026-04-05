@@ -327,5 +327,12 @@
   "resetLocalDataConfirm": "This will delete all local shops, lists, and settings. Continue?",
   "resetLocalDataDone": "All local data has been reset.",
   "celebrationTitle": "You're all set!",
-  "celebrationBody": "Happy shopping!"
+  "celebrationBody": "Happy shopping!",
+  "navListUpdated": "{n} new item(s) added to the list.",
+  "@navListUpdated": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "navUpdateRoute": "Update route"
 }

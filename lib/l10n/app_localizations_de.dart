@@ -852,4 +852,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get celebrationBody => 'Viel Spaß beim Einkaufen!';
+
+  @override
+  String navListUpdated(int n) {
+    return '$n neuer Artikel zur Liste hinzugefügt.';
+  }
+
+  @override
+  String get navUpdateRoute => 'Route aktualisieren';
 }

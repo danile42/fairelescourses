@@ -468,3 +468,10 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - `home_screen_test.dart`: German FAB expansion test (`newList`); German delete-shop confirmation dialog (`deleteConfirm`, `yes`, `no`).
     - `store_editor_screen_test.dart`: German "edit existing shop" test (`editShop`).
     - Key fixes: used `find.byTooltip('Zurück')` instead of `pageBack()` in German locale (back button tooltip is locale-dependent); discarded overflow exception from popup menu render with `tester.takeException()` before asserting `isNull`.
+
+117. Implement independent of the other active session - after each feature, run the full commit procedure:
+    - When I am in navigation mode and someone else adds items to the list, I want to be notified, the list and navigation should be updated.
+    - Put the initial help slides on one screen again.
+    - Remove mentions of the intro tour from the user documentation.
+    - Shop search by item should find only-local shops, too - not only shops defined in a household.
+    - Feature 1: Added `_plan` mutable state (initialized from `widget.plan`) and `_knownItemNames` set in `NavigationScreen`. The `shoppingListsProvider` listener now always runs (not just in collaborative mode), detects newly added unchecked items that weren't in the original plan, and stores them in `_newItems`. A `MaterialBanner` appears at the top of the navigation body when `_newItems` is non-empty, offering "Dismiss" and "Update route" buttons. `_refreshPlan()` replans with the current list, resizes `_checkedPerStore`, restores checked state via `_syncCheckedFromList`, and clears the banner. New l10n strings: `navListUpdated` (with `n` placeholder), `navUpdateRoute`.

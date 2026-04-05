@@ -41,6 +41,9 @@ class NavigationScreen extends ConsumerStatefulWidget {
 }
 
 class _NavigationScreenState extends ConsumerState<NavigationScreen> {
+  late NavigationPlan _plan;
+  late Set<String> _knownItemNames;
+  final Set<String> _newItems = {};
   late List<Set<String>> _checkedPerStore;
   final Set<String> _checkedUnmatched = {};
   int _storeIndex = 0;
@@ -70,9 +73,10 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   @override
   void initState() {
     super.initState();
+    _plan = widget.plan;
     final preferList = ref.read(navViewModeProvider);
     _viewMode = preferList ? _ViewMode.list : _ViewMode.grid;
-    _checkedPerStore = List.generate(widget.plan.storePlans.length, (_) => {});
+    _checkedPerStore = List.generate(_plan.storePlans.length, (_) => {});
     _resolvedUnmatched = {};
     _navigatedUnmatched = {};
 
@@ -82,6 +86,13 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         .read(shoppingListsProvider)
         .where((l) => l.id == widget.listId)
         .firstOrNull;
+    _knownItemNames = list != null
+        ? list.items.map((i) => i.name.toLowerCase()).toSet()
+        : _plan.storePlans
+              .expand((sp) => sp.stops)
+              .expand((s) => s.items)
+              .map((i) => i.toLowerCase())
+              .toSet();
     if (list != null) _syncCheckedFromList(list);
 
     if (widget.isCollaborative) {
@@ -117,15 +128,15 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         .where((i) => i.checked)
         .map((i) => i.name.toLowerCase())
         .toSet();
-    for (int si = 0; si < widget.plan.storePlans.length; si++) {
-      _checkedPerStore[si] = widget.plan.storePlans[si].stops
+    for (int si = 0; si < _plan.storePlans.length; si++) {
+      _checkedPerStore[si] = _plan.storePlans[si].stops
           .expand((s) => s.items)
           .where((item) => checkedNames.contains(item.toLowerCase()))
           .toSet();
     }
     final allUnmatchedNames = {
-      ...widget.plan.globalUnmatched,
-      ...widget.plan.storePlans.expand((sp) => sp.unmatched),
+      ..._plan.globalUnmatched,
+      ..._plan.storePlans.expand((sp) => sp.unmatched),
     };
     _checkedUnmatched
       ..clear()
@@ -150,7 +161,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         .ignore();
   }
 
-  StorePlan get _currentPlan => widget.plan.storePlans[_storeIndex];
+  StorePlan get _currentPlan => _plan.storePlans[_storeIndex];
 
   // ── Progress accounting (includes carried-over and deferred items) ───────
 
@@ -189,7 +200,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
       } else {
         set.add(item);
         // Remember which cell this item was in so adjacent cells can be highlighted.
-        for (final stop in widget.plan.storePlans[si].stops) {
+        for (final stop in _plan.storePlans[si].stops) {
           if (stop.items.contains(item)) {
             _lastCheckedCell = stop.cell;
             _lastCheckedFloor = stop.floor;
@@ -215,7 +226,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   /// they cannot collect right now.
   Future<void> _showCollectLaterSheet(String item) async {
     final l = AppLocalizations.of(context)!;
-    final storePlans = widget.plan.storePlans;
+    final storePlans = _plan.storePlans;
     final hasNextShop = _storeIndex < storePlans.length - 1;
     final nextShopName = hasNextShop
         ? storePlans[_storeIndex + 1].storeName
@@ -371,13 +382,13 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     });
 
     final allUnmatched = {
-      ...widget.plan.globalUnmatched,
-      ...widget.plan.storePlans.expand((s) => s.unmatched),
+      ..._plan.globalUnmatched,
+      ..._plan.storePlans.expand((s) => s.unmatched),
     };
     final allHandled = allUnmatched.every((i) => newNavigated.contains(i));
     final planDone =
-        widget.plan.storePlans.isEmpty ||
-        (_storeIndex >= widget.plan.storePlans.length - 1 &&
+        _plan.storePlans.isEmpty ||
+        (_storeIndex >= _plan.storePlans.length - 1 &&
             _effectiveHandled >= _effectiveTotal);
     if (allHandled && planDone && mounted) {
       Navigator.pop(context);
@@ -443,8 +454,8 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         .map((g) => g.toLowerCase())
         .toSet();
     final allUnmatched = {
-      ...widget.plan.globalUnmatched,
-      ...widget.plan.storePlans.expand((s) => s.unmatched),
+      ..._plan.globalUnmatched,
+      ..._plan.storePlans.expand((s) => s.unmatched),
     };
     setState(() {
       _resolvedUnmatched = allUnmatched
@@ -613,17 +624,26 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final plan = widget.plan;
+    final plan = _plan;
 
-    // In collaborative mode, keep checked state in sync with the shared list.
-    if (widget.isCollaborative) {
-      ref.listen<List<ShoppingList>>(shoppingListsProvider, (_, lists) {
-        final list = lists.where((l) => l.id == widget.listId).firstOrNull;
-        if (list != null) setState(() => _syncCheckedFromList(list));
+    // Keep checked state in sync with the shared list, and detect new items.
+    ref.listen<List<ShoppingList>>(shoppingListsProvider, (_, lists) {
+      final list = lists.where((l) => l.id == widget.listId).firstOrNull;
+      if (list == null) return;
+      final added = list.items
+          .where(
+            (i) =>
+                !i.checked && !_knownItemNames.contains(i.name.toLowerCase()),
+          )
+          .map((i) => i.name)
+          .toSet();
+      setState(() {
+        if (added.isNotEmpty) _newItems.addAll(added);
+        _syncCheckedFromList(list);
       });
-    }
+    });
 
-    if (plan.storePlans.isEmpty) {
+    if (_plan.storePlans.isEmpty) {
       final stillUnmatched = plan.globalUnmatched
           .where(
             (i) =>
@@ -844,14 +864,14 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         builder: (context) {
           // In list view use overall totals across all stores.
           final listTotal = _viewMode == _ViewMode.list
-              ? widget.plan.storePlans.fold(0, (s, sp) => s + sp.totalItems)
+              ? _plan.storePlans.fold(0, (s, sp) => s + sp.totalItems)
               : total;
           final listHandled = _viewMode == _ViewMode.list
               ? () {
                   int c = 0;
-                  for (int si = 0; si < widget.plan.storePlans.length; si++) {
+                  for (int si = 0; si < _plan.storePlans.length; si++) {
                     final checked = _checkedPerStore[si];
-                    for (final stop in widget.plan.storePlans[si].stops) {
+                    for (final stop in _plan.storePlans[si].stops) {
                       for (final item in stop.items) {
                         if (checked.contains(item) ||
                             _deferNextShop.contains(item) ||
@@ -871,6 +891,22 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                 minHeight: 6,
                 backgroundColor: Colors.grey.shade200,
               ),
+              if (_newItems.isNotEmpty)
+                MaterialBanner(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+                  leading: const Icon(Icons.add_circle_outline),
+                  content: Text(l.navListUpdated(_newItems.length)),
+                  actions: [
+                    TextButton(
+                      onPressed: () => setState(() => _newItems.clear()),
+                      child: Text(l.cancel),
+                    ),
+                    FilledButton(
+                      onPressed: _refreshPlan,
+                      child: Text(l.navUpdateRoute),
+                    ),
+                  ],
+                ),
               if (_viewMode == _ViewMode.grid)
                 Padding(
                   padding: const EdgeInsets.symmetric(
@@ -997,14 +1033,44 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     );
   }
 
+  void _refreshPlan() {
+    final list = ref
+        .read(shoppingListsProvider)
+        .where((l) => l.id == widget.listId)
+        .firstOrNull;
+    if (list == null) return;
+    final shops = ref.read(supermarketsProvider);
+    final newPlan = NavigationPlanner.plan(list, shops);
+    setState(() {
+      _plan = newPlan;
+      _knownItemNames = list.items.map((i) => i.name.toLowerCase()).toSet();
+      // Resize _checkedPerStore to match the new plan length.
+      while (_checkedPerStore.length < newPlan.storePlans.length) {
+        _checkedPerStore.add({});
+      }
+      if (_checkedPerStore.length > newPlan.storePlans.length) {
+        _checkedPerStore = _checkedPerStore.sublist(
+          0,
+          newPlan.storePlans.length,
+        );
+      }
+      if (_storeIndex >= newPlan.storePlans.length &&
+          newPlan.storePlans.isNotEmpty) {
+        _storeIndex = newPlan.storePlans.length - 1;
+      }
+      _newItems.clear();
+      _syncCheckedFromList(list);
+    });
+  }
+
   Widget _buildListView() {
     final l = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final plans = widget.plan.storePlans;
+    final plans = _plan.storePlans;
 
     // Collect all unmatched items (store-specific + global), deduplicated.
     final allUnmatched = <String>{
-      ...widget.plan.globalUnmatched,
+      ..._plan.globalUnmatched,
       ...plans.expand((sp) => sp.unmatched),
     }.toList();
 

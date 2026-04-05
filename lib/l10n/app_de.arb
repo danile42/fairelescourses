@@ -327,5 +327,12 @@
   "resetLocalDataConfirm": "Dadurch werden alle lokalen Märkte, Listen und Einstellungen gelöscht. Fortfahren?",
   "resetLocalDataDone": "Alle lokalen Daten wurden zurückgesetzt.",
   "celebrationTitle": "Alles bereit!",
-  "celebrationBody": "Viel Spaß beim Einkaufen!"
+  "celebrationBody": "Viel Spaß beim Einkaufen!",
+  "navListUpdated": "{n} neuer Artikel zur Liste hinzugefügt.",
+  "@navListUpdated": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "navUpdateRoute": "Route aktualisieren"
 }

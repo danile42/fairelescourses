@@ -1639,6 +1639,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Happy shopping!'**
   String get celebrationBody;
+
+  /// No description provided for @navListUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} new item(s) added to the list.'**
+  String navListUpdated(int n);
+
+  /// No description provided for @navUpdateRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Update route'**
+  String get navUpdateRoute;
 }
 
 class _AppLocalizationsDelegate

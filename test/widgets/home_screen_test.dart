@@ -327,7 +327,7 @@ void main() {
       expect(find.text('New shop'), findsNothing);
     });
 
-    testWidgets('tapping New shop opens store editor screen', (tester) async {
+    testWidgets('tapping New shop opens shop search screen', (tester) async {
       await tester.pumpWidget(_wrap(lists: []));
       await tester.pumpAndSettle();
 
@@ -340,6 +340,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
+      expect(find.text('Search shops'), findsOneWidget);
     });
 
     testWidgets('tapping New list opens list editor screen', (tester) async {
@@ -355,6 +356,61 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('HomeScreen intro HelpScreen', () {
+    // Keep tourStep=-1 in this group by default to prevent TourSpotlight from
+    // inserting an overlay.  An active overlay's OverlayEntry.remove() call
+    // during widget teardown (inside SchedulerPhase.persistentCallbacks) adds a
+    // post-frame callback that leaves hasScheduledFrame=true, causing every
+    // subsequent test's pump() to spin indefinitely.
+    setUp(() async {
+      await clearHive();
+      // ignore: unawaited_futures
+      Hive.box<String>('settings').put('introSeen', 'true'); // tourStep = -1
+    });
+
+    testWidgets('does not show HelpScreen when helpSeen is already set', (
+      tester,
+    ) async {
+      // Do not await: inside testWidgets (FakeAsync zone) Hive's disk-flush
+      // future never resolves.  The in-memory value is set synchronously.
+      // ignore: unawaited_futures
+      Hive.box<String>('settings').put('helpSeen', 'true');
+      await tester.pumpWidget(_wrap(lists: []));
+      await tester.pump(); // initState post-frame callbacks fire
+      await tester.pump();
+
+      expect(find.text('How Fairelescourses works'), findsNothing);
+      // tourStep = -1 → TourSpotlight inactive, no overlay, no cleanup needed.
+    });
+
+    testWidgets('does not show HelpScreen when tour is already complete', (
+      tester,
+    ) async {
+      // introSeen='true' already set in setUp → tourStep = -1
+      await tester.pumpWidget(_wrap(lists: []));
+      await tester.pump(); // initState post-frame callbacks fire
+      await tester.pump();
+
+      expect(find.text('How Fairelescourses works'), findsNothing);
+    });
+
+    // Run last: this test needs tourStep=0 (active tour) to trigger the
+    // HelpScreen push.  Any state leak from its active TourSpotlight overlay
+    // only affects tests that follow, and this is the last test in the group.
+    testWidgets('shows HelpScreen automatically on first launch', (
+      tester,
+    ) async {
+      // Clear introSeen so tourStep=0, which triggers the HelpScreen push.
+      await clearHive();
+      await tester.pumpWidget(_wrap(lists: []));
+      await tester.pump(); // triggers the post-frame callback in initState
+      await tester.pump(); // HelpScreen is now being pushed onto the stack
+      await tester.pumpAndSettle();
+
+      expect(find.text('How Fairelescourses works'), findsOneWidget);
     });
   });
 
