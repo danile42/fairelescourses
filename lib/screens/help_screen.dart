@@ -1,84 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:fairelescourses/l10n/app_localizations.dart';
 
-class HelpScreen extends StatefulWidget {
+class HelpScreen extends StatelessWidget {
   const HelpScreen({super.key});
-
-  @override
-  State<HelpScreen> createState() => _HelpScreenState();
-}
-
-class _HelpScreenState extends State<HelpScreen> {
-  final _controller = PageController();
-  int _page = 0;
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _next(int total) {
-    if (_page < total - 1) {
-      _controller.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    } else {
-      Navigator.of(context).pop();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
-    final totalPages = 4;
-
-    final pages = [
-      _TourPage(
-        icon: Icons.store_outlined,
-        title: l.helpShopsTitle,
-        body: l.helpShopsBody,
-        theme: theme,
-        page: 0,
-        totalPages: totalPages,
-        onNext: () => _next(totalPages),
-        nextLabel: l.tourNext,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l.helpTitle),
+        backgroundColor: theme.colorScheme.primary,
+        foregroundColor: Colors.white,
       ),
-      _TourPage(
-        icon: Icons.shopping_cart_outlined,
-        title: l.helpListsTitle,
-        body: l.helpListsBody,
-        theme: theme,
-        page: 1,
-        totalPages: totalPages,
-        onNext: () => _next(totalPages),
-        nextLabel: l.tourNext,
-      ),
-      _TourPage(
-        icon: Icons.play_arrow_outlined,
-        title: l.helpNavTitle,
-        body: l.helpNavBody,
-        theme: theme,
-        page: 2,
-        totalPages: totalPages,
-        onNext: () => _next(totalPages),
-        nextLabel: l.tourNext,
-      ),
-      _TourPage(
-        icon: Icons.sync,
-        title: l.helpSyncTitle,
-        body: l.helpSyncBody,
-        theme: theme,
-        page: 3,
-        totalPages: totalPages,
-        onNext: () => _next(totalPages),
-        nextLabel: l.helpClose,
-        extra: Column(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _HelpSection(
+              icon: Icons.store_outlined,
+              title: l.helpShopsTitle,
+              body: l.helpShopsBody,
+              theme: theme,
+            ),
+            const SizedBox(height: 28),
+            _HelpSection(
+              icon: Icons.shopping_cart_outlined,
+              title: l.helpListsTitle,
+              body: l.helpListsBody,
+              theme: theme,
+            ),
+            const SizedBox(height: 28),
+            _HelpSection(
+              icon: Icons.play_arrow_outlined,
+              title: l.helpNavTitle,
+              body: l.helpNavBody,
+              theme: theme,
+            ),
+            const SizedBox(height: 28),
+            _HelpSection(
+              icon: Icons.sync,
+              title: l.helpSyncTitle,
+              body: l.helpSyncBody,
+              theme: theme,
+            ),
             const SizedBox(height: 24),
             const Divider(),
             const SizedBox(height: 16),
@@ -109,109 +77,69 @@ class _HelpScreenState extends State<HelpScreen> {
               color: theme.colorScheme.secondary,
               theme: theme,
             ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(l.helpClose),
+              ),
+            ),
           ],
         ),
-      ),
-    ];
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l.helpTitle),
-        backgroundColor: theme.colorScheme.primary,
-        foregroundColor: Colors.white,
-      ),
-      body: PageView(
-        controller: _controller,
-        onPageChanged: (i) => setState(() => _page = i),
-        children: pages,
       ),
     );
   }
 }
 
-class _TourPage extends StatelessWidget {
+class _HelpSection extends StatelessWidget {
   final IconData icon;
   final String title;
   final String body;
   final ThemeData theme;
-  final Widget? extra;
-  final int page;
-  final int totalPages;
-  final VoidCallback onNext;
-  final String nextLabel;
 
-  const _TourPage({
+  const _HelpSection({
     required this.icon,
     required this.title,
     required this.body,
     required this.theme,
-    required this.page,
-    required this.totalPages,
-    required this.onNext,
-    required this.nextLabel,
-    this.extra,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(32, 48, 32, 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              icon,
-              size: 48,
-              color: theme.colorScheme.onPrimaryContainer,
-            ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primaryContainer,
+            shape: BoxShape.circle,
           ),
-          const SizedBox(height: 32),
-          Text(
-            title,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
+          child: Icon(
+            icon,
+            size: 28,
+            color: theme.colorScheme.onPrimaryContainer,
           ),
-          const SizedBox(height: 16),
-          Text(
-            body,
-            style: theme.textTheme.bodyLarge,
-            textAlign: TextAlign.center,
-          ),
-          ?extra,
-          const SizedBox(height: 32),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: List.generate(totalPages, (i) {
-                  final active = i == page;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    width: active ? 20 : 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4),
-                      color: active
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.outlineVariant,
-                    ),
-                  );
-                }),
+              const SizedBox(height: 4),
+              Text(
+                title,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              FilledButton(onPressed: onNext, child: Text(nextLabel)),
+              const SizedBox(height: 6),
+              Text(body, style: theme.textTheme.bodyMedium),
             ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
