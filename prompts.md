@@ -533,3 +533,4 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 180. [J] The readme currently mentions that all code (with one exception) was written by Claude Code. Mention that you did some work, too.
 181. [J] Say "LLMs" instead of "AI". Update prompts.md, and commit.
 182. [J] Mark those prompts that relate to you, and mention that in the readme.
+183. [J] dart format fails in CI - fix that, update prompts.md, and commit.
