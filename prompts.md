@@ -13,6 +13,8 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 
 ## Prompt history
 
+> **Note:** Prompts marked with **[J]** were handled by Junie (JetBrains' LLM agent); all others were handled by Claude Code (Claude Sonnet 4.6).
+
 1. *(Initial project setup — exact prompt not recorded; covered Firebase sync, shop grid editor, shopping lists, navigation planning, and OSM shop discovery)*
 
 2. Add Firebase sync, shop search, and location-based features.
@@ -528,3 +530,6 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 177. Move "`tapping Start navigation opens NavigationScreen`" to a separate file, too.
 178. Verify that all the extracted tests work.
 179. Add all the extracted test files to Git. Update prompts.md with the prompts I gave you for these changes. Make sure formatting is correct, then commit.
+180. [J] The readme currently mentions that all code (with one exception) was written by Claude Code. Mention that you did some work, too.
+181. [J] Say "LLMs" instead of "AI". Update prompts.md, and commit.
+182. [J] Mark those prompts that relate to you, and mention that in the readme.
