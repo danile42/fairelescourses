@@ -95,6 +95,10 @@ flutter test
 flutter test --coverage       # generates coverage/lcov.info
 ```
 
+### Test organisation note
+
+`test/widgets/home_screen_start_navigation_test.dart` exists as a separate file even though it tests the same `HomeScreen` as `test/widgets/home_screen_test.dart`. This is an intentional workaround: the *start navigation* test must run **last** because pushing `NavigationScreen` leaves persistent animation timers that prevent `pumpAndSettle()` from returning in any subsequent test. Dart's test runner processes files in alphabetical order within a directory, and `home_screen_start_navigation_test.dart` sorts after `home_screen_test.dart`. Placing the test in a named group marked "must run last" inside the original file does not work when another group in the same file also carries that constraint — the workaround of a separate file was not found by Claude Code even after extensive debugging.
+
 ---
 
 ## CI / Code coverage

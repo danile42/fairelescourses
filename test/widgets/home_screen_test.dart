@@ -21,107 +21,7 @@ import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../helpers/hive_helper.dart';
-
-// ── mocks ────────────────────────────────────────────────────────────────────
-
-class MockFirestoreService extends Mock implements FirestoreService {}
-
-class _NullHouseholdNotifier extends HouseholdNotifier {
-  @override
-  String? build() => null;
-}
-
-class _FakeListsNotifier extends ShoppingListNotifier {
-  _FakeListsNotifier(this._lists);
-  final List<ShoppingList> _lists;
-
-  @override
-  List<ShoppingList> build() => _lists;
-
-  @override
-  Future<void> remove(String id) async {
-    state = [
-      for (final e in state)
-        if (e.id != id) e,
-    ];
-  }
-
-  @override
-  Future<void> copy(String listId) async {}
-}
-
-class _FakeStoresNotifier extends SupermarketNotifier {
-  @override
-  List<Supermarket> build() => [];
-}
-
-class _FakeStoresNotifierWith extends SupermarketNotifier {
-  _FakeStoresNotifierWith(this._stores);
-  final List<Supermarket> _stores;
-
-  @override
-  List<Supermarket> build() => _stores;
-
-  @override
-  Future<void> remove(String id) async {
-    state = [
-      for (final s in state)
-        if (s.id != id) s,
-    ];
-  }
-}
-
-class _FakeNavViewModeNotifier extends NavViewModeNotifier {
-  @override
-  bool build() => false; // no Hive access
-}
-
-class _FakeLocalOnlyNotifier extends LocalOnlyNotifier {
-  @override
-  bool build() => false; // no Hive access
-}
-
-// ── helpers ──────────────────────────────────────────────────────────────────
-
-ShoppingList _list(String id, String name) => ShoppingList(
-  id: id,
-  name: name,
-  preferredStoreIds: [],
-  items: [ShoppingItem(name: 'Milk')],
-);
-
-Widget _wrap({
-  required List<ShoppingList> lists,
-  NavSession? session,
-  List<Supermarket>? stores,
-}) {
-  final mockSvc = MockFirestoreService();
-  when(() => mockSvc.deleteNavSession(any())).thenAnswer((_) async {});
-  when(() => mockSvc.upsertList(any(), any())).thenAnswer((_) async {});
-  when(() => mockSvc.deleteList(any(), any())).thenAnswer((_) async {});
-
-  return ProviderScope(
-    overrides: [
-      householdProvider.overrideWith(() => _NullHouseholdNotifier()),
-      shoppingListsProvider.overrideWith(() => _FakeListsNotifier(lists)),
-      if (stores != null)
-        supermarketsProvider.overrideWith(() => _FakeStoresNotifierWith(stores))
-      else
-        supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
-      navSessionProvider.overrideWith((ref) => Stream.value(session)),
-      navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
-      localOnlyProvider.overrideWith(() => _FakeLocalOnlyNotifier()),
-      firestoreSyncProvider.overrideWith((ref) {}),
-      currentUidProvider.overrideWith((ref) => null),
-      firestoreServiceProvider.overrideWithValue(mockSvc),
-    ],
-    child: MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: const HomeScreen(),
-    ),
-  );
-}
+import '../helpers/home_screen_helpers.dart';
 
 // ── tests ────────────────────────────────────────────────────────────────────
 
@@ -148,7 +48,9 @@ void main() {
   group('HomeScreen list tab', () {
     testWidgets('renders list names', (tester) async {
       await tester.pumpWidget(
-        _wrap(lists: [_list('L1', 'Groceries'), _list('L2', 'Hardware')]),
+        wrapHomeScreen(
+          lists: [makeList('L1', 'Groceries'), makeList('L2', 'Hardware')],
+        ),
       );
       await tester.pumpAndSettle();
       expect(find.text('Groceries'), findsOneWidget);
@@ -156,7 +58,7 @@ void main() {
     });
 
     testWidgets('shows empty-state message when no lists', (tester) async {
-      await tester.pumpWidget(_wrap(lists: []));
+      await tester.pumpWidget(wrapHomeScreen(lists: []));
       await tester.pumpAndSettle();
       expect(find.textContaining('No shopping lists'), findsOneWidget);
     });
@@ -164,7 +66,9 @@ void main() {
     testWidgets('delete menu item is enabled when no active session', (
       tester,
     ) async {
-      await tester.pumpWidget(_wrap(lists: [_list('L1', 'Groceries')]));
+      await tester.pumpWidget(
+        wrapHomeScreen(lists: [makeList('L1', 'Groceries')]),
+      );
       await tester.pumpAndSettle();
 
       // Open the PopupMenu for the list card.
@@ -182,7 +86,10 @@ void main() {
       (tester) async {
         const session = NavSession(listId: 'L1', startedBy: 'uid-1');
         await tester.pumpWidget(
-          _wrap(lists: [_list('L1', 'Groceries')], session: session),
+          wrapHomeScreen(
+            lists: [makeList('L1', 'Groceries')],
+            session: session,
+          ),
         );
         await tester.pumpAndSettle();
 
@@ -202,8 +109,8 @@ void main() {
       // Session is on L1, but we have L1 and L2 — only L1's delete should be disabled.
       const session = NavSession(listId: 'L1', startedBy: 'uid-1');
       await tester.pumpWidget(
-        _wrap(
-          lists: [_list('L1', 'Groceries'), _list('L2', 'Hardware')],
+        wrapHomeScreen(
+          lists: [makeList('L1', 'Groceries'), makeList('L2', 'Hardware')],
           session: session,
         ),
       );
@@ -249,7 +156,7 @@ void main() {
     testWidgets('single-floor store shows grid size without floor count', (
       tester,
     ) async {
-      await tester.pumpWidget(_wrap(lists: [], stores: [makeStore()]));
+      await tester.pumpWidget(wrapHomeScreen(lists: [], stores: [makeStore()]));
       await tester.pumpAndSettle();
 
       // Navigate to the Shops tab.
@@ -264,7 +171,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        _wrap(lists: [], stores: [makeStore(extraFloors: 1)]),
+        wrapHomeScreen(lists: [], stores: [makeStore(extraFloors: 1)]),
       );
       await tester.pumpAndSettle();
 
@@ -277,7 +184,7 @@ void main() {
 
     testWidgets('three-floor store shows correct count', (tester) async {
       await tester.pumpWidget(
-        _wrap(lists: [], stores: [makeStore(extraFloors: 2)]),
+        wrapHomeScreen(lists: [], stores: [makeStore(extraFloors: 2)]),
       );
       await tester.pumpAndSettle();
 
@@ -288,7 +195,7 @@ void main() {
     });
 
     testWidgets('empty shops tab shows no-stores message', (tester) async {
-      await tester.pumpWidget(_wrap(lists: [], stores: []));
+      await tester.pumpWidget(wrapHomeScreen(lists: [], stores: []));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Shops'));
@@ -300,7 +207,7 @@ void main() {
 
   group('HomeScreen FAB', () {
     testWidgets('tapping FAB expands mini buttons', (tester) async {
-      await tester.pumpWidget(_wrap(lists: []));
+      await tester.pumpWidget(wrapHomeScreen(lists: []));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byType(FloatingActionButton).last);
@@ -311,7 +218,7 @@ void main() {
     });
 
     testWidgets('tapping FAB twice collapses mini buttons', (tester) async {
-      await tester.pumpWidget(_wrap(lists: []));
+      await tester.pumpWidget(wrapHomeScreen(lists: []));
       await tester.pumpAndSettle();
 
       // Expand
@@ -327,7 +234,7 @@ void main() {
     });
 
     testWidgets('tapping New shop opens shop search screen', (tester) async {
-      await tester.pumpWidget(_wrap(lists: []));
+      await tester.pumpWidget(wrapHomeScreen(lists: []));
       await tester.pumpAndSettle();
 
       // Expand FAB
@@ -343,7 +250,7 @@ void main() {
     });
 
     testWidgets('tapping New list opens list editor screen', (tester) async {
-      await tester.pumpWidget(_wrap(lists: []));
+      await tester.pumpWidget(wrapHomeScreen(lists: []));
       await tester.pumpAndSettle();
 
       // Expand FAB
@@ -360,7 +267,9 @@ void main() {
 
   group('HomeScreen delete confirmation', () {
     testWidgets('tapping delete shows confirmation dialog', (tester) async {
-      await tester.pumpWidget(_wrap(lists: [_list('L1', 'Groceries')]));
+      await tester.pumpWidget(
+        wrapHomeScreen(lists: [makeList('L1', 'Groceries')]),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.more_vert).first);
@@ -377,7 +286,9 @@ void main() {
     });
 
     testWidgets('copy menu item triggers copy', (tester) async {
-      await tester.pumpWidget(_wrap(lists: [_list('L1', 'Groceries')]));
+      await tester.pumpWidget(
+        wrapHomeScreen(lists: [makeList('L1', 'Groceries')]),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.more_vert).first);
@@ -393,7 +304,7 @@ void main() {
     ) async {
       const session = NavSession(listId: 'L1', startedBy: 'uid-1');
       await tester.pumpWidget(
-        _wrap(lists: [_list('L1', 'Groceries')], session: session),
+        wrapHomeScreen(lists: [makeList('L1', 'Groceries')], session: session),
       );
       await tester.pumpAndSettle();
 
@@ -406,7 +317,9 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        _wrap(lists: [_list('L1', 'Groceries'), _list('L2', 'Hardware')]),
+        wrapHomeScreen(
+          lists: [makeList('L1', 'Groceries'), makeList('L2', 'Hardware')],
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -420,7 +333,7 @@ void main() {
 
   group('HomeScreen help button', () {
     testWidgets('tapping help button opens help screen', (tester) async {
-      await tester.pumpWidget(_wrap(lists: []));
+      await tester.pumpWidget(wrapHomeScreen(lists: []));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.help_outline));
@@ -433,7 +346,7 @@ void main() {
 
   group('HomeScreen AppBar buttons', () {
     testWidgets('tapping config icon opens settings screen', (tester) async {
-      await tester.pumpWidget(_wrap(lists: []));
+      await tester.pumpWidget(wrapHomeScreen(lists: []));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.settings_outlined));
@@ -444,7 +357,7 @@ void main() {
     });
 
     testWidgets('tapping search icon opens shop search screen', (tester) async {
-      await tester.pumpWidget(_wrap(lists: []));
+      await tester.pumpWidget(wrapHomeScreen(lists: []));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.search));
@@ -460,11 +373,11 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
+            householdProvider.overrideWith(() => NullHouseholdNotifier()),
             shoppingListsProvider.overrideWith(
-              () => _FakeListsNotifier([_list('L1', 'Einkauf')]),
+              () => FakeListsNotifier([makeList('L1', 'Einkauf')]),
             ),
-            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+            supermarketsProvider.overrideWith(() => FakeStoresNotifier()),
             navSessionProvider.overrideWith((ref) => Stream.value(null)),
             firestoreSyncProvider.overrideWith((ref) {}),
             currentUidProvider.overrideWith((ref) => null),
@@ -486,7 +399,9 @@ void main() {
   group('HomeScreen selection mode – merge bar', () {
     testWidgets('selecting two lists shows merge bar', (tester) async {
       await tester.pumpWidget(
-        _wrap(lists: [_list('L1', 'Groceries'), _list('L2', 'Hardware')]),
+        wrapHomeScreen(
+          lists: [makeList('L1', 'Groceries'), makeList('L2', 'Hardware')],
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -505,7 +420,9 @@ void main() {
 
     testWidgets('cancel selection clears selection mode', (tester) async {
       await tester.pumpWidget(
-        _wrap(lists: [_list('L1', 'Groceries'), _list('L2', 'Hardware')]),
+        wrapHomeScreen(
+          lists: [makeList('L1', 'Groceries'), makeList('L2', 'Hardware')],
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -522,7 +439,9 @@ void main() {
 
     testWidgets('merging two lists opens merge-target dialog', (tester) async {
       await tester.pumpWidget(
-        _wrap(lists: [_list('L1', 'Groceries'), _list('L2', 'Hardware')]),
+        wrapHomeScreen(
+          lists: [makeList('L1', 'Groceries'), makeList('L2', 'Hardware')],
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -547,7 +466,9 @@ void main() {
 
   group('HomeScreen list tab – tapping list opens editor', () {
     testWidgets('tapping list name opens ListEditorScreen', (tester) async {
-      await tester.pumpWidget(_wrap(lists: [_list('L1', 'Groceries')]));
+      await tester.pumpWidget(
+        wrapHomeScreen(lists: [makeList('L1', 'Groceries')]),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Groceries'));
@@ -571,7 +492,7 @@ void main() {
           ShoppingItem(name: 'Eggs'),
         ],
       );
-      await tester.pumpWidget(_wrap(lists: [list]));
+      await tester.pumpWidget(wrapHomeScreen(lists: [list]));
       await tester.pumpAndSettle();
 
       expect(find.byType(LinearProgressIndicator), findsOneWidget);
@@ -591,7 +512,7 @@ void main() {
         exit: 'B2',
         cells: {},
       );
-      await tester.pumpWidget(_wrap(lists: [], stores: [store]));
+      await tester.pumpWidget(wrapHomeScreen(lists: [], stores: [store]));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Shops'));
@@ -617,7 +538,7 @@ void main() {
         exit: 'B2',
         cells: {},
       );
-      await tester.pumpWidget(_wrap(lists: [], stores: [store]));
+      await tester.pumpWidget(wrapHomeScreen(lists: [], stores: [store]));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Shops'));
@@ -632,7 +553,9 @@ void main() {
 
   group('HomeScreen – confirm delete list', () {
     testWidgets('confirming delete removes list', (tester) async {
-      await tester.pumpWidget(_wrap(lists: [_list('L1', 'Groceries')]));
+      await tester.pumpWidget(
+        wrapHomeScreen(lists: [makeList('L1', 'Groceries')]),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.more_vert).first);
@@ -655,7 +578,7 @@ void main() {
     testWidgets('tapping join navigates to NavigationScreen', (tester) async {
       const session = NavSession(listId: 'L1', startedBy: 'uid-1');
       await tester.pumpWidget(
-        _wrap(lists: [_list('L1', 'Groceries')], session: session),
+        wrapHomeScreen(lists: [makeList('L1', 'Groceries')], session: session),
       );
       await tester.pumpAndSettle();
 
@@ -672,7 +595,9 @@ void main() {
 
   group('HomeScreen – copy list from popup', () {
     testWidgets('tapping Copy from popup copies the list', (tester) async {
-      await tester.pumpWidget(_wrap(lists: [_list('L1', 'Groceries')]));
+      await tester.pumpWidget(
+        wrapHomeScreen(lists: [makeList('L1', 'Groceries')]),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.more_vert).first);
@@ -698,7 +623,7 @@ void main() {
         exit: 'A1',
         cells: {},
       );
-      await tester.pumpWidget(_wrap(lists: [], stores: [store]));
+      await tester.pumpWidget(wrapHomeScreen(lists: [], stores: [store]));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Shops'));
@@ -721,12 +646,12 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
-            shoppingListsProvider.overrideWith(() => _FakeListsNotifier([])),
-            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+            householdProvider.overrideWith(() => NullHouseholdNotifier()),
+            shoppingListsProvider.overrideWith(() => FakeListsNotifier([])),
+            supermarketsProvider.overrideWith(() => FakeStoresNotifier()),
             navSessionProvider.overrideWith((ref) => Stream.value(null)),
-            navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
-            localOnlyProvider.overrideWith(() => _FakeLocalOnlyNotifier()),
+            navViewModeProvider.overrideWith(() => FakeNavViewModeNotifier()),
+            localOnlyProvider.overrideWith(() => FakeLocalOnlyNotifier()),
             firestoreSyncProvider.overrideWith((ref) {}),
             currentUidProvider.overrideWith((ref) => null),
             firestoreServiceProvider.overrideWithValue(MockFirestoreService()),
@@ -756,12 +681,12 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
-            shoppingListsProvider.overrideWith(() => _FakeListsNotifier([])),
-            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+            householdProvider.overrideWith(() => NullHouseholdNotifier()),
+            shoppingListsProvider.overrideWith(() => FakeListsNotifier([])),
+            supermarketsProvider.overrideWith(() => FakeStoresNotifier()),
             navSessionProvider.overrideWith((ref) => Stream.value(null)),
-            navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
-            localOnlyProvider.overrideWith(() => _FakeLocalOnlyNotifier()),
+            navViewModeProvider.overrideWith(() => FakeNavViewModeNotifier()),
+            localOnlyProvider.overrideWith(() => FakeLocalOnlyNotifier()),
             firestoreSyncProvider.overrideWith((ref) {}),
             currentUidProvider.overrideWith((ref) => null),
             firestoreServiceProvider.overrideWithValue(MockFirestoreService()),
@@ -783,12 +708,12 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
-            shoppingListsProvider.overrideWith(() => _FakeListsNotifier([])),
-            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+            householdProvider.overrideWith(() => NullHouseholdNotifier()),
+            shoppingListsProvider.overrideWith(() => FakeListsNotifier([])),
+            supermarketsProvider.overrideWith(() => FakeStoresNotifier()),
             navSessionProvider.overrideWith((ref) => Stream.value(null)),
-            navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
-            localOnlyProvider.overrideWith(() => _FakeLocalOnlyNotifier()),
+            navViewModeProvider.overrideWith(() => FakeNavViewModeNotifier()),
+            localOnlyProvider.overrideWith(() => FakeLocalOnlyNotifier()),
             firestoreSyncProvider.overrideWith((ref) {}),
             currentUidProvider.overrideWith((ref) => null),
             firestoreServiceProvider.overrideWithValue(MockFirestoreService()),
@@ -815,12 +740,12 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
-            shoppingListsProvider.overrideWith(() => _FakeListsNotifier([])),
-            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+            householdProvider.overrideWith(() => NullHouseholdNotifier()),
+            shoppingListsProvider.overrideWith(() => FakeListsNotifier([])),
+            supermarketsProvider.overrideWith(() => FakeStoresNotifier()),
             navSessionProvider.overrideWith((ref) => Stream.value(null)),
-            navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
-            localOnlyProvider.overrideWith(() => _FakeLocalOnlyNotifier()),
+            navViewModeProvider.overrideWith(() => FakeNavViewModeNotifier()),
+            localOnlyProvider.overrideWith(() => FakeLocalOnlyNotifier()),
             firestoreSyncProvider.overrideWith((ref) {}),
             currentUidProvider.overrideWith((ref) => null),
             firestoreServiceProvider.overrideWithValue(MockFirestoreService()),
@@ -844,12 +769,12 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
-            shoppingListsProvider.overrideWith(() => _FakeListsNotifier([])),
-            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+            householdProvider.overrideWith(() => NullHouseholdNotifier()),
+            shoppingListsProvider.overrideWith(() => FakeListsNotifier([])),
+            supermarketsProvider.overrideWith(() => FakeStoresNotifier()),
             navSessionProvider.overrideWith((ref) => Stream.value(null)),
-            navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
-            localOnlyProvider.overrideWith(() => _FakeLocalOnlyNotifier()),
+            navViewModeProvider.overrideWith(() => FakeNavViewModeNotifier()),
+            localOnlyProvider.overrideWith(() => FakeLocalOnlyNotifier()),
             firestoreSyncProvider.overrideWith((ref) {}),
             currentUidProvider.overrideWith((ref) => null),
             firestoreServiceProvider.overrideWithValue(MockFirestoreService()),
@@ -876,12 +801,12 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
-            shoppingListsProvider.overrideWith(() => _FakeListsNotifier([])),
-            supermarketsProvider.overrideWith(() => _FakeStoresNotifier()),
+            householdProvider.overrideWith(() => NullHouseholdNotifier()),
+            shoppingListsProvider.overrideWith(() => FakeListsNotifier([])),
+            supermarketsProvider.overrideWith(() => FakeStoresNotifier()),
             navSessionProvider.overrideWith((ref) => Stream.value(null)),
-            navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
-            localOnlyProvider.overrideWith(() => _FakeLocalOnlyNotifier()),
+            navViewModeProvider.overrideWith(() => FakeNavViewModeNotifier()),
+            localOnlyProvider.overrideWith(() => FakeLocalOnlyNotifier()),
             firestoreSyncProvider.overrideWith((ref) {}),
             currentUidProvider.overrideWith((ref) => null),
             firestoreServiceProvider.overrideWithValue(MockFirestoreService()),
@@ -917,14 +842,14 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            householdProvider.overrideWith(() => _NullHouseholdNotifier()),
-            shoppingListsProvider.overrideWith(() => _FakeListsNotifier([])),
+            householdProvider.overrideWith(() => NullHouseholdNotifier()),
+            shoppingListsProvider.overrideWith(() => FakeListsNotifier([])),
             supermarketsProvider.overrideWith(
-              () => _FakeStoresNotifierWith([store]),
+              () => FakeStoresNotifierWith([store]),
             ),
             navSessionProvider.overrideWith((ref) => Stream.value(null)),
-            navViewModeProvider.overrideWith(() => _FakeNavViewModeNotifier()),
-            localOnlyProvider.overrideWith(() => _FakeLocalOnlyNotifier()),
+            navViewModeProvider.overrideWith(() => FakeNavViewModeNotifier()),
+            localOnlyProvider.overrideWith(() => FakeLocalOnlyNotifier()),
             firestoreSyncProvider.overrideWith((ref) {}),
             currentUidProvider.overrideWith((ref) => null),
             firestoreServiceProvider.overrideWithValue(MockFirestoreService()),
@@ -982,7 +907,7 @@ void main() {
       await tester.runAsync(() async {
         await Hive.box<String>('settings').put('helpSeen', 'true');
       });
-      await tester.pumpWidget(_wrap(lists: []));
+      await tester.pumpWidget(wrapHomeScreen(lists: []));
       await tester.pump(); // initState post-frame callbacks fire
       await tester.pump();
 
@@ -994,7 +919,7 @@ void main() {
       tester,
     ) async {
       // introSeen='true' already set in setUp → tourStep = -1
-      await tester.pumpWidget(_wrap(lists: []));
+      await tester.pumpWidget(wrapHomeScreen(lists: []));
       await tester.pump(); // initState post-frame callbacks fire
       await tester.pump();
 
@@ -1019,7 +944,7 @@ void main() {
       // Clear introSeen so tourStep=0, which triggers the HelpScreen push.
       // Use runAsync so the Hive clear Future resolves outside FakeAsync.
       await tester.runAsync(clearHive);
-      await tester.pumpWidget(_wrap(lists: []));
+      await tester.pumpWidget(wrapHomeScreen(lists: []));
 
       // First pump: fires initState's post-frame callback, which calls
       // box.put('helpSeen','true') (unawaited) and starts the HelpScreen push.

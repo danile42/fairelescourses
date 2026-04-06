@@ -21,9 +21,9 @@ void main() {
       await tester.pumpWidget(_app(const HelpScreen()));
       await tester.pumpAndSettle();
       expect(find.text('How Fairelescourses works'), findsOneWidget);
-      // First page shows Shops; Next button visible on non-last pages.
+      // Single scrollable screen — shows all sections and a Get started button.
       expect(find.text('Shops'), findsWidgets);
-      expect(find.text('Next'), findsOneWidget);
+      expect(find.text('Get started'), findsOneWidget);
     });
 
     testWidgets('renders in German without error', (tester) async {
@@ -32,13 +32,11 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('So funktioniert Fairelescourses'), findsOneWidget);
-      // First page shows "Weiter" (Next in German).
-      expect(find.text('Weiter'), findsOneWidget);
+      // German close button.
+      expect(find.text("Los geht's"), findsOneWidget);
     });
 
-    testWidgets('tapping through all pages and Get started pops the screen', (
-      tester,
-    ) async {
+    testWidgets('Get started button pops the screen', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -58,17 +56,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Open'));
       await tester.pumpAndSettle();
-      // Tap Next 3 times to reach the last page.
-      await tester.ensureVisible(find.text('Next'));
-      await tester.tap(find.text('Next'));
-      await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Next'));
-      await tester.tap(find.text('Next'));
-      await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Next'));
-      await tester.tap(find.text('Next'));
-      await tester.pumpAndSettle();
-      // Now on last page — button says "Get started" (may need scrolling).
+      // Single-screen — scroll to the Get started button and tap it.
       await tester.ensureVisible(find.text('Get started'));
       await tester.tap(find.text('Get started'));
       await tester.pumpAndSettle();
