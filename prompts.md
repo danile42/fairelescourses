@@ -522,3 +522,9 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - `_editItem` open: pre-fills the category field with `item.category ?? _lookupCategory(item.name)`.
     - `_editItem` autocomplete `onSelected`: uses the looked-up category for the newly selected name (falls back to the current field value).
     - `_editItem` confirm: saves the name→category mapping via `_saveCategory(trimmed, newCategory)` before updating state.
+
+175. Extract these three test cases to separate test classes: deselect store chip, German preferred shops, German item popup menu.
+176. Move "`unsaved changes dialog shows German strings`" to a separate file, too.
+177. Move "`tapping Start navigation opens NavigationScreen`" to a separate file, too.
+178. Verify that all the extracted tests work.
+179. Add all the extracted test files to Git. Update prompts.md with the prompts I gave you for these changes. Make sure formatting is correct, then commit.
