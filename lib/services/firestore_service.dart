@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crypto/crypto.dart';
@@ -254,12 +254,17 @@ class FirestoreService {
       });
 
   Stream<List<ShoppingList>> listsStream(String hid) =>
-      _lists(hid).snapshots().map(
-        (snap) => snap.docs
-            .map(
-              (d) =>
-                  ShoppingList.fromMap(_decrypt(hid, d.data()['d'] as String)),
-            )
-            .toList(),
-      );
+      _lists(hid).snapshots().map((snap) {
+        final lists = <ShoppingList>[];
+        for (final d in snap.docs) {
+          try {
+            lists.add(
+              ShoppingList.fromMap(_decrypt(hid, d.data()['d'] as String)),
+            );
+          } catch (e) {
+            debugPrint('listsStream: skipping corrupt document ${d.id}: $e');
+          }
+        }
+        return lists;
+      });
 }

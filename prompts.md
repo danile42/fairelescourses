@@ -504,6 +504,10 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 171. When I enter an item in a list and press "Save" without pressing "+" first, there should be the dialog asking me if I want to save the changes.
     - The AppBar Save button now checks `_pendingItemText` before saving. If true, `_confirmUnsaved()` is shown; "Save" in the dialog proceeds with `_save()`, anything else (keep editing or dismiss) stays in the editor.
 
+173. Fix bug B2 (improvement-analysis.md): wrap per-document decrypt in try/catch in listsStream so a single corrupt document no longer silently drops the entire snapshot batch.
+    - Added `package:flutter/foundation.dart` import (provides `debugPrint`; made `dart:typed_data` redundant, so removed it).
+    - Changed the synchronous `.map(...).toList()` to an explicit for-loop with a per-document try/catch: bad documents are skipped and logged via `debugPrint`; all healthy documents in the same snapshot are still delivered.
+
 172. Fix bug B1 (improvement-analysis.md): replace force-unwrap `_auth.currentUser!.uid` with null-safe access in FirestoreService.
     - `upsertShop` line 70: `_auth.currentUser!.uid` → `_auth.currentUser?.uid` (ownerUid stays null when auth hasn't completed, preserving the "anyone can edit" fallback).
     - `upsertNavSession` line 229: `_auth.currentUser!.uid` → `_auth.currentUser?.uid ?? ''` (empty string won't match any real UID, so no guest is incorrectly elevated to host).
