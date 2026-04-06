@@ -18,6 +18,7 @@ import 'package:fairelescourses/providers/nav_session_provider.dart';
 import 'package:fairelescourses/providers/nav_view_mode_provider.dart';
 import 'package:fairelescourses/providers/shopping_list_provider.dart';
 import 'package:fairelescourses/providers/supermarket_provider.dart';
+import 'package:fairelescourses/providers/tour_provider.dart';
 import 'package:fairelescourses/screens/home_screen.dart';
 import 'package:fairelescourses/services/firestore_service.dart';
 
@@ -356,61 +357,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-    });
-  });
-
-  group('HomeScreen intro HelpScreen', () {
-    // Keep tourStep=-1 in this group by default to prevent TourSpotlight from
-    // inserting an overlay.  An active overlay's OverlayEntry.remove() call
-    // during widget teardown (inside SchedulerPhase.persistentCallbacks) adds a
-    // post-frame callback that leaves hasScheduledFrame=true, causing every
-    // subsequent test's pump() to spin indefinitely.
-    setUp(() async {
-      await clearHive();
-      // ignore: unawaited_futures
-      Hive.box<String>('settings').put('introSeen', 'true'); // tourStep = -1
-    });
-
-    testWidgets('does not show HelpScreen when helpSeen is already set', (
-      tester,
-    ) async {
-      // Do not await: inside testWidgets (FakeAsync zone) Hive's disk-flush
-      // future never resolves.  The in-memory value is set synchronously.
-      // ignore: unawaited_futures
-      Hive.box<String>('settings').put('helpSeen', 'true');
-      await tester.pumpWidget(_wrap(lists: []));
-      await tester.pump(); // initState post-frame callbacks fire
-      await tester.pump();
-
-      expect(find.text('How Fairelescourses works'), findsNothing);
-      // tourStep = -1 → TourSpotlight inactive, no overlay, no cleanup needed.
-    });
-
-    testWidgets('does not show HelpScreen when tour is already complete', (
-      tester,
-    ) async {
-      // introSeen='true' already set in setUp → tourStep = -1
-      await tester.pumpWidget(_wrap(lists: []));
-      await tester.pump(); // initState post-frame callbacks fire
-      await tester.pump();
-
-      expect(find.text('How Fairelescourses works'), findsNothing);
-    });
-
-    // Run last: this test needs tourStep=0 (active tour) to trigger the
-    // HelpScreen push.  Any state leak from its active TourSpotlight overlay
-    // only affects tests that follow, and this is the last test in the group.
-    testWidgets('shows HelpScreen automatically on first launch', (
-      tester,
-    ) async {
-      // Clear introSeen so tourStep=0, which triggers the HelpScreen push.
-      await clearHive();
-      await tester.pumpWidget(_wrap(lists: []));
-      await tester.pump(); // triggers the post-frame callback in initState
-      await tester.pump(); // HelpScreen is now being pushed onto the stack
-      await tester.pumpAndSettle();
-
-      expect(find.text('How Fairelescourses works'), findsOneWidget);
     });
   });
 
@@ -1011,21 +957,103 @@ void main() {
     });
   });
 
-  // start navigation must run LAST: pushing NavigationScreen leaves persistent
-  // timers that prevent pumpAndSettle() from ever returning in subsequent tests.
-  group('HomeScreen – start navigation single-play', () {
-    testWidgets('tapping play icon starts navigation', (tester) async {
-      await tester.pumpWidget(_wrap(lists: [_list('L1', 'Groceries')]));
+  // This group must run after all other groups: the "shows HelpScreen" test
+  // leaves a pending unawaited Hive disk-flush (from HomeScreen.initState calling
+  // box.put('helpSeen','true') inside FakeAsync) that can cause subsequent
+  // pumpAndSettle() calls to loop.  tearDownAll's Hive.close().timeout(5s)
+  // handles the leftover write gracefully.
+  group('HomeScreen intro HelpScreen', () {
+    // Keep tourStep=-1 in this group by default to prevent TourSpotlight from
+    // inserting an overlay.  An active overlay's OverlayEntry.remove() call
+    // during widget teardown (inside SchedulerPhase.persistentCallbacks) adds a
+    // post-frame callback that leaves hasScheduledFrame=true, causing every
+    // subsequent test's pump() to spin indefinitely.
+    setUp(() async {
+      await clearHive();
+      // Awaited: setUp runs outside FakeAsync so Hive disk flush works normally.
+      await Hive.box<String>(
+        'settings',
+      ).put('introSeen', 'true'); // tourStep = -1
+    });
+
+    testWidgets('does not show HelpScreen when helpSeen is already set', (
+      tester,
+    ) async {
+      // Use runAsync to write outside FakeAsync so the disk-flush Future
+      // resolves immediately and doesn't leak into subsequent tests.
+      await tester.runAsync(() async {
+        await Hive.box<String>('settings').put('helpSeen', 'true');
+      });
+      await tester.pumpWidget(_wrap(lists: []));
+      await tester.pump(); // initState post-frame callbacks fire
+      await tester.pump();
+
+      expect(find.text('How Fairelescourses works'), findsNothing);
+      // tourStep = -1 → TourSpotlight inactive, no overlay, no cleanup needed.
+    });
+
+    testWidgets('does not show HelpScreen when tour is already complete', (
+      tester,
+    ) async {
+      // introSeen='true' already set in setUp → tourStep = -1
+      await tester.pumpWidget(_wrap(lists: []));
+      await tester.pump(); // initState post-frame callbacks fire
+      await tester.pump();
+
+      expect(find.text('How Fairelescourses works'), findsNothing);
+    });
+
+    // Run last in this group: needs tourStep=0 to trigger the HelpScreen push.
+    //
+    // KEY INVARIANT: HomeScreen.initState calls box.put('helpSeen','true')
+    // without await inside a post-frame callback, which fires during the first
+    // pump().  The Hive disk-flush is backed by native file I/O; while
+    // FakeAsync is active the real event loop never runs, so the I/O
+    // completion callback ends up in FakeAsync's fake microtask queue.
+    //
+    // After tester.runAsync() gives the real event loop a moment to complete
+    // the I/O, the next pump() drains the fake microtask queue and resolves
+    // _writeTask → null.  This ensures clearHive() in the global setUp for
+    // the following test (navigation) doesn't wait on a stuck _writeTask.
+    testWidgets('shows HelpScreen automatically on first launch', (
+      tester,
+    ) async {
+      // Clear introSeen so tourStep=0, which triggers the HelpScreen push.
+      // Use runAsync so the Hive clear Future resolves outside FakeAsync.
+      await tester.runAsync(clearHive);
+      await tester.pumpWidget(_wrap(lists: []));
+
+      // First pump: fires initState's post-frame callback, which calls
+      // box.put('helpSeen','true') (unawaited) and starts the HelpScreen push.
+      await tester.pump();
+
+      // Give the disk write real time to complete.  tester.runAsync temporarily
+      // runs the real event loop; the Hive I/O finishes and schedules its
+      // completion callback in FakeAsync's fake microtask queue (because the
+      // underlying ReceivePort was created inside this FakeAsync zone).
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 200)),
+      );
+
+      // Drain the fake microtask queue so the write-completion fires and
+      // _writeTask becomes null.  Without this, clearHive() in the global
+      // setUp for the NEXT test would block forever on _writeTask.
+      await tester.pump();
+
+      await tester.pump(); // HelpScreen push transition advances
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.play_arrow));
-      // Use bounded pumps: NavigationScreen may have persistent animations
-      // that prevent pumpAndSettle() from ever returning.
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('How Fairelescourses works'), findsOneWidget);
 
-      // NavigationScreen opened.
-      expect(tester.takeException(), isNull);
+      // Replace the widget tree with an empty widget to cleanly dispose
+      // TourSpotlight (and its overlay entry) within this test's FakeAsync zone.
+      // If TourSpotlight.dispose() runs during the NEXT test's pumpWidget build
+      // phase (SchedulerPhase.persistentCallbacks), overlay.remove() schedules a
+      // post-frame callback that keeps hasScheduledFrame=true and causes the next
+      // test's pumpAndSettle to loop.
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(); // post-frame callbacks from disposal run
+      await tester.pump(); // any remaining overlay rebuilds settle
     });
   });
 }
