@@ -237,9 +237,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get searchShops => 'Märkte suchen';
 
   @override
-  String get searchShopsHint => 'Marktname eingeben…';
-
-  @override
   String get searchItemHint => 'Artikelname eingeben…';
 
   @override
@@ -258,10 +255,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get importShop => 'Importieren';
 
   @override
-  String get searchByName => 'Nach Name';
+  String get searchByItem => 'Nach Artikel';
 
   @override
-  String get searchByItem => 'Nach Artikel';
+  String get searchByItemNoResults =>
+      'Kein Markt gefunden. Versuche die Suche nach Ort, um Märkte in deiner Nähe zu finden.';
 
   @override
   String get configTitle => 'Einstellungen';

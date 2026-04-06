@@ -482,3 +482,10 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - README: Added a "Test organisation note" under "Running tests" explaining why `home_screen_start_navigation_test.dart` exists as a separate file and crediting the workaround to the human author (Claude Code didn't find it).
     - CI fix: Updated the three failing `HelpScreen` group tests in `help_screen_test.dart` to match the current single-scrollable-screen implementation instead of the removed multi-page/wizard design. Tests now check for "Get started" (EN) and "Los geht's" (DE) buttons and treat tapping it as a pop rather than a page-through sequence.
     - Deduplication: Extracted mocks and helpers that were duplicated in both `home_screen_test.dart` and `home_screen_start_navigation_test.dart` into the already-existing shared helper `test/helpers/home_screen_helpers.dart`. Both test files now import that helper; all private classes (`_NullHouseholdNotifier`, `_FakeListsNotifier`, etc.) and the `_list`/`_wrap` top-level functions were removed and replaced with the public equivalents (`NullHouseholdNotifier`, `FakeListsNotifier`, `makeList`, `wrapHomeScreen`, …).
+167. Reorganise shop search modes: By location first, By item second; drop By name.
+    - Dropped the "By name" search mode entirely (Firestore full-text name search, its OSM fallback, and the corresponding ARB strings `searchByName` and `searchShopsHint`).
+    - Reordered the segmented button to "By location | By item" (was "By name | By item | By location").
+    - Default mode is now "By location" (was "By name").
+    - Empty state for "By location" keeps the "Create shop" fallback button.
+    - Empty state for "By item" now shows an advisory text ("No shops found. Try searching by location…") instead of a create button. New ARB key: `searchByItemNoResults`.
+    - Tests updated to match: removed the "By name search" test group and all byName-related assertions; added "By item no results shows advisory text" test; updated default-mode and tab-switching tests.

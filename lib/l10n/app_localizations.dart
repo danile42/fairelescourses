@@ -518,12 +518,6 @@ abstract class AppLocalizations {
   /// **'Search shops'**
   String get searchShops;
 
-  /// No description provided for @searchShopsHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Type a shop name…'**
-  String get searchShopsHint;
-
   /// No description provided for @searchItemHint.
   ///
   /// In en, this message translates to:
@@ -560,17 +554,17 @@ abstract class AppLocalizations {
   /// **'Import'**
   String get importShop;
 
-  /// No description provided for @searchByName.
-  ///
-  /// In en, this message translates to:
-  /// **'By name'**
-  String get searchByName;
-
   /// No description provided for @searchByItem.
   ///
   /// In en, this message translates to:
   /// **'By item'**
   String get searchByItem;
+
+  /// No description provided for @searchByItemNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No shops found. Try searching by location to find shops near you.'**
+  String get searchByItemNoResults;
 
   /// No description provided for @configTitle.
   ///

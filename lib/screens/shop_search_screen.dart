@@ -17,7 +17,7 @@ import '../services/nominatim_service.dart';
 import '../services/overpass_service.dart';
 import 'store_editor_screen.dart';
 
-enum _SearchMode { byName, byItem, byLocation }
+enum _SearchMode { byLocation, byItem }
 
 double shopSearchHaversineKm(
   double lat1,
@@ -97,7 +97,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
   String? _osmError;
   double? _lastLat;
   double? _lastLng;
-  _SearchMode _mode = _SearchMode.byName;
+  _SearchMode _mode = _SearchMode.byLocation;
   bool _nearMe = true;
   Set<OsmShopCategory> _selectedCategories = {osmShopCategories[0]};
   Set<String> _selectedBrands = {};
@@ -192,53 +192,38 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       if (_mode == _SearchMode.byLocation) {
         await _searchByLocation(q);
       } else {
+        // byItem
         final svc = ref.read(firestoreServiceProvider);
-        final shops = _mode == _SearchMode.byItem
-            ? await svc.searchByItem(q)
-            : await svc.searchByName(q);
+        final shops = await svc.searchByItem(q);
         if (!mounted) return;
-        List<ShopSearchResult> results = shops
+        // Also include locally-stored shops that contain the queried item.
+        final remoteIds = shops.map((s) => s.id).toSet();
+        final qLower = q.toLowerCase().trim();
+        final localMatches = ref
+            .read(supermarketsProvider)
+            .where(
+              (s) =>
+                  !remoteIds.contains(s.id) &&
+                  (s.cells.values.any(
+                        (goods) =>
+                            goods.any((g) => g.toLowerCase().trim() == qLower),
+                      ) ||
+                      s.subcells.values.any(
+                        (goods) =>
+                            goods.any((g) => g.toLowerCase().trim() == qLower),
+                      )),
+            )
             .map((s) => ShopSearchResult(shop: s))
             .toList();
-        if (_mode == _SearchMode.byItem) {
-          // Also include locally-stored shops that contain the queried item.
-          final remoteIds = shops.map((s) => s.id).toSet();
-          final qLower = q.toLowerCase().trim();
-          final localMatches = ref
-              .read(supermarketsProvider)
-              .where(
-                (s) =>
-                    !remoteIds.contains(s.id) &&
-                    (s.cells.values.any(
-                          (goods) => goods.any(
-                            (g) => g.toLowerCase().trim() == qLower,
-                          ),
-                        ) ||
-                        s.subcells.values.any(
-                          (goods) => goods.any(
-                            (g) => g.toLowerCase().trim() == qLower,
-                          ),
-                        )),
-              )
-              .map((s) => ShopSearchResult(shop: s))
-              .toList();
-          results = [...localMatches, ...results];
-        }
         setState(() {
-          _firestoreResults = results;
+          _firestoreResults = [
+            ...localMatches,
+            ...shops.map((s) => ShopSearchResult(shop: s)),
+          ];
           _osmResults = [];
           _loading = false;
           _searched = true;
         });
-        if (_mode == _SearchMode.byName && shops.isEmpty) {
-          final home = ref.read(homeLocationProvider);
-          if (home != null) {
-            _lastLat = home.lat;
-            _lastLng = home.lng;
-            _osmNameFilter = q.toLowerCase();
-            _retryOsm();
-          }
-        }
       }
     } catch (e) {
       if (mounted) {
@@ -538,19 +523,14 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
             child: SegmentedButton<_SearchMode>(
               segments: [
                 ButtonSegment(
-                  value: _SearchMode.byName,
-                  label: Text(l.searchByName),
-                  icon: const Icon(Icons.store_outlined),
+                  value: _SearchMode.byLocation,
+                  label: Text(l.searchByLocation),
+                  icon: const Icon(Icons.location_on_outlined),
                 ),
                 ButtonSegment(
                   value: _SearchMode.byItem,
                   label: Text(l.searchByItem),
                   icon: const Icon(Icons.shopping_basket_outlined),
-                ),
-                ButtonSegment(
-                  value: _SearchMode.byLocation,
-                  label: Text(l.searchByLocation),
-                  icon: const Icon(Icons.location_on_outlined),
                 ),
               ],
               selected: {_mode},
@@ -608,9 +588,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                     decoration: InputDecoration(
                       hintText: _mode == _SearchMode.byItem
                           ? l.searchItemHint
-                          : _mode == _SearchMode.byLocation
-                          ? l.locationSearchHint
-                          : l.searchShopsHint,
+                          : l.locationSearchHint,
                       prefixIcon: const Icon(Icons.search),
                       suffixIcon: (_loading || _geocoding)
                           ? const Padding(
@@ -753,6 +731,18 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
           child: Text(
             l.noShopsMatchFilter,
             style: const TextStyle(color: Colors.grey),
+          ),
+        );
+      }
+      if (_mode == _SearchMode.byItem) {
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              l.searchByItemNoResults,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.grey),
+            ),
           ),
         );
       }

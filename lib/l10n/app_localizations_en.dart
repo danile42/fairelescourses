@@ -235,9 +235,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchShops => 'Search shops';
 
   @override
-  String get searchShopsHint => 'Type a shop name…';
-
-  @override
   String get searchItemHint => 'Type an item name…';
 
   @override
@@ -256,10 +253,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importShop => 'Import';
 
   @override
-  String get searchByName => 'By name';
+  String get searchByItem => 'By item';
 
   @override
-  String get searchByItem => 'By item';
+  String get searchByItemNoResults =>
+      'No shops found. Try searching by location to find shops near you.';
 
   @override
   String get configTitle => 'Settings';

@@ -13,7 +13,6 @@ import 'package:fairelescourses/providers/firestore_sync_provider.dart';
 import 'package:fairelescourses/providers/supermarket_provider.dart';
 import 'package:fairelescourses/screens/shop_search_screen.dart';
 import 'package:fairelescourses/services/firestore_service.dart';
-// ShopSearchResult is used indirectly through FirestoreService mock
 
 import '../helpers/hive_helper.dart';
 
@@ -47,7 +46,6 @@ Supermarket _shop({String id = 's1', String name = 'Rewe'}) => Supermarket(
 
 MockFirestoreService _mockSvc() {
   final svc = MockFirestoreService();
-  when(() => svc.searchByName(any())).thenAnswer((_) async => []);
   when(() => svc.searchByItem(any())).thenAnswer((_) async => []);
   when(() => svc.searchNearby(any(), any(), any())).thenAnswer((_) async => []);
   when(() => svc.upsertShop(any(), any())).thenAnswer((_) async {});
@@ -109,33 +107,31 @@ void main() {
       expect(find.text('Search shops'), findsOneWidget);
     });
 
-    testWidgets('shows segmented button with three modes', (tester) async {
+    testWidgets('shows segmented button with two modes', (tester) async {
       await tester.pumpWidget(_wrap());
       await tester.pumpAndSettle();
-      expect(find.text('By name'), findsOneWidget);
-      expect(find.text('By item'), findsOneWidget);
       expect(find.text('By location'), findsOneWidget);
+      expect(find.text('By item'), findsOneWidget);
+      expect(find.text('By name'), findsNothing);
     });
 
-    testWidgets('initial state shows minimum-characters hint', (tester) async {
+    testWidgets('default mode is By location — shows no-location-set hint', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap());
       await tester.pumpAndSettle();
+      // No home location set → no-location-set message shown (no search field).
       expect(
-        find.text('Type at least 2 characters to search.'),
+        find.text('No home location set. Go to Sync to set one.'),
         findsOneWidget,
       );
-    });
-
-    testWidgets('search field is present with correct hint', (tester) async {
-      await tester.pumpWidget(_wrap());
-      await tester.pumpAndSettle();
-      expect(find.byType(TextField), findsOneWidget);
-      expect(find.text('Type a shop name…'), findsOneWidget);
     });
   });
 
   group('ShopSearchScreen – tab switching', () {
-    testWidgets('switching to By item changes hint text', (tester) async {
+    testWidgets('switching to By item shows text field with item hint', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap());
       await tester.pumpAndSettle();
 
@@ -145,98 +141,26 @@ void main() {
       expect(find.text('Type an item name…'), findsOneWidget);
     });
 
-    testWidgets('switching to By location shows location hint', (tester) async {
-      await tester.pumpWidget(_wrap());
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('By location'));
-      await tester.pumpAndSettle();
-
-      // No home location set → "no location set" message
-      expect(
-        find.text('No home location set. Go to Sync to set one.'),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('switching back to By name restores hint', (tester) async {
+    testWidgets('switching back to By location shows no-location-set hint', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap());
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('By item'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('By name'));
+      await tester.tap(find.text('By location'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Type a shop name…'), findsOneWidget);
-    });
-  });
-
-  group('ShopSearchScreen – By name search', () {
-    testWidgets('typing 2+ chars and waiting triggers search', (tester) async {
-      final svc = _mockSvc();
-      await tester.pumpWidget(_wrap(mockService: svc));
-      await tester.pumpAndSettle();
-
-      await tester.enterText(find.byType(TextField), 're');
-      // Wait for debounce (400 ms) and async response.
-      await tester.pump(const Duration(milliseconds: 500));
-      await tester.pumpAndSettle();
-
-      verify(() => svc.searchByName('re')).called(1);
-    });
-
-    testWidgets('search with no results shows no-shops message', (
-      tester,
-    ) async {
-      await tester.pumpWidget(_wrap());
-      await tester.pumpAndSettle();
-
-      await tester.enterText(find.byType(TextField), 're');
-      await tester.pump(const Duration(milliseconds: 500));
-      await tester.pumpAndSettle();
-
-      expect(find.text('No shops found.'), findsOneWidget);
-    });
-
-    testWidgets('search returns results and shows shop name', (tester) async {
-      final svc = _mockSvc();
-      when(
-        () => svc.searchByName('rewe'),
-      ).thenAnswer((_) async => [_shop(name: 'Rewe Berlin')]);
-
-      await tester.pumpWidget(_wrap(mockService: svc));
-      await tester.pumpAndSettle();
-
-      await tester.enterText(find.byType(TextField), 'rewe');
-      await tester.pump(const Duration(milliseconds: 500));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Rewe Berlin'), findsOneWidget);
-    });
-
-    testWidgets('result already in local stores shows "In your list" chip', (
-      tester,
-    ) async {
-      final localShop = _shop(id: 's1', name: 'Rewe');
-      final svc = _mockSvc();
-      when(() => svc.searchByName('rewe')).thenAnswer((_) async => [localShop]);
-
-      await tester.pumpWidget(_wrap(stores: [localShop], mockService: svc));
-      await tester.pumpAndSettle();
-
-      await tester.enterText(find.byType(TextField), 'rewe');
-      await tester.pump(const Duration(milliseconds: 500));
-      await tester.pumpAndSettle();
-
-      expect(find.text('In your list'), findsOneWidget);
+      expect(
+        find.text('No home location set. Go to Sync to set one.'),
+        findsOneWidget,
+      );
     });
   });
 
   group('ShopSearchScreen – By item search', () {
-    testWidgets('switching to By item and searching calls searchByItem', (
-      tester,
-    ) async {
+    testWidgets('searching by item calls searchByItem', (tester) async {
       final svc = _mockSvc();
       await tester.pumpWidget(_wrap(mockService: svc));
       await tester.pumpAndSettle();
@@ -250,6 +174,62 @@ void main() {
 
       verify(() => svc.searchByItem('milk')).called(1);
     });
+
+    testWidgets('By item no results shows advisory text, not Create shop', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('By item'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'milk');
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Try searching by location'), findsOneWidget);
+      expect(find.text('New shop'), findsNothing);
+    });
+
+    testWidgets('By item result shows shop name', (tester) async {
+      final svc = _mockSvc();
+      when(
+        () => svc.searchByItem('milk'),
+      ).thenAnswer((_) async => [_shop(name: 'Rewe Berlin')]);
+
+      await tester.pumpWidget(_wrap(mockService: svc));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('By item'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'milk');
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Rewe Berlin'), findsOneWidget);
+    });
+
+    testWidgets('result already in local stores shows "In your list" chip', (
+      tester,
+    ) async {
+      final localShop = _shop(id: 's1', name: 'Rewe');
+      final svc = _mockSvc();
+      when(() => svc.searchByItem('milk')).thenAnswer((_) async => [localShop]);
+
+      await tester.pumpWidget(_wrap(stores: [localShop], mockService: svc));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('By item'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'milk');
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pumpAndSettle();
+
+      expect(find.text('In your list'), findsOneWidget);
+    });
   });
 
   group('ShopSearchScreen – By location', () {
@@ -259,9 +239,7 @@ void main() {
       await tester.pumpWidget(_wrap());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('By location'));
-      await tester.pumpAndSettle();
-
+      // By location is the default; just confirm message is shown.
       expect(
         find.text('No home location set. Go to Sync to set one.'),
         findsOneWidget,
@@ -272,11 +250,22 @@ void main() {
       await tester.pumpWidget(_wrap());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('By location'));
-      await tester.pumpAndSettle();
-
       // Category filter chip shows "Supermarket" label (default category).
       expect(find.text('Supermarket'), findsOneWidget);
+    });
+
+    testWidgets('By location: typing clears results when text is short', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap());
+      await tester.pumpAndSettle();
+
+      // No home location → "Near me" chip absent; text field is shown.
+      // Enter less than 2 characters — should not crash.
+      await tester.enterText(find.byType(TextField), 'B');
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
     });
   });
 
@@ -285,16 +274,34 @@ void main() {
       await tester.pumpWidget(_wrap(locale: const Locale('de')));
       await tester.pumpAndSettle();
 
-      // "Märkte suchen" is the German AppBar title.
       expect(find.text('Märkte suchen'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('German By location tab switches correctly', (tester) async {
+    testWidgets('German By item tab switches correctly', (tester) async {
       await tester.pumpWidget(_wrap(locale: const Locale('de')));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Nach Ort'));
+      await tester.tap(find.text('Nach Artikel'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('opening category popup shows all category options in German', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap(locale: const Locale('de')));
+      await tester.pumpAndSettle();
+
+      // By location is the default; tap the category chip.
+      await tester.tap(find.text('Supermarkt'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Kiosk / Laden'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      await tester.tapAt(const Offset(10, 10));
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
@@ -303,7 +310,6 @@ void main() {
 
   group('ShopSearchScreen – persisted radius filter', () {
     setUp(() async {
-      // Write to Hive outside testWidgets (real async) to avoid FakeAsync hang.
       await Hive.box<String>('settings').put('osmSearchRadius', '2000');
     });
 
@@ -332,51 +338,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Search shops'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    });
-  });
-
-  group('ShopSearchScreen – By location text input', () {
-    testWidgets('By location: typing clears results when text is short', (
-      tester,
-    ) async {
-      await tester.pumpWidget(_wrap());
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('By location'));
-      await tester.pumpAndSettle();
-
-      // Type less than 2 characters — should not crash.
-      await tester.enterText(find.byType(TextField), 'B');
-      await tester.pump();
-
-      expect(tester.takeException(), isNull);
-    });
-  });
-
-  group('ShopSearchScreen – German category popup', () {
-    testWidgets('opening category popup shows all category options in German', (
-      tester,
-    ) async {
-      await tester.pumpWidget(_wrap(locale: const Locale('de')));
-      await tester.pumpAndSettle();
-
-      // Switch to By location tab.
-      await tester.tap(find.text('Nach Ort'));
-      await tester.pumpAndSettle();
-
-      // Tap the category chip to open the popup menu.
-      await tester.tap(find.text('Supermarkt'));
-      await tester.pumpAndSettle();
-
-      // Popup is open and shows category labels.
-      expect(find.text('Kiosk / Laden'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-
-      // Dismiss popup by tapping outside it.
-      await tester.tapAt(const Offset(10, 10));
-      await tester.pumpAndSettle();
-
       expect(tester.takeException(), isNull);
     });
   });
