@@ -1,7 +1,7 @@
 # Prompts
 
 This file contains every prompt given to Claude to build this project.
-No source code was written by the human author — only the prompts below.
+No source code was written by the human author — only the prompts below. **Exception:** the workaround of placing the start-navigation test in a separate file (`test/widgets/home_screen_start_navigation_test.dart`) was devised by the human author after Claude Code was unable to find the solution through extensive debugging. That file's placement is the only piece of the codebase not produced by Claude.
 
 ---
 

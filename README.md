@@ -116,7 +116,9 @@ To enable Codecov on your fork:
 
 Every line of code in this repository was written by [Claude](https://claude.ai) (Anthropic's AI assistant) — specifically **Claude Sonnet 4.6**, used via [Claude Code](https://claude.ai/claude-code), Anthropic's CLI tool. All documentation, including architecture docs and diagrams, was written by Claude as well.
 
-The human author provided product direction through natural-language prompts (see [`prompts.md`](prompts.md)) and reviewed the results on a device, but did not write, edit, or modify a single line of source code or documentation. The complete prompt history is preserved in `prompts.md`.
+**Exception:** the workaround of splitting `home_screen_start_navigation_test.dart` into a separate file (described in the [Test organisation note](#test-organisation-note) above) was devised by the human author after Claude Code was unable to find it through extensive debugging. That file's placement is the only piece of the codebase not produced by Claude.
+
+The human author provided product direction through natural-language prompts (see [`prompts.md`](prompts.md)) and reviewed the results on a device, but did not otherwise write, edit, or modify source code or documentation. The complete prompt history is preserved in `prompts.md`.
 
 > **Note:** The numbering in `prompts.md` reflects the order in which Claude logged the entries, which does not always match the exact order the prompts were given — especially toward the end of the file, where multi-session context compression occasionally caused entries to be recorded slightly out of sequence.
 
