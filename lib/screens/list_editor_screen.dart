@@ -242,7 +242,7 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
     );
     if (result == null) return;
     final (newName, newCategory) = result;
-    final trimmed = newName?.trim() ?? '';
+    final trimmed = newName.trim();
     if (trimmed.isEmpty) return;
     setState(() {
       _dirty = true;

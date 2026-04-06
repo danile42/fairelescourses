@@ -497,3 +497,6 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - Updated the list editor: edit-item dialog now has a second field for category; category is shown as a grey subtitle in each list tile.
     - Added `itemCategory` / `itemCategoryHint` ARB keys (EN + DE) and regenerated l10n.
     - 5 new navigation-planner tests covering category matching, name-over-category priority, null category, no-match, and same-category grouping. All 504 tests pass.
+168. Fix CI analyze failure: remove unnecessary null-aware operator in list_editor_screen.dart line 245 (`newName?.trim()` → `newName.trim()`).
+
+169. Fix infinite Firestore re-upload loop: app was hammering `shops/osm_XXXXXXX` with `PERMISSION_DENIED` retries on every sync event. Root cause: `syncFromRemote` re-uploads local-only shops missing from the remote snapshot, but community-imported OSM shops (saved with `syncToFirestore: false`) can never be written back because the Firestore document is owned by another user. Fix: track PERMISSION_DENIED shop IDs in `_permissionDeniedIds` set on `SupermarketNotifier`; skip those IDs on all subsequent `syncFromRemote` calls within the session.

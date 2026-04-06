@@ -20,6 +20,11 @@ final supermarketsProvider =
 class SupermarketNotifier extends Notifier<List<Supermarket>> {
   late Box<Supermarket> _box;
 
+  /// Shop IDs that have returned PERMISSION_DENIED on a re-upload attempt.
+  /// Skipped in subsequent syncFromRemote calls — PERMISSION_DENIED is permanent
+  /// (the document is owned by another user), so retrying is pointless.
+  final _permissionDeniedIds = <String>{};
+
   @override
   List<Supermarket> build() {
     _box = ref.watch(supermarketBoxProvider);
@@ -115,16 +120,21 @@ class SupermarketNotifier extends Notifier<List<Supermarket>> {
     for (final key in _box.keys.toList()) {
       if (!remoteIds.contains(key)) {
         if (hid != null) {
+          if (_permissionDeniedIds.contains(key)) continue;
           final local = _box.get(key as String);
           if (local != null) {
             // Re-upload local-only shop instead of deleting it.
             ref
                 .read(firestoreServiceProvider)
                 .upsertShop(hid, local)
-                .catchError(
-                  (Object e) =>
-                      debugPrint('Firestore re-upload upsertShop error: $e'),
-                )
+                .catchError((Object e) {
+                  if (e.toString().contains('permission-denied')) {
+                    // Document owned by another user — never retry.
+                    _permissionDeniedIds.add(local.id);
+                  } else {
+                    debugPrint('Firestore re-upload upsertShop error: $e');
+                  }
+                })
                 .ignore();
           }
         } else {
