@@ -501,6 +501,9 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 
 169. Fix infinite Firestore re-upload loop: app was hammering `shops/osm_XXXXXXX` with `PERMISSION_DENIED` retries on every sync event. Root cause: `syncFromRemote` re-uploads local-only shops missing from the remote snapshot, but community-imported OSM shops (saved with `syncToFirestore: false`) can never be written back because the Firestore document is owned by another user. Fix: track PERMISSION_DENIED shop IDs in `_permissionDeniedIds` set on `SupermarketNotifier`; skip those IDs on all subsequent `syncFromRemote` calls within the session.
 
+171. When I enter an item in a list and press "Save" without pressing "+" first, there should be the dialog asking me if I want to save the changes.
+    - The AppBar Save button now checks `_pendingItemText` before saving. If true, `_confirmUnsaved()` is shown; "Save" in the dialog proceeds with `_save()`, anything else (keep editing or dismiss) stays in the editor.
+
 170. Remember the mapping of categories to items locally, and pre-fill the category when an item is entered in the future.
     - Opened a new Hive box `item_categories` (`Box<String>`, key: lowercased item name, value: category) in `main.dart`.
     - `_addItem`: looks up the remembered category for the item name and passes it to `ShoppingItem(...)` on creation.

@@ -344,7 +344,15 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
           foregroundColor: Colors.white,
           actions: [
             TextButton(
-              onPressed: _save,
+              onPressed: () async {
+                if (_pendingItemText) {
+                  final action = await _confirmUnsaved();
+                  if (!mounted) return;
+                  if (action == _ExitAction.save) _save();
+                } else {
+                  _save();
+                }
+              },
               child: Text(l.save, style: const TextStyle(color: Colors.white)),
             ),
           ],
