@@ -1,16 +1,10 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:hive_ce_flutter/hive_ce_flutter.dart';
-import 'package:mocktail/mocktail.dart';
-
 import 'package:fairelescourses/l10n/app_localizations.dart';
 import 'package:fairelescourses/models/nav_session.dart';
+import 'package:fairelescourses/models/shop_floor.dart';
 import 'package:fairelescourses/models/shopping_list.dart';
 import 'package:fairelescourses/models/supermarket.dart';
-import 'package:fairelescourses/models/shop_floor.dart';
 import 'package:fairelescourses/providers/firestore_sync_provider.dart';
 import 'package:fairelescourses/providers/household_provider.dart';
 import 'package:fairelescourses/providers/local_only_provider.dart';
@@ -18,9 +12,13 @@ import 'package:fairelescourses/providers/nav_session_provider.dart';
 import 'package:fairelescourses/providers/nav_view_mode_provider.dart';
 import 'package:fairelescourses/providers/shopping_list_provider.dart';
 import 'package:fairelescourses/providers/supermarket_provider.dart';
-import 'package:fairelescourses/providers/tour_provider.dart';
 import 'package:fairelescourses/screens/home_screen.dart';
 import 'package:fairelescourses/services/firestore_service.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:hive_ce_flutter/hive_ce_flutter.dart';
+import 'package:mocktail/mocktail.dart';
 
 import '../helpers/hive_helper.dart';
 
