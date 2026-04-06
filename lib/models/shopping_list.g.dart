@@ -19,17 +19,20 @@ class ShoppingItemAdapter extends TypeAdapter<ShoppingItem> {
     return ShoppingItem(
       name: fields[0] as String,
       checked: fields[1] == null ? false : fields[1] as bool,
+      category: fields[2] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, ShoppingItem obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(3)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
-      ..write(obj.checked);
+      ..write(obj.checked)
+      ..writeByte(2)
+      ..write(obj.category);
   }
 
   @override

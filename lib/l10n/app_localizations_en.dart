@@ -151,6 +151,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get itemHint => 'e.g. Milk';
 
   @override
+  String get itemCategory => 'Category (optional)';
+
+  @override
+  String get itemCategoryHint => 'e.g. Dairy';
+
+  @override
   String get generatePlan => 'Generate plan';
 
   @override

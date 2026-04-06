@@ -10,18 +10,39 @@ class ShoppingItem {
   @HiveField(1)
   bool checked;
 
-  ShoppingItem({required this.name, this.checked = false});
+  /// Optional category used as a fallback when matching items to shop cells.
+  /// e.g. "Dairy" lets the item match any cell tagged "Dairy".
+  @HiveField(2)
+  String? category;
 
-  ShoppingItem copyWith({String? name, bool? checked}) =>
-      ShoppingItem(name: name ?? this.name, checked: checked ?? this.checked);
+  ShoppingItem({required this.name, this.checked = false, this.category});
 
-  Map<String, dynamic> toMap() => {'name': name, 'checked': checked};
+  ShoppingItem copyWith({
+    String? name,
+    bool? checked,
+    Object? category = _sentinel,
+  }) => ShoppingItem(
+    name: name ?? this.name,
+    checked: checked ?? this.checked,
+    category: identical(category, _sentinel)
+        ? this.category
+        : category as String?,
+  );
+
+  Map<String, dynamic> toMap() => {
+    'name': name,
+    'checked': checked,
+    if (category != null) 'category': category,
+  };
 
   factory ShoppingItem.fromMap(Map<String, dynamic> m) => ShoppingItem(
     name: m['name'] as String,
     checked: (m['checked'] as bool?) ?? false,
+    category: m['category'] as String?,
   );
 }
+
+const _sentinel = Object();
 
 @HiveType(typeId: 2)
 class ShoppingList extends HiveObject {

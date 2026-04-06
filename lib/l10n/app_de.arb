@@ -43,6 +43,8 @@
   "listName": "Listenname",
   "addItem": "Artikel hinzufügen",
   "itemHint": "z. B. Milch",
+  "itemCategory": "Kategorie (optional)",
+  "itemCategoryHint": "z. B. Milchprodukte",
   "generatePlan": "Plan erstellen",
   "navigationTitle": "Navigation",
   "shop": "Markt",

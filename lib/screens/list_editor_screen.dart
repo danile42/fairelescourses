@@ -139,63 +139,93 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
   }
 
   Future<void> _editItem(int index, List<String> suggestions) async {
+    final l = AppLocalizations.of(context)!;
     final item = _items[index];
     final ctrl = TextEditingController(text: item.name);
-    String? pending = item.name;
-    final newName = await showDialog<String>(
+    String? pendingName = item.name;
+    String? pendingCategory = item.category;
+    // catCtrl is intentionally not disposed — see project gotcha on dialog controllers.
+    final catCtrl = TextEditingController(text: item.category ?? '');
+    final result = await showDialog<(String, String?)>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-        content: Autocomplete<String>(
-          initialValue: TextEditingValue(text: item.name),
-          optionsBuilder: (tv) {
-            if (tv.text.trim().isEmpty) return const [];
-            final q = tv.text.toLowerCase();
-            return suggestions
-                .where((s) => s.toLowerCase().contains(q))
-                .take(8);
-          },
-          onSelected: (value) {
-            pending = value;
-            Navigator.pop(dialogContext, value);
-          },
-          fieldViewBuilder: (ctx, autoCtrl, focusNode, onFieldSubmitted) {
-            ctrl.dispose(); // dispose our local ctrl; use the one Autocomplete creates
-            return TextField(
-              controller: autoCtrl,
-              focusNode: focusNode,
-              autofocus: true,
-              decoration: const InputDecoration(border: OutlineInputBorder()),
-              onChanged: (v) => pending = v,
-              onSubmitted: (_) => Navigator.pop(dialogContext, pending),
-              textInputAction: TextInputAction.done,
-            );
-          },
-          optionsViewBuilder: (ctx, onSelected, options) => Align(
-            alignment: Alignment.topLeft,
-            child: Material(
-              elevation: 4,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxHeight: 200,
-                  maxWidth: 280,
-                ),
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  shrinkWrap: true,
-                  children: options
-                      .map(
-                        (o) => ListTile(
-                          dense: true,
-                          title: Text(o),
-                          onTap: () => onSelected(o),
-                        ),
-                      )
-                      .toList(),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Autocomplete<String>(
+              initialValue: TextEditingValue(text: item.name),
+              optionsBuilder: (tv) {
+                if (tv.text.trim().isEmpty) return const [];
+                final q = tv.text.toLowerCase();
+                return suggestions
+                    .where((s) => s.toLowerCase().contains(q))
+                    .take(8);
+              },
+              onSelected: (value) {
+                pendingName = value;
+                Navigator.pop(dialogContext, (value, pendingCategory));
+              },
+              fieldViewBuilder: (ctx, autoCtrl, focusNode, onFieldSubmitted) {
+                ctrl.dispose(); // dispose our local ctrl; use the one Autocomplete creates
+                return TextField(
+                  controller: autoCtrl,
+                  focusNode: focusNode,
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (v) => pendingName = v,
+                  onSubmitted: (_) => Navigator.pop(dialogContext, (
+                    pendingName,
+                    pendingCategory,
+                  )),
+                  textInputAction: TextInputAction.next,
+                );
+              },
+              optionsViewBuilder: (ctx, onSelected, options) => Align(
+                alignment: Alignment.topLeft,
+                child: Material(
+                  elevation: 4,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxHeight: 200,
+                      maxWidth: 280,
+                    ),
+                    child: ListView(
+                      padding: EdgeInsets.zero,
+                      shrinkWrap: true,
+                      children: options
+                          .map(
+                            (o) => ListTile(
+                              dense: true,
+                              title: Text(o),
+                              onTap: () => onSelected(o),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: catCtrl,
+              decoration: InputDecoration(
+                labelText: l.itemCategory,
+                hintText: l.itemCategoryHint,
+                border: const OutlineInputBorder(),
+                isDense: true,
+              ),
+              onChanged: (v) =>
+                  pendingCategory = v.trim().isEmpty ? null : v.trim(),
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) =>
+                  Navigator.pop(dialogContext, (pendingName, pendingCategory)),
+            ),
+            const SizedBox(height: 8),
+          ],
         ),
         actions: [
           TextButton(
@@ -203,18 +233,24 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
             child: Text(AppLocalizations.of(dialogContext)!.cancel),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(dialogContext, pending),
+            onPressed: () =>
+                Navigator.pop(dialogContext, (pendingName, pendingCategory)),
             child: Text(AppLocalizations.of(dialogContext)!.save),
           ),
         ],
       ),
     );
-    final trimmed = newName?.trim();
-    if (trimmed == null || trimmed.isEmpty || trimmed == item.name) return;
+    if (result == null) return;
+    final (newName, newCategory) = result;
+    final trimmed = newName?.trim() ?? '';
+    if (trimmed.isEmpty) return;
     setState(() {
       _dirty = true;
       _items = [..._items];
-      _items[index] = _items[index].copyWith(name: trimmed);
+      _items[index] = item.copyWith(
+        name: trimmed,
+        category: newCategory?.isEmpty ?? true ? null : newCategory,
+      );
     });
   }
 
@@ -365,6 +401,15 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
                                   )
                                 : null,
                           ),
+                          subtitle: item.category != null
+                              ? Text(
+                                  item.category!,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                )
+                              : null,
                           onTap: () => _editItem(i, suggestions),
                           trailing: PopupMenuButton<_ItemAction>(
                             icon: const Icon(Icons.more_vert, size: 18),

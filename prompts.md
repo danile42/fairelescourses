@@ -489,3 +489,11 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - Empty state for "By location" keeps the "Create shop" fallback button.
     - Empty state for "By item" now shows an advisory text ("No shops found. Try searching by location…") instead of a create button. New ARB key: `searchByItemNoResults`.
     - Tests updated to match: removed the "By name search" test group and all byName-related assertions; added "By item no results shows advisory text" test; updated default-mode and tab-switching tests.
+
+168. Users want to assign items to categories, and be able to assign categories (alternative to items) to shop cells. Navigation should find items by matching items or categories. How could this be done? What are the implications for existing data? Implement this!
+    - Added `String? category` field (`@HiveField(2)`) to `ShoppingItem`; updated Hive adapter, `copyWith`, `toMap`, `fromMap`.
+    - Extended `Supermarket.findCell` / `findCellWithFloor` with an optional `{String? category}` parameter; extracted internal 3-pass logic into `_findCellByQuery` so the same passes run for category as a fallback when the item name yields no match.
+    - Updated `NavigationPlanner` to carry `ShoppingItem` objects through `storeItems` / `_buildRoute` and pass `category:` to all cell lookups.
+    - Updated the list editor: edit-item dialog now has a second field for category; category is shown as a grey subtitle in each list tile.
+    - Added `itemCategory` / `itemCategoryHint` ARB keys (EN + DE) and regenerated l10n.
+    - 5 new navigation-planner tests covering category matching, name-over-category priority, null category, no-match, and same-category grouping. All 504 tests pass.

@@ -23,7 +23,7 @@ class NavigationPlanner {
     final orderedStores = [...preferred, ...others];
 
     // Assign each item to the first store that can match it.
-    final Map<String, List<String>> storeItems = {
+    final Map<String, List<ShoppingItem>> storeItems = {
       for (final s in orderedStores) s.id: [],
     };
     final globalUnmatched = <String>[];
@@ -31,8 +31,8 @@ class NavigationPlanner {
     for (final item in list.items) {
       bool found = false;
       for (final store in orderedStores) {
-        if (store.findCell(item.name) != null) {
-          storeItems[store.id]!.add(item.name);
+        if (store.findCell(item.name, category: item.category) != null) {
+          storeItems[store.id]!.add(item);
           found = true;
           break;
         }
@@ -45,7 +45,10 @@ class NavigationPlanner {
       final items = storeItems[store.id]!;
       if (items.isEmpty) continue;
       final stops = _buildRoute(store, items);
-      final unmatched = items.where((i) => store.findCell(i) == null).toList();
+      final unmatched = items
+          .where((i) => store.findCell(i.name, category: i.category) == null)
+          .map((i) => i.name)
+          .toList();
       storePlans.add(
         StorePlan(
           storeId: store.id,
@@ -66,14 +69,14 @@ class NavigationPlanner {
   /// Groups by floor, then runs nearest-neighbor routing within each floor.
   static List<NavigationStop> _buildRoute(
     Supermarket store,
-    List<String> items,
+    List<ShoppingItem> items,
   ) {
     // Group items by (floor, cell).
     final Map<(int, String), List<String>> floorCellItems = {};
     for (final item in items) {
-      final found = store.findCellWithFloor(item);
+      final found = store.findCellWithFloor(item.name, category: item.category);
       if (found != null) {
-        floorCellItems.putIfAbsent(found, () => []).add(item);
+        floorCellItems.putIfAbsent(found, () => []).add(item.name);
       }
     }
 

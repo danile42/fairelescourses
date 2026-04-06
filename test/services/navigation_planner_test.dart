@@ -16,6 +16,16 @@ ShoppingList makeList(
   items: itemNames.map((n) => ShoppingItem(name: n)).toList(),
 );
 
+ShoppingList makeListWithCategories(
+  List<(String name, String? category)> items, {
+  List<String> preferred = const [],
+}) => ShoppingList(
+  id: 'list-1',
+  name: 'Test',
+  preferredStoreIds: preferred,
+  items: items.map((t) => ShoppingItem(name: t.$1, category: t.$2)).toList(),
+);
+
 Supermarket makeStore({
   required String id,
   String name = 'Store',
@@ -280,6 +290,85 @@ void main() {
       final breadIdx = stops.indexWhere((s) => s.items.contains('Bread'));
       final cheeseIdx = stops.indexWhere((s) => s.items.contains('Cheese'));
       expect(breadIdx, lessThan(cheeseIdx));
+    });
+
+    // ── category-based matching ───────────────────────────────────────────────
+
+    test('item with category matches cell tagged with that category', () {
+      final store = makeStore(
+        id: 's1',
+        cells: {
+          'B2': ['Dairy'],
+        },
+      );
+      final plan = NavigationPlanner.plan(
+        makeListWithCategories([('Whole Milk', 'Dairy')]),
+        [store],
+      );
+      expect(plan.globalUnmatched, isEmpty);
+      expect(plan.storePlans.first.stops.first.cell, 'B2');
+      expect(plan.storePlans.first.stops.first.items, ['Whole Milk']);
+    });
+
+    test('item name match takes priority over category match', () {
+      final store = makeStore(
+        id: 's1',
+        cells: {
+          'A1': ['Whole Milk'],
+          'B2': ['Dairy'],
+        },
+      );
+      final plan = NavigationPlanner.plan(
+        makeListWithCategories([('Whole Milk', 'Dairy')]),
+        [store],
+      );
+      expect(plan.storePlans.first.stops.first.cell, 'A1');
+    });
+
+    test('item with no category and no name match goes to globalUnmatched', () {
+      final store = makeStore(
+        id: 's1',
+        cells: {
+          'A1': ['Bread'],
+        },
+      );
+      final plan = NavigationPlanner.plan(
+        makeListWithCategories([('Whole Milk', null)]),
+        [store],
+      );
+      expect(plan.globalUnmatched, contains('Whole Milk'));
+    });
+
+    test('category with no match leaves item in globalUnmatched', () {
+      final store = makeStore(
+        id: 's1',
+        cells: {
+          'A1': ['Bread'],
+        },
+      );
+      final plan = NavigationPlanner.plan(
+        makeListWithCategories([('Whole Milk', 'Dairy')]),
+        [store],
+      );
+      expect(plan.globalUnmatched, contains('Whole Milk'));
+    });
+
+    test('multiple items with same category map to the same cell', () {
+      final store = makeStore(
+        id: 's1',
+        cells: {
+          'B2': ['Dairy'],
+        },
+      );
+      final plan = NavigationPlanner.plan(
+        makeListWithCategories([('Whole Milk', 'Dairy'), ('Butter', 'Dairy')]),
+        [store],
+      );
+      expect(plan.storePlans.first.stops.length, 1);
+      expect(
+        plan.storePlans.first.stops.first.items,
+        containsAll(['Whole Milk', 'Butter']),
+      );
     });
 
     test('items on same upper floor are grouped into one stop', () {

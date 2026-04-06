@@ -54,6 +54,8 @@
   "listName": "List name",
   "addItem": "Add item",
   "itemHint": "e.g. Milk",
+  "itemCategory": "Category (optional)",
+  "itemCategoryHint": "e.g. Dairy",
   "generatePlan": "Generate plan",
   "navigationTitle": "Navigation",
   "shop": "Shop",

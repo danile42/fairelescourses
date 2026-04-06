@@ -362,6 +362,18 @@ abstract class AppLocalizations {
   /// **'e.g. Milk'**
   String get itemHint;
 
+  /// No description provided for @itemCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category (optional)'**
+  String get itemCategory;
+
+  /// No description provided for @itemCategoryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Dairy'**
+  String get itemCategoryHint;
+
   /// No description provided for @generatePlan.
   ///
   /// In en, this message translates to:

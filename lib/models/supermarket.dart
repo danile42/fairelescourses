@@ -179,8 +179,10 @@ class Supermarket extends HiveObject {
   /// Find which cell contains a given item tag (case-insensitive, partial match).
   /// Searches the ground floor first, then additional floors.
   /// Returns a base cell id for routing (floor-agnostic).
-  String? findCell(String item) {
-    final found = findCellWithFloor(item);
+  /// If [category] is provided and the item name yields no match, falls back
+  /// to matching [category] against cell tags.
+  String? findCell(String item, {String? category}) {
+    final found = findCellWithFloor(item, category: category);
     return found?.$2;
   }
 
@@ -190,8 +192,21 @@ class Supermarket extends HiveObject {
   ///   Pass 1 — exact (case-insensitive) match across all floors.
   ///   Pass 2 — all words of the item appear in the tag (ground floor first).
   ///   Pass 3 — partial/substring match across all floors (ground floor first).
-  (int floor, String cell)? findCellWithFloor(String item) {
-    final q = item.toLowerCase().trim();
+  ///
+  /// If all passes fail and [category] is non-null, the same three passes are
+  /// repeated using [category] as the query (category-based fallback).
+  (int floor, String cell)? findCellWithFloor(String item, {String? category}) {
+    final result = _findCellByQuery(item);
+    if (result != null) return result;
+    if (category != null && category.isNotEmpty) {
+      return _findCellByQuery(category);
+    }
+    return null;
+  }
+
+  /// Internal 3-pass lookup for [query] against all floors.
+  (int floor, String cell)? _findCellByQuery(String query) {
+    final q = query.toLowerCase().trim();
     final extra = additionalFloors;
 
     // ── Pass 1: exact match ───────────────────────────────────────────────
@@ -272,7 +287,7 @@ class Supermarket extends HiveObject {
       }
     }
     for (var fi = 0; fi < extra.length; fi++) {
-      final cell = extra[fi].findCell(item);
+      final cell = extra[fi].findCell(query);
       if (cell != null) return (fi + 1, cell);
     }
 

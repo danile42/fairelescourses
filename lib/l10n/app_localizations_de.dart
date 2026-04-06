@@ -153,6 +153,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get itemHint => 'z. B. Milch';
 
   @override
+  String get itemCategory => 'Kategorie (optional)';
+
+  @override
+  String get itemCategoryHint => 'z. B. Milchprodukte';
+
+  @override
   String get generatePlan => 'Plan erstellen';
 
   @override
