@@ -91,11 +91,25 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
     );
   }
 
+  Box<String> get _categoryBox => Hive.box<String>('item_categories');
+
+  String? _lookupCategory(String name) =>
+      _categoryBox.get(name.toLowerCase().trim());
+
+  void _saveCategory(String name, String? category) {
+    final key = name.toLowerCase().trim();
+    if (key.isEmpty) return;
+    if (category != null && category.isNotEmpty) {
+      _categoryBox.put(key, category);
+    }
+  }
+
   void _addItem(String name) {
     if (name.isEmpty) return;
+    final category = _lookupCategory(name);
     setState(() {
       _dirty = true;
-      _items = [..._items, ShoppingItem(name: name)];
+      _items = [..._items, ShoppingItem(name: name, category: category)];
     });
   }
 
@@ -143,9 +157,10 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
     final item = _items[index];
     final ctrl = TextEditingController(text: item.name);
     String? pendingName = item.name;
-    String? pendingCategory = item.category;
+    // Pre-fill category from memory if the item doesn't already have one.
+    String? pendingCategory = item.category ?? _lookupCategory(item.name);
     // catCtrl is intentionally not disposed — see project gotcha on dialog controllers.
-    final catCtrl = TextEditingController(text: item.category ?? '');
+    final catCtrl = TextEditingController(text: pendingCategory ?? '');
     final result = await showDialog<(String, String?)>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -164,7 +179,11 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
               },
               onSelected: (value) {
                 pendingName = value;
-                Navigator.pop(dialogContext, (value, pendingCategory));
+                final looked = _lookupCategory(value);
+                Navigator.pop(dialogContext, (
+                  value,
+                  looked ?? pendingCategory,
+                ));
               },
               fieldViewBuilder: (ctx, autoCtrl, focusNode, onFieldSubmitted) {
                 ctrl.dispose(); // dispose our local ctrl; use the one Autocomplete creates
@@ -244,6 +263,7 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
     final (newName, newCategory) = result;
     final trimmed = newName.trim();
     if (trimmed.isEmpty) return;
+    _saveCategory(trimmed, newCategory);
     setState(() {
       _dirty = true;
       _items = [..._items];
