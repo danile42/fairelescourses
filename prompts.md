@@ -504,6 +504,10 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 171. When I enter an item in a list and press "Save" without pressing "+" first, there should be the dialog asking me if I want to save the changes.
     - The AppBar Save button now checks `_pendingItemText` before saving. If true, `_confirmUnsaved()` is shown; "Save" in the dialog proceeds with `_save()`, anything else (keep editing or dismiss) stays in the editor.
 
+172. Fix bug B1 (improvement-analysis.md): replace force-unwrap `_auth.currentUser!.uid` with null-safe access in FirestoreService.
+    - `upsertShop` line 70: `_auth.currentUser!.uid` → `_auth.currentUser?.uid` (ownerUid stays null when auth hasn't completed, preserving the "anyone can edit" fallback).
+    - `upsertNavSession` line 229: `_auth.currentUser!.uid` → `_auth.currentUser?.uid ?? ''` (empty string won't match any real UID, so no guest is incorrectly elevated to host).
+
 170. Remember the mapping of categories to items locally, and pre-fill the category when an item is entered in the future.
     - Opened a new Hive box `item_categories` (`Box<String>`, key: lowercased item name, value: category) in `main.dart`.
     - `_addItem`: looks up the remembered category for the item name and passes it to `ShoppingItem(...)` on creation.

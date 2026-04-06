@@ -67,7 +67,7 @@ class FirestoreService {
 
   Future<void> upsertShop(String hid, Supermarket s) {
     final data = s.toMap()
-      ..['ownerUid'] = s.ownerUid ?? _auth.currentUser!.uid
+      ..['ownerUid'] = s.ownerUid ?? _auth.currentUser?.uid
       ..['householdHash'] = _pathId(hid)
       ..['nameLower'] = s.name.toLowerCase()
       ..['goodsList'] = _goodsList(s);
@@ -226,7 +226,7 @@ class FirestoreService {
 
   Future<void> upsertNavSession(String hid, String listId) => _navDoc(hid).set({
     'listId': listId,
-    'startedBy': _auth.currentUser!.uid,
+    'startedBy': _auth.currentUser?.uid ?? '',
     'startedAt': FieldValue.serverTimestamp(),
   });
 
