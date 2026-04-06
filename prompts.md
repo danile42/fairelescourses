@@ -504,6 +504,10 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 171. When I enter an item in a list and press "Save" without pressing "+" first, there should be the dialog asking me if I want to save the changes.
     - The AppBar Save button now checks `_pendingItemText` before saving. If true, `_confirmUnsaved()` is shown; "Save" in the dialog proceeds with `_save()`, anything else (keep editing or dismiss) stays in the editor.
 
+174. Tests are failing. Fix them and run the full commit procedure. Then check which tests don't finish, and consider moving them to separate test files as a workaround.
+    - Root cause: `item_categories` Hive box (opened in `main()` since prompt 170) was missing from `test/helpers/hive_helper.dart`. Added it to both `setUpHive()` (openBox) and `clearHive()` (clear).
+    - Identified a hanging test (`ListEditorScreen – German unsaved changes dialog`) that never terminates; extracted it to its own file as a workaround (see below).
+
 173. Fix bug B2 (improvement-analysis.md): wrap per-document decrypt in try/catch in listsStream so a single corrupt document no longer silently drops the entire snapshot batch.
     - Added `package:flutter/foundation.dart` import (provides `debugPrint`; made `dart:typed_data` redundant, so removed it).
     - Changed the synchronous `.map(...).toList()` to an explicit for-loop with a per-document try/catch: bad documents are skipped and logged via `debugPrint`; all healthy documents in the same snapshot are still delivered.
