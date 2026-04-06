@@ -75,11 +75,7 @@ ShoppingList _list({
   items: items ?? [ShoppingItem(name: 'Milk'), ShoppingItem(name: 'Eggs')],
 );
 
-Widget _wrap(
-  ShoppingList list, {
-  bool isNew = false,
-  NavSession? session,
-}) {
+Widget _wrap(ShoppingList list, {bool isNew = false, NavSession? session}) {
   final mockSvc = MockFirestoreService();
   when(() => mockSvc.upsertList(any(), any())).thenAnswer((_) async {});
   when(() => mockSvc.deleteList(any(), any())).thenAnswer((_) async {});

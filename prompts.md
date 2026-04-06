@@ -536,3 +536,4 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 183. [J] dart format fails in CI - fix that, update prompts.md, and commit.
 184. [J] Actually, you processed all prompts starting from line 528 in prompts.md. Update that.
 185. [J] CI fails in analyze: fix unused_element and unused_element_parameter warnings. Update prompts.md and commit.
+186. [J] Now dart format fails in CI. Fix that.
