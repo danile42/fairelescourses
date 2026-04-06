@@ -1,6 +1,6 @@
 # Improvement Analysis
 
-Generated: 2026-04-04
+Generated: 2026-04-06
 
 ---
 
@@ -42,12 +42,10 @@ Fields aren't validated until the user submits. There's no indication of which f
 
 ---
 
-### 5. No loading indicator during geocoding (MEDIUM)
-**File:** `lib/screens/sync_screen.dart`, lines 59–81
+### 5. ~~No loading indicator during geocoding~~ ✓ DONE
+**File:** `lib/screens/sync_screen.dart`, lines 412–422
 
-`_settingHome` is set to `true` during geocoding but nothing in the UI reflects this. Geocoding can take 2–5 seconds; users will tap the button again thinking it didn't respond.
-
-**Fix:** Show a `CircularProgressIndicator` or replace the button label with "Searching…" while `_settingHome` is true.
+The geocode button now shows a `CircularProgressIndicator` and is disabled while `_settingHome` is true.
 
 ---
 
@@ -72,10 +70,44 @@ Autocomplete suggestions include items already in the list, making it easy to ac
 
 ---
 
-### 9. Pending text-field input silently discarded on back navigation (LOW)
-**File:** `lib/screens/list_editor_screen.dart`, lines 271–283
+### 9. ~~Pending text-field input silently discarded on back navigation~~ ✓ DONE
+**File:** `lib/screens/list_editor_screen.dart`, line 328
 
-`PopScope` guards against navigating away with `_dirty` state, but text currently typed in the add-item field (tracked by `_pendingItemText`) is silently discarded if the user presses back. Either include pending text in the dirty check or commit it automatically.
+`canPop` now also checks `_pendingItemText`, so typing in the add-item field then pressing back triggers the unsaved-changes dialog.
+
+---
+
+## Bugs
+
+### B1. Force-unwrap of `currentUser!` in FirestoreService (HIGH)
+**File:** `lib/services/firestore_service.dart`, lines 70 and 229
+
+Two methods force-unwrap `_auth.currentUser!.uid` without a null check:
+
+- `upsertShop` (line 70): `s.ownerUid ?? _auth.currentUser!.uid` — crashes if `ownerUid` is null and anonymous sign-in hasn't completed.
+- `upsertNavSession` (line 229): `'startedBy': _auth.currentUser!.uid` — crashes unconditionally if `currentUser` is null.
+
+Anonymous sign-in is awaited in `main()`, but if it fails or is skipped (e.g., a future code path, network error at startup, or local-only mode edge case), these will throw an unhandled null dereference.
+
+**Fix:** Null-check `currentUser` before access; use a fallback UID or bail out gracefully.
+
+---
+
+### B2. A single corrupt document silently drops the entire `listsStream` batch (MEDIUM)
+**File:** `lib/services/firestore_service.dart`, lines 256–264
+
+```dart
+Stream<List<ShoppingList>> listsStream(String hid) =>
+    _lists(hid).snapshots().map(
+      (snap) => snap.docs
+          .map((d) => ShoppingList.fromMap(_decrypt(hid, d.data()['d'] as String)))
+          .toList(),
+    );
+```
+
+The inner `.map()` over `snap.docs` is synchronous inside the stream `map` operator. If `_decrypt` throws for any single document (null `d` field, corrupted base64, wrong key, malformed JSON), the exception propagates as a stream error for the **entire snapshot event**. The subscriber in `firestoreSyncProvider` swallows it with `onError: (_) {}`, so no lists are updated — all household list data silently disappears from the UI for that sync cycle. If the corrupt document is never cleaned up, every subsequent sync event fails the same way.
+
+**Fix:** Wrap the per-document `fromMap(_decrypt(...))` in a try/catch and skip individual bad documents rather than failing the whole batch.
 
 ---
 
@@ -83,12 +115,14 @@ Autocomplete suggestions include items already in the list, making it easy to ac
 
 | # | Category | Severity | Location |
 |---|----------|----------|----------|
+| B1 | Bug | High | `firestore_service.dart:70,229` |
+| B2 | Bug | Medium | `firestore_service.dart:256` |
 | 1 | UX | High | App-wide |
 | 2 | UX | Medium | App-wide |
 | 3 | UX | Medium | `sync_screen.dart:111` |
 | 4 | UX | Medium | `sync_screen.dart:155` |
-| 5 | UX | Medium | `sync_screen.dart:59` |
-| 6 | UX | Medium | `navigation_screen.dart:287` |
+| 5 | UX | ~~Medium~~ | ~~`sync_screen.dart:59`~~ ✓ |
+| 6 | UX | Medium | `navigation_screen.dart:304` |
 | 7 | UX | Medium | `navigation_screen.dart` |
-| 8 | UX | Low | `list_editor_screen.dart:262` |
-| 9 | UX | Low | `list_editor_screen.dart:271` |
+| 8 | UX | Low | `list_editor_screen.dart:622` |
+| 9 | UX | ~~Low~~ | ~~`list_editor_screen.dart:271`~~ ✓ |
