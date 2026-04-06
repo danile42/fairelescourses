@@ -1,13 +1,13 @@
 # Prompts
 
-This file contains every prompt given to Claude to build this project.
-No source code was written by the human author — only the prompts below. **Exception:** the workaround of placing the start-navigation test in a separate file (`test/widgets/home_screen_start_navigation_test.dart`) was devised by the human author after Claude Code was unable to find the solution through extensive debugging. That file's placement is the only piece of the codebase not produced by Claude.
+This file contains every prompt given to the LLM tools to build this project.
+No source code was written by the human author — only the prompts below. **Exception:** the workaround of placing the start-navigation test in a separate file (`test/widgets/home_screen_start_navigation_test.dart`) was devised by the human author after Claude Code was unable to find the solution through extensive debugging. That file's placement is the only piece of the codebase not produced by an LLM.
 
 ---
 
 ## Project origin
 
-The project was bootstrapped with `flutter create fairelescourses` and then handed entirely to Claude Code (Claude Sonnet 4.6). All subsequent development — models, providers, services, screens, widgets, tests, localisation, CI — was produced by the AI in response to the prompts listed here.
+The project was bootstrapped with `flutter create fairelescourses` and then handed to LLM assistants — specifically Claude Code (Claude Sonnet 4.6) and Junie (JetBrains' LLM agent). All subsequent development — models, providers, services, screens, widgets, tests, localisation, CI — was produced by these LLM tools in response to the prompts listed here.
 
 ---
 
