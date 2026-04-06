@@ -79,7 +79,6 @@ Widget _wrap(
   ShoppingList list, {
   bool isNew = false,
   NavSession? session,
-  List<Supermarket>? stores,
 }) {
   final mockSvc = MockFirestoreService();
   when(() => mockSvc.upsertList(any(), any())).thenAnswer((_) async {});

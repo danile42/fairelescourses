@@ -71,17 +71,6 @@ class _FakeStoresNotifierWith extends SupermarketNotifier {
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
-ShoppingList _list({
-  String id = 'L1',
-  String name = 'Groceries',
-  List<ShoppingItem>? items,
-}) => ShoppingList(
-  id: id,
-  name: name,
-  preferredStoreIds: [],
-  items: items ?? [ShoppingItem(name: 'Milk'), ShoppingItem(name: 'Eggs')],
-);
-
 Widget _wrap(
   ShoppingList list, {
   bool isNew = false,

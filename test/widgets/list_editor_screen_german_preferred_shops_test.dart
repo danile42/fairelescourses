@@ -46,11 +46,6 @@ class _FakeListsNotifier extends ShoppingListNotifier {
   }
 }
 
-class _FakeStoresNotifier extends SupermarketNotifier {
-  @override
-  List<Supermarket> build() => [];
-}
-
 class _FakeNavViewModeNotifier extends NavViewModeNotifier {
   @override
   bool build() => false;
