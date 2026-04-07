@@ -10,6 +10,7 @@ import '../providers/household_provider.dart';
 import '../providers/nav_session_provider.dart';
 import '../providers/shopping_list_provider.dart';
 import '../providers/supermarket_provider.dart';
+import '../providers/connectivity_provider.dart';
 import '../providers/sync_error_provider.dart';
 import '../providers/tour_provider.dart';
 import '../widgets/celebration_overlay.dart';
@@ -64,6 +65,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ref.watch(householdProvider);
     ref.watch(firestoreSyncProvider); // activates real-time sync
 
+    final isOffline = ref.watch(isOfflineProvider).asData?.value ?? false;
     final session = ref.watch(navSessionProvider);
 
     // Auto-advance tour steps based on app state.
@@ -101,6 +103,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           backgroundColor: Theme.of(context).colorScheme.primary,
           foregroundColor: Colors.white,
           actions: [
+            if (isOffline)
+              Tooltip(
+                message: l.offlineIndicator,
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8),
+                  child: Icon(Icons.cloud_off, color: Colors.white70),
+                ),
+              ),
             IconButton(
               icon: const Icon(Icons.help_outline),
               tooltip: l.helpTitle,

@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fairelescourses/l10n/app_localizations.dart';
+import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/navigation_plan.dart';
@@ -40,7 +43,8 @@ class NavigationScreen extends ConsumerStatefulWidget {
   ConsumerState<NavigationScreen> createState() => _NavigationScreenState();
 }
 
-class _NavigationScreenState extends ConsumerState<NavigationScreen> {
+class _NavigationScreenState extends ConsumerState<NavigationScreen>
+    with WidgetsBindingObserver {
   late NavigationPlan _plan;
   late Set<String> _knownItemNames;
   final Set<String> _newItems = {};
@@ -73,6 +77,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _plan = widget.plan;
     final preferList = ref.read(navViewModeProvider);
     _viewMode = preferList ? _ViewMode.list : _ViewMode.grid;
@@ -94,6 +99,9 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
               .map((i) => i.toLowerCase())
               .toSet();
     if (list != null) _syncCheckedFromList(list);
+    // Restore deferred/carry-over state if the app was killed mid-tour.
+    // Checked progress is already restored from the shopping list above.
+    if (!widget.isCollaborative) _restoreNavState();
 
     if (widget.isCollaborative) {
       // Cache values needed in dispose().
@@ -119,7 +127,20 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Save tour progress when the app is backgrounded or about to be killed.
+    // On Android the OS sends paused → detached before killing the process,
+    // so paused is the reliable checkpoint for crash recovery.
+    if (!widget.isCollaborative &&
+        (state == AppLifecycleState.paused ||
+            state == AppLifecycleState.detached)) {
+      _saveNavState();
+    }
   }
 
   /// Derives per-store checked sets from the shopping list's checked items.
@@ -146,6 +167,54 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         ),
       );
   }
+
+  // ── Nav-state persistence ─────────────────────────────────────────────────
+  // Persists tour progress (store index, deferred sets, carry-overs) to the
+  // Hive settings box so a crash mid-tour doesn't lose the user's place.
+  // Checked items are already persisted via the shopping list.
+
+  static String _navStateKey(String listId) => 'navState_$listId';
+
+  void _saveNavState() {
+    Hive.box<String>('settings').put(
+      _navStateKey(widget.listId),
+      jsonEncode({
+        'storeIndex': _storeIndex,
+        'deferNextShop': _deferNextShop.toList(),
+        'forNewList': _forNewList.toList(),
+        'carriedOverItems': _carriedOverItems,
+        'carriedFromStoreName': _carriedFromStoreName,
+      }),
+    );
+  }
+
+  void _restoreNavState() {
+    final raw = Hive.box<String>('settings').get(_navStateKey(widget.listId));
+    if (raw == null) return;
+    try {
+      final map = jsonDecode(raw) as Map<String, dynamic>;
+      final idx = (map['storeIndex'] as int?) ?? 0;
+      if (idx > 0 && idx < _plan.storePlans.length) {
+        _storeIndex = idx;
+      }
+      _deferNextShop.addAll(
+        ((map['deferNextShop'] as List?)?.cast<String>()) ?? [],
+      );
+      _forNewList.addAll(((map['forNewList'] as List?)?.cast<String>()) ?? []);
+      _carriedOverItems.addAll(
+        ((map['carriedOverItems'] as List?)?.cast<String>()) ?? [],
+      );
+      _carriedFromStoreName = map['carriedFromStoreName'] as String?;
+    } catch (e) {
+      debugPrint('navState restore error: $e');
+    }
+  }
+
+  void _clearNavState() {
+    Hive.box<String>('settings').delete(_navStateKey(widget.listId));
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
 
   void _toggleUnmatched(String item) {
     setState(() {
@@ -302,6 +371,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   }
 
   Future<void> _finishTour() async {
+    _clearNavState();
     ref
         .read(shoppingListsProvider.notifier)
         .uncheckAll(widget.listId)
@@ -560,10 +630,12 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                 icon: const Icon(Icons.undo, size: 14),
                 visualDensity: VisualDensity.compact,
                 tooltip: l.cancel,
-                onPressed: () => setState(() {
-                  _deferNextShop.remove(item);
-                  _forNewList.remove(item);
-                }),
+                onPressed: () {
+                  setState(() {
+                    _deferNextShop.remove(item);
+                    _forNewList.remove(item);
+                  });
+                },
               ),
             ),
           ] else if (!isChecked)

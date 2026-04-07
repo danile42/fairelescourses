@@ -881,4 +881,7 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get sessionEndFailed =>
       'Kollaborative Sitzung konnte nicht beendet werden. Sie läuft in 24 Stunden ab.';
+
+  @override
+  String get offlineIndicator => 'Keine Internetverbindung';
 }

@@ -1687,6 +1687,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t end collaborative session. It will expire in 24 hours.'**
   String get sessionEndFailed;
+
+  /// No description provided for @offlineIndicator.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection'**
+  String get offlineIndicator;
 }
 
 class _AppLocalizationsDelegate
