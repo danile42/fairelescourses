@@ -340,5 +340,6 @@
   "joiningStepUploadingLists": "Uploading lists…",
   "joiningStepJoining": "Joining household…",
   "syncError": "Sync failed — changes saved locally and will retry automatically.",
-  "sessionEndFailed": "Couldn't end collaborative session. It will expire in 24 hours."
+  "sessionEndFailed": "Couldn't end collaborative session. It will expire in 24 hours.",
+  "offlineIndicator": "No internet connection"
 }

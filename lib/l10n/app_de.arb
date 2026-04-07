@@ -340,5 +340,6 @@
   "joiningStepUploadingLists": "Listen werden hochgeladen…",
   "joiningStepJoining": "Haushalt wird beigetreten…",
   "syncError": "Synchronisierung fehlgeschlagen — Änderungen lokal gespeichert, werden automatisch wiederholt.",
-  "sessionEndFailed": "Kollaborative Sitzung konnte nicht beendet werden. Sie läuft in 24 Stunden ab."
+  "sessionEndFailed": "Kollaborative Sitzung konnte nicht beendet werden. Sie läuft in 24 Stunden ab.",
+  "offlineIndicator": "Keine Internetverbindung"
 }

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,6 +12,8 @@ import 'package:fairelescourses/providers/nav_view_mode_provider.dart';
 import 'package:fairelescourses/providers/shopping_list_provider.dart';
 import 'package:fairelescourses/providers/supermarket_provider.dart';
 import 'package:fairelescourses/screens/navigation_screen.dart';
+
+import '../helpers/hive_helper.dart';
 
 // ── fake notifiers ────────────────────────────────────────────────────────────
 
@@ -157,6 +161,18 @@ Supermarket _storeWithItems(
 // ── tests ─────────────────────────────────────────────────────────────────────
 
 void main() {
+  late Directory hiveDir;
+
+  setUpAll(() async {
+    hiveDir = await setUpHive();
+  });
+
+  tearDownAll(() async {
+    await tearDownHive(hiveDir);
+  });
+
+  setUp(clearHive);
+
   group('NavigationScreen – collect later', () {
     // ── Button visibility ────────────────────────────────────────────────────
 

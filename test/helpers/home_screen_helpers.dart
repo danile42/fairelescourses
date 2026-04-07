@@ -2,6 +2,7 @@ import 'package:fairelescourses/l10n/app_localizations.dart';
 import 'package:fairelescourses/models/nav_session.dart';
 import 'package:fairelescourses/models/shopping_list.dart';
 import 'package:fairelescourses/models/supermarket.dart';
+import 'package:fairelescourses/providers/connectivity_provider.dart';
 import 'package:fairelescourses/providers/firestore_sync_provider.dart';
 import 'package:fairelescourses/providers/household_provider.dart';
 import 'package:fairelescourses/providers/local_only_provider.dart';
@@ -107,6 +108,8 @@ Widget wrapHomeScreen({
       firestoreSyncProvider.overrideWith((ref) {}),
       currentUidProvider.overrideWith((ref) => null),
       firestoreServiceProvider.overrideWithValue(mockSvc),
+      // connectivity_plus has no platform implementation in tests
+      isOfflineProvider.overrideWith((ref) => Stream.value(false)),
     ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
