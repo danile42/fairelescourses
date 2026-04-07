@@ -614,3 +614,5 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 207. [J] In the readme and user doc, give the pronounciation of "faire les courses" in phonetic symbols in brackets after the app name. Then update prompts and commit.
     - Added `/fɛʁ le kuʁs/` in brackets after "Fairelescourses" in the main heading of `README.md` and `docs/user-guide.md`.
     - Updated `prompts.md` with the latest prompt.
+
+207. Fix splash screen icon clipping on Android 12+: increased adaptive icon inset from 16% to 20% in `mipmap-anydpi-v26/ic_launcher.xml`. Android 12 splash screen safe zone is the inner 61.1% (66dp of 108dp canvas); 16% inset put content at 68% (overflowing), 20% puts it at 60% (within safe zone). Also correctly sizes the icon for adaptive launchers on Android 8+.
