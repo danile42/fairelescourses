@@ -603,3 +603,5 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 202. Intro tour and help screen: rephrase to make cell assignment optional. Updated `tourShopEditorHint` ("optionally assign goods"), `tourShopSearchHint` (mention community layouts), and `helpShopsBody` (mention community layouts as an alternative to manual cell assignment). Both EN and DE ARB files updated.
 
 203. Docs: services.md — added OverpassException error-handling table and description of the info-button UX in ShopSearchScreen.
+
+204. Tests for community-layouts features: extended `test/services/overpass_service_test.dart` with new groups covering `OverpassException` (toString format, shortLabel/message fields), per-status-code shortLabel values (HTTP 429/400/504/502/503 and generic HTTP error), malformed JSON → "bad response" shortLabel, 200 OK with `remark` field (no throw, returns results), and `createNewLayout` l10n key existence. 45 tests total, all pass.

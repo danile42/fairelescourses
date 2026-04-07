@@ -6,6 +6,9 @@ import 'package:http/testing.dart';
 import 'package:fairelescourses/l10n/app_localizations_en.dart';
 import 'package:fairelescourses/services/overpass_service.dart';
 
+http.Client _rawClient(String body, {int status = 200}) =>
+    MockClient((_) async => http.Response(body, status));
+
 http.Client _client(Map<String, dynamic> body, {int status = 200}) =>
     MockClient((_) async => http.Response(jsonEncode(body), status));
 
@@ -377,5 +380,102 @@ void main() {
     });
     test('1200 → 1.2 km', () => expect(formatOsmRadius(1200), '1.2 km'));
     test('10000 → 10 km', () => expect(formatOsmRadius(10000), '10 km'));
+  });
+
+  group('OverpassException', () {
+    test('toString includes shortLabel and message', () {
+      const e = OverpassException('timeout', 'Client-side HTTP timeout');
+      expect(
+        e.toString(),
+        'OverpassException(timeout): Client-side HTTP timeout',
+      );
+    });
+
+    test('shortLabel and message are preserved', () {
+      const e = OverpassException('429 – rate limited', 'rate-limited (429)');
+      expect(e.shortLabel, '429 – rate limited');
+      expect(e.message, 'rate-limited (429)');
+    });
+  });
+
+  group('OverpassService.searchNearby – HTTP error shortLabels', () {
+    Future<OverpassException> expectOverpassException(
+      http.Client client,
+    ) async {
+      try {
+        await OverpassService.searchNearby(
+          48.0,
+          11.0,
+          2000,
+          httpClient: client,
+        );
+        fail('Expected OverpassException');
+      } on OverpassException catch (e) {
+        return e;
+      }
+    }
+
+    test('HTTP 429 → shortLabel "429 – rate limited"', () async {
+      final e = await expectOverpassException(_rawClient('', status: 429));
+      expect(e.shortLabel, '429 – rate limited');
+    });
+
+    test('HTTP 400 → shortLabel "400 – bad query"', () async {
+      final e = await expectOverpassException(_rawClient('', status: 400));
+      expect(e.shortLabel, '400 – bad query');
+    });
+
+    test('HTTP 504 → shortLabel "504 – server timeout"', () async {
+      final e = await expectOverpassException(_rawClient('', status: 504));
+      expect(e.shortLabel, '504 – server timeout');
+    });
+
+    test('HTTP 502 → shortLabel "502 – bad gateway"', () async {
+      final e = await expectOverpassException(_rawClient('', status: 502));
+      expect(e.shortLabel, '502 – bad gateway');
+    });
+
+    test('HTTP 503 → shortLabel "503 – service unavailable"', () async {
+      final e = await expectOverpassException(_rawClient('', status: 503));
+      expect(e.shortLabel, '503 – service unavailable');
+    });
+
+    test('other HTTP error → shortLabel "HTTP {code}"', () async {
+      final e = await expectOverpassException(_rawClient('', status: 500));
+      expect(e.shortLabel, 'HTTP 500');
+    });
+
+    test('malformed JSON on 200 → shortLabel "bad response"', () async {
+      final e = await expectOverpassException(
+        _rawClient('not valid json', status: 200),
+      );
+      expect(e.shortLabel, 'bad response');
+    });
+
+    test('200 with remark field does NOT throw, returns results', () async {
+      final body = jsonEncode({
+        'version': 0.6,
+        'remark': 'Query ran for too long',
+        'elements': [
+          _node(1, 48.1, 11.5, {'name': 'Shop A', 'shop': 'supermarket'}),
+        ],
+      });
+      final client = _rawClient(body, status: 200);
+      final results = await OverpassService.searchNearby(
+        48.0,
+        11.0,
+        2000,
+        httpClient: client,
+      );
+      expect(results.length, 1);
+      expect(results.first.name, 'Shop A');
+    });
+  });
+
+  group('l10n – createNewLayout key', () {
+    test('createNewLayout key is non-empty in EN locale', () {
+      final l = AppLocalizationsEn();
+      expect(l.createNewLayout, isNotEmpty);
+    });
   });
 }
