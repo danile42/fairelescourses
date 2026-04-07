@@ -341,5 +341,38 @@
   "joiningStepJoining": "Joining household…",
   "syncError": "Sync failed — changes saved locally and will retry automatically.",
   "sessionEndFailed": "Couldn't end collaborative session. It will expire in 24 hours.",
-  "offlineIndicator": "No internet connection"
+  "offlineIndicator": "No internet connection",
+  "publishLayout": "Publish layout",
+  "publishLayoutTooltip": "Share this cell layout with the community",
+  "publishLayoutConfirm": "Publish your current cell layout for this shop? Anyone can import it.",
+  "publishLayoutSaveFirst": "Save the shop before publishing.",
+  "publishLayoutSuccess": "Layout published.",
+  "publishLayoutError": "Could not publish layout. Check your connection.",
+  "communityLayouts": "Community layouts",
+  "communityLayoutsEmpty": "No community layouts shared yet for this shop.",
+  "communityLayoutsError": "Could not load community layouts.",
+  "communityLayoutsRetry": "Retry",
+  "communityLayoutUse": "Use this layout",
+  "communityLayoutImports": "{n, plural, =1{1 import} other{{n} imports}}",
+  "@communityLayoutImports": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "communityLayoutAge": "{n, plural, =0{today} =1{yesterday} other{{n} days ago}}",
+  "@communityLayoutAge": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "communityLayoutGrid": "{rows} × {cols}",
+  "@communityLayoutGrid": {
+    "placeholders": {
+      "rows": { "type": "int" },
+      "cols": { "type": "int" }
+    }
+  },
+  "browseLayouts": "Community layouts",
+  "browseLayoutsApplyWarning": "Applying a community layout will replace your current cell assignments.",
+  "communityLayoutsTitle": "Community layouts"
 }

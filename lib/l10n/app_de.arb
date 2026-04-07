@@ -341,5 +341,38 @@
   "joiningStepJoining": "Haushalt wird beigetreten…",
   "syncError": "Synchronisierung fehlgeschlagen — Änderungen lokal gespeichert, werden automatisch wiederholt.",
   "sessionEndFailed": "Kollaborative Sitzung konnte nicht beendet werden. Sie läuft in 24 Stunden ab.",
-  "offlineIndicator": "Keine Internetverbindung"
+  "offlineIndicator": "Keine Internetverbindung",
+  "publishLayout": "Layout veröffentlichen",
+  "publishLayoutTooltip": "Dieses Zellen-Layout mit der Community teilen",
+  "publishLayoutConfirm": "Aktuelles Zellen-Layout für diesen Markt veröffentlichen? Alle können es importieren.",
+  "publishLayoutSaveFirst": "Markt zuerst speichern, bevor veröffentlicht werden kann.",
+  "publishLayoutSuccess": "Layout veröffentlicht.",
+  "publishLayoutError": "Layout konnte nicht veröffentlicht werden. Verbindung prüfen.",
+  "communityLayouts": "Community-Layouts",
+  "communityLayoutsEmpty": "Noch keine Community-Layouts für diesen Markt vorhanden.",
+  "communityLayoutsError": "Community-Layouts konnten nicht geladen werden.",
+  "communityLayoutsRetry": "Erneut versuchen",
+  "communityLayoutUse": "Layout verwenden",
+  "communityLayoutImports": "{n, plural, =1{1 Import} other{{n} Importe}}",
+  "@communityLayoutImports": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "communityLayoutAge": "{n, plural, =0{heute} =1{gestern} other{vor {n} Tagen}}",
+  "@communityLayoutAge": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "communityLayoutGrid": "{rows} × {cols}",
+  "@communityLayoutGrid": {
+    "placeholders": {
+      "rows": { "type": "int" },
+      "cols": { "type": "int" }
+    }
+  },
+  "browseLayouts": "Community-Layouts",
+  "browseLayoutsApplyWarning": "Ein Community-Layout zu übernehmen ersetzt alle aktuellen Zellenzuweisungen.",
+  "communityLayoutsTitle": "Community-Layouts"
 }

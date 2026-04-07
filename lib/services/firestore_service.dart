@@ -8,6 +8,7 @@ import 'package:encrypt/encrypt.dart' as enc;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+import '../models/community_layout.dart';
 import '../models/nav_session.dart';
 import '../models/supermarket.dart';
 import '../models/shopping_list.dart';
@@ -91,6 +92,56 @@ class FirestoreService {
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: false));
   }
+
+  // ── Community layout versions (public_shops/{osmId}/versions) ──────────────
+
+  CollectionReference<Map<String, dynamic>> _versionsCol(int osmId) =>
+      _publicShopsCol.doc('$osmId').collection('versions');
+
+  /// Publishes the current cell layout of [s] as a new community version.
+  ///
+  /// Always appends a new document; never overwrites an existing version.
+  /// Also updates the flat top-level `public_shops/{osmId}` document so the
+  /// existing [fetchPublicShop] auto-import path keeps working.
+  /// Returns the auto-generated version document ID.
+  Future<String> publishLayoutVersion(Supermarket s) async {
+    assert(s.osmId != null);
+    final data = <String, dynamic>{
+      'osmId': s.osmId,
+      'publishedBy': _auth.currentUser?.uid ?? '',
+      'publishedAt': FieldValue.serverTimestamp(),
+      'importCount': 0,
+      'shopName': s.name,
+      if (s.address != null) 'address': s.address,
+      'rows': s.rows,
+      'cols': s.cols,
+      'entrance': s.entrance,
+      'exit': s.exit,
+      'cells': s.cells.map((k, v) => MapEntry(k, List<String>.from(v))),
+      if (s.subcells.isNotEmpty)
+        'subcells': s.subcells.map((k, v) => MapEntry(k, List<String>.from(v))),
+      if (s.additionalFloors.isNotEmpty)
+        'floors': s.additionalFloors.map((f) => f.toMap()).toList(),
+    };
+    final ref = await _versionsCol(s.osmId!).add(data);
+    await upsertPublicCells(s);
+    return ref.id;
+  }
+
+  /// Returns up to 20 community layout versions for [osmId], sorted by
+  /// [importCount] descending (most-imported first).
+  Future<List<CommunityLayout>> listLayoutVersions(int osmId) async {
+    final snap = await _versionsCol(
+      osmId,
+    ).orderBy('importCount', descending: true).limit(20).get();
+    return snap.docs.map(CommunityLayout.fromDoc).toList();
+  }
+
+  /// Atomically increments the [importCount] of a community layout version.
+  Future<void> incrementImportCount(int osmId, String versionId) =>
+      _versionsCol(
+        osmId,
+      ).doc(versionId).update({'importCount': FieldValue.increment(1)});
 
   /// Fetches the publicly shared cell layout for an OSM shop, or null if none.
   Future<Supermarket?> fetchPublicShop(int osmId) async {

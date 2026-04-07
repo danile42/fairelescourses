@@ -579,3 +579,5 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 193. Document local-only, within-household, and cross-household data relationships in docs/synchronization.md.
 
 194. Add Mermaid diagrams to docs/synchronization.md: Firestore collection structure, key-derivation flowchart, sync-flow sequence diagram, and cross-household isolation graph.
+
+195. Implement Option B community shop layout sharing: community pool with multiple versions per OSM ID, ranked by import count. Created `CommunityLayout` model, `publishLayoutVersion` / `listLayoutVersions` / `incrementImportCount` Firestore methods, ARB strings for both locales, `CommunityLayoutsSheet` bottom-sheet widget, publish button in `StoreEditorScreen` AppBar (existing OSM shops, non-local-only mode), "Browse community layouts" button in store editor body, and "Community layouts" TextButton in `_buildOsmCard` trailing on `ShopSearchScreen`.

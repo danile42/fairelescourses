@@ -3,13 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fairelescourses/l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
 
+import '../models/community_layout.dart';
 import '../models/shop_floor.dart';
 import '../models/supermarket.dart';
+import '../providers/firestore_sync_provider.dart';
+import '../providers/local_only_provider.dart';
 import '../providers/supermarket_provider.dart';
 import '../providers/shopping_list_provider.dart';
 import '../services/nominatim_service.dart';
 import '../widgets/store_grid.dart';
 import '../widgets/tour_hint_banner.dart';
+import 'community_layouts_sheet.dart';
 import 'help_screen.dart';
 
 enum _ExitAction { save, discard }
@@ -93,6 +97,7 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
   int _currentFloor = 0;
   bool _dirty = false;
   bool _geocoding = false;
+  bool _publishing = false;
   String? _highlightCell;
 
   // Proxy getters/setters — all grid-editing methods work unchanged.
@@ -567,6 +572,124 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) Navigator.pop(context);
     });
+  }
+
+  Future<void> _publishLayout() async {
+    final l = AppLocalizations.of(context)!;
+    if (_dirty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l.publishLayoutSaveFirst)));
+      return;
+    }
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l.publishLayout),
+        content: Text(l.publishLayoutConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l.publishLayout),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _publishing = true);
+    try {
+      await ref
+          .read(firestoreServiceProvider)
+          .publishLayoutVersion(widget.existing!);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l.publishLayoutSuccess)));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l.publishLayoutError)));
+    } finally {
+      if (mounted) setState(() => _publishing = false);
+    }
+  }
+
+  Future<void> _applyFromCommunity() async {
+    final l = AppLocalizations.of(context)!;
+    final osmId = widget.existing?.osmId ?? widget.prefill?.osmId;
+    if (osmId == null) return;
+    final layout = await showModalBottomSheet<CommunityLayout>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => CommunityLayoutsSheet(osmId: osmId),
+    );
+    if (!mounted || layout == null) return;
+    final hasExistingCells = _floorData.any((f) => f.cells.isNotEmpty);
+    if (hasExistingCells) {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          content: Text(l.browseLayoutsApplyWarning),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l.cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l.communityLayoutUse),
+            ),
+          ],
+        ),
+      );
+      if (!mounted || ok != true) return;
+    }
+    final t = layout.asTemplate;
+    setState(() {
+      _dirty = true;
+      _floorData = [
+        _FloorEditData(
+          rowCount: t.rows.length.clamp(1, _maxDim),
+          colCount: t.cols.length.clamp(1, _maxDim),
+          entrance: t.entrance,
+          exit: t.exit,
+          cells: Map<String, List<String>>.from(
+            t.cells.map((k, v) => MapEntry(k, List<String>.from(v))),
+          ),
+          subcells: Map<String, List<String>>.from(
+            t.subcells.map((k, v) => MapEntry(k, List<String>.from(v))),
+          ),
+        ),
+        ...t.additionalFloors.map(
+          (f) => _FloorEditData(
+            name: f.name,
+            rowCount: f.rows.length.clamp(1, _maxDim),
+            colCount: f.cols.length.clamp(1, _maxDim),
+            entrance: f.entrance,
+            exit: f.exit,
+            cells: Map<String, List<String>>.from(
+              f.cells.map((k, v) => MapEntry(k, List<String>.from(v))),
+            ),
+            subcells: Map<String, List<String>>.from(
+              f.subcells.map((k, v) => MapEntry(k, List<String>.from(v))),
+            ),
+          ),
+        ),
+      ];
+      _currentFloor = 0;
+      _entranceCtrl.text = t.entrance;
+      _exitCtrl.text = t.exit;
+      _floorNameCtrl.text = '';
+    });
+    ref
+        .read(firestoreServiceProvider)
+        .incrementImportCount(osmId, layout.versionId)
+        .ignore();
   }
 
   Future<_ExitAction?> _confirmUnsaved() async {
@@ -1113,6 +1236,25 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
                 MaterialPageRoute(builder: (_) => const ShopEditorHelpScreen()),
               ),
             ),
+            if (widget.existing?.osmId != null && !ref.watch(localOnlyProvider))
+              _publishing
+                  ? const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      ),
+                    )
+                  : IconButton(
+                      icon: const Icon(Icons.upload_outlined),
+                      color: Colors.white,
+                      tooltip: l.publishLayoutTooltip,
+                      onPressed: _publishLayout,
+                    ),
             if (_geocoding)
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
@@ -1159,6 +1301,15 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
                   border: const OutlineInputBorder(),
                 ),
               ),
+              if ((widget.existing?.osmId ?? widget.prefill?.osmId) !=
+                  null) ...[
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: _applyFromCommunity,
+                  icon: const Icon(Icons.group_outlined),
+                  label: Text(l.browseLayouts),
+                ),
+              ],
               const SizedBox(height: 16),
               // ── Floor tabs ─────────────────────────────────────────────────
               _FloorTabBar(

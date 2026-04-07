@@ -874,4 +874,79 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get offlineIndicator => 'No internet connection';
+
+  @override
+  String get publishLayout => 'Publish layout';
+
+  @override
+  String get publishLayoutTooltip =>
+      'Share this cell layout with the community';
+
+  @override
+  String get publishLayoutConfirm =>
+      'Publish your current cell layout for this shop? Anyone can import it.';
+
+  @override
+  String get publishLayoutSaveFirst => 'Save the shop before publishing.';
+
+  @override
+  String get publishLayoutSuccess => 'Layout published.';
+
+  @override
+  String get publishLayoutError =>
+      'Could not publish layout. Check your connection.';
+
+  @override
+  String get communityLayouts => 'Community layouts';
+
+  @override
+  String get communityLayoutsEmpty =>
+      'No community layouts shared yet for this shop.';
+
+  @override
+  String get communityLayoutsError => 'Could not load community layouts.';
+
+  @override
+  String get communityLayoutsRetry => 'Retry';
+
+  @override
+  String get communityLayoutUse => 'Use this layout';
+
+  @override
+  String communityLayoutImports(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n imports',
+      one: '1 import',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String communityLayoutAge(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n days ago',
+      one: 'yesterday',
+      zero: 'today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String communityLayoutGrid(int rows, int cols) {
+    return '$rows × $cols';
+  }
+
+  @override
+  String get browseLayouts => 'Community layouts';
+
+  @override
+  String get browseLayoutsApplyWarning =>
+      'Applying a community layout will replace your current cell assignments.';
+
+  @override
+  String get communityLayoutsTitle => 'Community layouts';
 }

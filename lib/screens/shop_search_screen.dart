@@ -8,6 +8,7 @@ import 'package:fairelescourses/l10n/app_localizations.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../models/community_layout.dart';
 import '../models/supermarket.dart';
 import '../providers/firestore_sync_provider.dart';
 import '../providers/home_location_provider.dart';
@@ -15,6 +16,7 @@ import '../providers/supermarket_provider.dart';
 import '../services/firestore_service.dart';
 import '../services/nominatim_service.dart';
 import '../services/overpass_service.dart';
+import 'community_layouts_sheet.dart';
 import 'store_editor_screen.dart';
 
 enum _SearchMode { byLocation, byItem }
@@ -924,6 +926,39 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     );
   }
 
+  Future<void> _browseLayouts(BuildContext ctx, OsmShop osm) async {
+    final nav = Navigator.of(ctx);
+    final layout = await showModalBottomSheet<CommunityLayout>(
+      context: ctx,
+      isScrollControlled: true,
+      builder: (_) => CommunityLayoutsSheet(osmId: osm.osmId),
+    );
+    if (!mounted || layout == null) return;
+    ref
+        .read(firestoreServiceProvider)
+        .incrementImportCount(osm.osmId, layout.versionId)
+        .ignore();
+    await nav.push(
+      MaterialPageRoute(
+        builder: (_) => StoreEditorScreen(
+          prefill: (
+            name: osm.name,
+            address: osm.address,
+            lat: osm.lat,
+            lng: osm.lng,
+            osmId: osm.osmId,
+            osmCategory: osm.osmCategory,
+            osmCategories: osm.osmCategory != null ? [osm.osmCategory!] : null,
+          ),
+          template: layout.asTemplate,
+          focusItems: widget.focusItem != null ? [widget.focusItem!] : const [],
+        ),
+      ),
+    );
+    if (!mounted) return;
+    if (widget.focusItem != null) nav.pop();
+  }
+
   Widget _buildOsmCard(
     BuildContext context,
     AppLocalizations l,
@@ -952,16 +987,26 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                 backgroundColor: theme.colorScheme.secondaryContainer,
                 padding: EdgeInsets.zero,
               )
-            : FilledButton(
-                onPressed: () async {
-                  final nav = Navigator.of(context);
-                  await _createFromOsm(context, osm);
-                  if (!mounted) return;
-                  if (widget.focusItem != null) {
-                    nav.pop();
-                  }
-                },
-                child: Text(l.createShop),
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextButton(
+                    onPressed: () => _browseLayouts(context, osm),
+                    child: Text(l.communityLayouts),
+                  ),
+                  const SizedBox(width: 4),
+                  FilledButton(
+                    onPressed: () async {
+                      final nav = Navigator.of(context);
+                      await _createFromOsm(context, osm);
+                      if (!mounted) return;
+                      if (widget.focusItem != null) {
+                        nav.pop();
+                      }
+                    },
+                    child: Text(l.createShop),
+                  ),
+                ],
               ),
       ),
     );

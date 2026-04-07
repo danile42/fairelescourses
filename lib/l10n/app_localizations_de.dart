@@ -884,4 +884,81 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get offlineIndicator => 'Keine Internetverbindung';
+
+  @override
+  String get publishLayout => 'Layout veröffentlichen';
+
+  @override
+  String get publishLayoutTooltip =>
+      'Dieses Zellen-Layout mit der Community teilen';
+
+  @override
+  String get publishLayoutConfirm =>
+      'Aktuelles Zellen-Layout für diesen Markt veröffentlichen? Alle können es importieren.';
+
+  @override
+  String get publishLayoutSaveFirst =>
+      'Markt zuerst speichern, bevor veröffentlicht werden kann.';
+
+  @override
+  String get publishLayoutSuccess => 'Layout veröffentlicht.';
+
+  @override
+  String get publishLayoutError =>
+      'Layout konnte nicht veröffentlicht werden. Verbindung prüfen.';
+
+  @override
+  String get communityLayouts => 'Community-Layouts';
+
+  @override
+  String get communityLayoutsEmpty =>
+      'Noch keine Community-Layouts für diesen Markt vorhanden.';
+
+  @override
+  String get communityLayoutsError =>
+      'Community-Layouts konnten nicht geladen werden.';
+
+  @override
+  String get communityLayoutsRetry => 'Erneut versuchen';
+
+  @override
+  String get communityLayoutUse => 'Layout verwenden';
+
+  @override
+  String communityLayoutImports(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n Importe',
+      one: '1 Import',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String communityLayoutAge(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'vor $n Tagen',
+      one: 'gestern',
+      zero: 'heute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String communityLayoutGrid(int rows, int cols) {
+    return '$rows × $cols';
+  }
+
+  @override
+  String get browseLayouts => 'Community-Layouts';
+
+  @override
+  String get browseLayoutsApplyWarning =>
+      'Ein Community-Layout zu übernehmen ersetzt alle aktuellen Zellenzuweisungen.';
+
+  @override
+  String get communityLayoutsTitle => 'Community-Layouts';
 }
