@@ -30,6 +30,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
   final _joinCtrl = TextEditingController();
   final _homeCtrl = TextEditingController();
   bool _joining = false;
+  String? _joiningStep;
   bool _settingHome = false;
 
   // Firebase instance editing
@@ -42,6 +43,29 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
   final _senderIdCtrl = TextEditingController();
   final _bucketCtrl = TextEditingController();
   final _jsonCtrl = TextEditingController();
+
+  bool get _firebaseFieldsComplete =>
+      _projectIdCtrl.text.trim().isNotEmpty &&
+      _apiKeyCtrl.text.trim().isNotEmpty &&
+      _appIdCtrl.text.trim().isNotEmpty &&
+      _senderIdCtrl.text.trim().isNotEmpty &&
+      _bucketCtrl.text.trim().isNotEmpty;
+
+  void _onFirebaseFieldChanged() => setState(() {});
+
+  @override
+  void initState() {
+    super.initState();
+    for (final ctrl in [
+      _projectIdCtrl,
+      _apiKeyCtrl,
+      _appIdCtrl,
+      _senderIdCtrl,
+      _bucketCtrl,
+    ]) {
+      ctrl.addListener(_onFirebaseFieldChanged);
+    }
+  }
 
   @override
   void dispose() {
@@ -109,14 +133,25 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
   }
 
   Future<void> _setHousehold(String id) async {
-    setState(() => _joining = true);
+    final l = AppLocalizations.of(context)!;
+    setState(() {
+      _joining = true;
+      _joiningStep = l.joiningStepUploadingShops;
+    });
     try {
       // Upload local data before subscribing so it doesn't get wiped by the snapshot
       await ref.read(supermarketsProvider.notifier).uploadAll(id);
+      if (mounted) setState(() => _joiningStep = l.joiningStepUploadingLists);
       await ref.read(shoppingListsProvider.notifier).uploadAll(id);
+      if (mounted) setState(() => _joiningStep = l.joiningStepJoining);
       await ref.read(householdProvider.notifier).setId(id);
     } finally {
-      if (mounted) setState(() => _joining = false);
+      if (mounted) {
+        setState(() {
+          _joining = false;
+          _joiningStep = null;
+        });
+      }
     }
   }
 
@@ -596,6 +631,16 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                     onPressed: _joining ? null : _join,
                   ),
                 ),
+                if (_joining && _joiningStep != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    _joiningStep!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ],
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),
@@ -692,7 +737,9 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                   children: [
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: _applyingFirebase
+                        onPressed:
+                            _applyingFirebase ||
+                                (!_pasteJsonMode && !_firebaseFieldsComplete)
                             ? null
                             : _applyFirebaseCredentials,
                         child: _applyingFirebase
@@ -741,7 +788,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
     child: TextField(
       controller: ctrl,
       decoration: InputDecoration(
-        labelText: label,
+        labelText: '$label *',
         border: const OutlineInputBorder(),
         isDense: true,
       ),

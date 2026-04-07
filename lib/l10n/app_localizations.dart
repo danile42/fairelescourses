@@ -1657,6 +1657,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Update route'**
   String get navUpdateRoute;
+
+  /// No description provided for @joiningStepUploadingShops.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading shops…'**
+  String get joiningStepUploadingShops;
+
+  /// No description provided for @joiningStepUploadingLists.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading lists…'**
+  String get joiningStepUploadingLists;
+
+  /// No description provided for @joiningStepJoining.
+  ///
+  /// In en, this message translates to:
+  /// **'Joining household…'**
+  String get joiningStepJoining;
+
+  /// No description provided for @syncError.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync failed — changes saved locally and will retry automatically.'**
+  String get syncError;
+
+  /// No description provided for @sessionEndFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t end collaborative session. It will expire in 24 hours.'**
+  String get sessionEndFailed;
 }
 
 class _AppLocalizationsDelegate

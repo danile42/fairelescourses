@@ -5,6 +5,7 @@ import '../models/supermarket.dart';
 import 'firestore_sync_provider.dart';
 import 'household_provider.dart';
 import 'local_only_provider.dart';
+import 'sync_error_provider.dart';
 
 const _boxName = 'supermarkets';
 
@@ -45,13 +46,12 @@ class SupermarketNotifier extends Notifier<List<Supermarket>> {
     if (!syncToFirestore) return;
     final hid = _hid;
     if (hid != null) {
-      ref
-          .read(firestoreServiceProvider)
-          .upsertShop(hid, s)
-          .catchError(
-            (Object e) => debugPrint('Firestore upsertShop error: $e'),
-          )
-          .ignore();
+      ref.read(firestoreServiceProvider).upsertShop(hid, s).catchError((
+        Object e,
+      ) {
+        debugPrint('Firestore upsertShop error: $e');
+        ref.read(syncErrorProvider.notifier).report(e.toString());
+      }).ignore();
     }
     if (s.osmId != null && !ref.read(localOnlyProvider)) {
       ref
@@ -72,13 +72,12 @@ class SupermarketNotifier extends Notifier<List<Supermarket>> {
     state = [for (final e in state) e.id == s.id ? s : e];
     final hid = _hid;
     if (hid != null) {
-      ref
-          .read(firestoreServiceProvider)
-          .upsertShop(hid, s)
-          .catchError(
-            (Object e) => debugPrint('Firestore upsertShop error: $e'),
-          )
-          .ignore();
+      ref.read(firestoreServiceProvider).upsertShop(hid, s).catchError((
+        Object e,
+      ) {
+        debugPrint('Firestore upsertShop error: $e');
+        ref.read(syncErrorProvider.notifier).report(e.toString());
+      }).ignore();
     }
     if (s.osmId != null && !ref.read(localOnlyProvider)) {
       ref
@@ -96,13 +95,12 @@ class SupermarketNotifier extends Notifier<List<Supermarket>> {
     state = state.where((s) => s.id != id).toList();
     final hid = _hid;
     if (hid != null) {
-      ref
-          .read(firestoreServiceProvider)
-          .deleteShop(hid, id)
-          .catchError(
-            (Object e) => debugPrint('Firestore deleteShop error: $e'),
-          )
-          .ignore();
+      ref.read(firestoreServiceProvider).deleteShop(hid, id).catchError((
+        Object e,
+      ) {
+        debugPrint('Firestore deleteShop error: $e');
+        ref.read(syncErrorProvider.notifier).report(e.toString());
+      }).ignore();
     }
   }
 
