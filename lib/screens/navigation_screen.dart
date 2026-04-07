@@ -706,7 +706,8 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen>
     final plan = _plan;
 
     // Keep checked state in sync with the shared list, and detect new items.
-    ref.listen<List<ShoppingList>>(shoppingListsProvider, (_, lists) {
+    ref.listen<List<ShoppingList>>(shoppingListsProvider, (previous, lists) {
+      if (!mounted) return;
       final list = lists.where((l) => l.id == widget.listId).firstOrNull;
       if (list == null) return;
       final added = list.items

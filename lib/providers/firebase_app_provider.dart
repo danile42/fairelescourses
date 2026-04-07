@@ -23,7 +23,14 @@ class FirebaseAppNotifier extends Notifier<FirebaseApp> {
         );
       }
     }
-    return Firebase.app();
+    try {
+      return Firebase.app();
+    } catch (e) {
+      debugPrint(
+        'Default Firebase app not yet initialized, returning default instance.',
+      );
+      return Firebase.app(); // Let it throw if it's really not there
+    }
   }
 
   void setApp(FirebaseApp app) => state = app;

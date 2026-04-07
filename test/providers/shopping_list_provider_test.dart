@@ -252,20 +252,23 @@ void main() {
       expect(all.first.items.any((i) => i.name == 'Bread'), isTrue);
     });
 
-    test('syncFromRemote replaces local state with remote', () async {
-      await box.put('local-only', makeList('local-only', ['Old']));
-      final container = makeContainer(box);
-      addTearDown(container.dispose);
-      final remote = [
-        makeList('remote-1', ['New']),
-      ];
-      await container
-          .read(shoppingListsProvider.notifier)
-          .syncFromRemote(remote);
-      final all = container.read(shoppingListsProvider);
-      expect(all.length, 1);
-      expect(all.first.id, 'remote-1');
-    });
+    test(
+      'syncFromRemote replaces local state with remote when not in household',
+      () async {
+        await box.put('local-only', makeList('local-only', ['Old']));
+        final container = makeContainer(box);
+        addTearDown(container.dispose);
+        final remote = [
+          makeList('remote-1', ['New']),
+        ];
+        await container
+            .read(shoppingListsProvider.notifier)
+            .syncFromRemote(remote);
+        final all = container.read(shoppingListsProvider);
+        expect(all.length, 1);
+        expect(all.first.id, 'remote-1');
+      },
+    );
 
     test('toggleItem with out-of-bounds index is a no-op', () async {
       final list = makeList('L1', ['Milk']);

@@ -192,29 +192,35 @@ void main() {
       expect(container.read(supermarketsProvider).length, 1);
     });
 
-    test('syncFromRemote replaces all state with remote list', () async {
-      final container = _makeContainer();
-      addTearDown(container.dispose);
-      final notifier = container.read(supermarketsProvider.notifier);
+    test(
+      'syncFromRemote replaces all state with remote list if not in household',
+      () async {
+        final container = _makeContainer();
+        addTearDown(container.dispose);
+        final notifier = container.read(supermarketsProvider.notifier);
 
-      await notifier.add(_store('Local'));
-      await notifier.syncFromRemote([_store('Remote1'), _store('Remote2')]);
+        await notifier.add(_store('Local'));
+        await notifier.syncFromRemote([_store('Remote1'), _store('Remote2')]);
 
-      final state = container.read(supermarketsProvider);
-      expect(state.map((s) => s.id), containsAll(['Remote1', 'Remote2']));
-      expect(state.any((s) => s.id == 'Local'), isFalse);
-    });
+        final state = container.read(supermarketsProvider);
+        expect(state.map((s) => s.id), containsAll(['Remote1', 'Remote2']));
+        expect(state.any((s) => s.id == 'Local'), isFalse);
+      },
+    );
 
-    test('syncFromRemote with empty list clears all stores', () async {
-      final container = _makeContainer();
-      addTearDown(container.dispose);
-      final notifier = container.read(supermarketsProvider.notifier);
+    test(
+      'syncFromRemote with empty list clears all stores if not in household',
+      () async {
+        final container = _makeContainer();
+        addTearDown(container.dispose);
+        final notifier = container.read(supermarketsProvider.notifier);
 
-      await notifier.add(_store('S1'));
-      await notifier.syncFromRemote([]);
+        await notifier.add(_store('S1'));
+        await notifier.syncFromRemote([]);
 
-      expect(container.read(supermarketsProvider), isEmpty);
-    });
+        expect(container.read(supermarketsProvider), isEmpty);
+      },
+    );
   });
 
   group('SupermarketNotifier – auto-publish on save', () {

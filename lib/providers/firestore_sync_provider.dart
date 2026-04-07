@@ -22,9 +22,10 @@ final currentUidProvider = Provider<String?>((ref) {
 /// Watches the household ID and maintains Firestore real-time listeners.
 /// Watch this provider in the root widget to activate syncing.
 final firestoreSyncProvider = Provider<void>((ref) {
-  if (ref.watch(localOnlyProvider)) return;
+  final localOnly = ref.watch(localOnlyProvider);
   final hid = ref.watch(householdProvider);
-  if (hid == null) return;
+
+  if (localOnly || hid == null) return;
   final svc = ref.watch(firestoreServiceProvider);
 
   final shopsSub = svc

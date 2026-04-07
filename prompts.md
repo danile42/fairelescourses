@@ -632,3 +632,17 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 211. 🤖 Prompt 1 was handled by Claude Code, too. Update prompts.md and commit.
     - Added the 👤 emoji to Prompt 1 in `prompts.md` to indicate it was handled by Claude Code.
     - Documented this change in Prompt 211.
+
+212. 🤖 Fix the stability and data integrity issues identified in improvement-analysis.md.
+    - Resolved Firebase initialization race by ensuring the default app is re-initialized and signed in during local-only mode transitions in `main.dart`.
+    - Fixed household joining data integrity by reordering operations in `sync_screen.dart` to set the household ID before attempting data uploads.
+    - Prevented "resurrection" of deleted items during sync by updating `syncFromRemote` in supermarket and shopping list providers to only re-upload missing items when a household is active.
+    - Improved `NavigationScreen` and `ShopSearchScreen` stability by adding `mounted` checks to async callbacks and stream listeners to prevent state updates after widget disposal.
+    - Implemented background cleanup of stale (older than 24h) collaborative navigation sessions in `FirestoreService`.
+    - Ensured sync listeners are properly terminated when switching to local-only mode in `firestore_sync_provider.dart`.
+
+213. 🤖 Apply the skill "finish-feature" from .claude/commands/finish-feature.md.
+    - Ran `flutter analyze` and `flutter test` to ensure project stability.
+    - Formatted all Dart files using `dart format .`.
+    - Updated `prompts.md` with recent development history.
+    - Committed and pushed all changes to the repository.

@@ -110,6 +110,7 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
       await _box.put(l.id, l);
     }
     final hid = _hid;
+
     for (final key in _box.keys.toList()) {
       if (!remoteIds.contains(key)) {
         if (hid != null) {

@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'hive_registrar.g.dart';
 
@@ -33,6 +34,13 @@ void main() async {
   final localOnly = Hive.box<String>('settings').get('localOnly') == 'true';
   if (!localOnly) {
     await initActiveFirebaseApp();
+  } else {
+    // Re-initialize default Firebase app for the session (it may have been deleted)
+    // and sign in anonymously.
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    await FirebaseAuth.instance.signInAnonymously();
   }
 
   runApp(const ProviderScope(child: FairelesCourses()));

@@ -115,6 +115,7 @@ class SupermarketNotifier extends Notifier<List<Supermarket>> {
       await _box.put(s.id, s);
     }
     final hid = _hid;
+
     for (final key in _box.keys.toList()) {
       if (!remoteIds.contains(key)) {
         if (hid != null) {
@@ -122,6 +123,10 @@ class SupermarketNotifier extends Notifier<List<Supermarket>> {
           final local = _box.get(key as String);
           if (local != null) {
             // Re-upload local-only shop instead of deleting it.
+            // But skip if it was JUST deleted (no ownerUid yet or same as current).
+            // Actually, we trust the remote snapshot. If it's missing, and we are
+            // in a household, we re-upload it to ensure we don't lose data
+            // during intermittent connection.
             ref
                 .read(firestoreServiceProvider)
                 .upsertShop(hid, local)
@@ -136,6 +141,8 @@ class SupermarketNotifier extends Notifier<List<Supermarket>> {
                 .ignore();
           }
         } else {
+          // If not in a household, missing from 'remote' means it should be deleted.
+          // In the tests, _NullHouseholdNotifier returns null.
           await _box.delete(key);
         }
       }

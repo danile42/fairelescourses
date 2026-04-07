@@ -293,6 +293,8 @@ class FirestoreService {
           // Treat sessions older than 24 hours as expired orphans.
           if (DateTime.now().difference(startedAt) >
               const Duration(hours: 24)) {
+            // Delete the stale session in the background.
+            _navDoc(hid).delete().ignore();
             return null;
           }
         }

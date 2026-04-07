@@ -136,15 +136,25 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
     final l = AppLocalizations.of(context)!;
     setState(() {
       _joining = true;
-      _joiningStep = l.joiningStepUploadingShops;
+      _joiningStep = l.joiningStepJoining;
     });
     try {
-      // Upload local data before subscribing so it doesn't get wiped by the snapshot
+      // 1. Set the household ID first so it's "active".
+      await ref.read(householdProvider.notifier).setId(id);
+
+      // 2. Upload local data. If this fails, the user is already in the household
+      // but their local data hasn't been merged yet.
+      if (mounted) setState(() => _joiningStep = l.joiningStepUploadingShops);
       await ref.read(supermarketsProvider.notifier).uploadAll(id);
+
       if (mounted) setState(() => _joiningStep = l.joiningStepUploadingLists);
       await ref.read(shoppingListsProvider.notifier).uploadAll(id);
-      if (mounted) setState(() => _joiningStep = l.joiningStepJoining);
-      await ref.read(householdProvider.notifier).setId(id);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error joining: $e')));
+      }
     } finally {
       if (mounted) {
         setState(() {

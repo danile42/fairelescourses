@@ -174,21 +174,16 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
 
   void _onChanged(String q) {
     _debounce?.cancel();
-    if (_mode == _SearchMode.byLocation) {
-      if (q.trim().length < 2) setState(_clearResults);
-      return;
-    }
-    if (q.trim().length < 2) {
+    final query = q.trim();
+    if (query.length < 2) {
       setState(_clearResults);
       return;
     }
-    _debounce = Timer(
-      const Duration(milliseconds: 400),
-      () => _search(q.trim()),
-    );
+    _debounce = Timer(const Duration(milliseconds: 400), () => _search(query));
   }
 
   Future<void> _search(String q) async {
+    if (!mounted) return;
     setState(() => _loading = true);
     try {
       if (_mode == _SearchMode.byLocation) {
@@ -217,6 +212,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
             )
             .map((s) => ShopSearchResult(shop: s))
             .toList();
+        if (!mounted) return;
         setState(() {
           _firestoreResults = [
             ...localMatches,
