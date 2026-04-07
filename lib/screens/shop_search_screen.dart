@@ -928,12 +928,21 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
 
   Future<void> _browseLayouts(BuildContext ctx, OsmShop osm) async {
     final nav = Navigator.of(ctx);
+    bool wantCreate = false;
     final layout = await showModalBottomSheet<CommunityLayout>(
       context: ctx,
       isScrollControlled: true,
-      builder: (_) => CommunityLayoutsSheet(osmId: osm.osmId),
+      builder: (_) => CommunityLayoutsSheet(
+        osmId: osm.osmId,
+        onCreateTap: () => wantCreate = true,
+      ),
     );
-    if (!mounted || layout == null) return;
+    if (!mounted || !ctx.mounted) return;
+    if (wantCreate) {
+      await _createFromOsm(ctx, osm);
+      return;
+    }
+    if (layout == null) return;
     ref
         .read(firestoreServiceProvider)
         .incrementImportCount(osm.osmId, layout.versionId)
@@ -990,9 +999,10 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
             : Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextButton(
+                  IconButton(
                     onPressed: () => _browseLayouts(context, osm),
-                    child: Text(l.communityLayouts),
+                    icon: const Icon(Icons.group_outlined),
+                    tooltip: l.communityLayouts,
                   ),
                   const SizedBox(width: 4),
                   FilledButton(

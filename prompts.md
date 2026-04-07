@@ -585,3 +585,5 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - Diagnosed `PERMISSION_DENIED` on community layouts as a missing match block in `firestore.rules`.
     - Added match rules for `public_shops/{osmId}` and `public_shops/{osmId}/versions/{versionId}` to allow authenticated users to read and write these collections.
 197. [J] Update `prompts.md` and commit.
+
+198. Polish community layouts UX: (1) Replace "Community layouts" TextButton in ShopSearchScreen with an `IconButton(Icons.group_outlined)` with tooltip, reducing row width. (2) Empty state in `CommunityLayoutsSheet` now shows a "Create" `FilledButton` alongside the "no layouts" message — tapping it dismisses the sheet and opens `StoreEditorScreen` via `_createFromOsm`. Implemented via optional `onCreateTap: VoidCallback?` on `CommunityLayoutsSheet`; `_browseLayouts` sets a `wantCreate` flag in the callback and routes accordingly. Also fixed `use_build_context_synchronously` lint by adding `!ctx.mounted` guard before passing `ctx` across the async gap.

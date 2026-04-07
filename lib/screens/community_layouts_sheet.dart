@@ -16,7 +16,15 @@ import '../providers/firestore_sync_provider.dart';
 class CommunityLayoutsSheet extends ConsumerStatefulWidget {
   final int osmId;
 
-  const CommunityLayoutsSheet({super.key, required this.osmId});
+  /// Called when the user taps the "Create" button in the empty state.
+  /// The sheet pops itself before invoking this callback.
+  final VoidCallback? onCreateTap;
+
+  const CommunityLayoutsSheet({
+    super.key,
+    required this.osmId,
+    this.onCreateTap,
+  });
 
   @override
   ConsumerState<CommunityLayoutsSheet> createState() =>
@@ -97,7 +105,30 @@ class _CommunityLayoutsSheetState extends ConsumerState<CommunityLayoutsSheet> {
                 }
                 final layouts = snap.data!;
                 if (layouts.isEmpty) {
-                  return Center(child: Text(l.communityLayoutsEmpty));
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            l.communityLayoutsEmpty,
+                            textAlign: TextAlign.center,
+                          ),
+                          if (widget.onCreateTap != null) ...[
+                            const SizedBox(height: 16),
+                            FilledButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                widget.onCreateTap!();
+                              },
+                              child: Text(l.createShop),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  );
                 }
                 return ListView.separated(
                   controller: scrollController,
