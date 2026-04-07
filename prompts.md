@@ -537,3 +537,5 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 184. [J] Actually, you processed all prompts starting from line 528 in prompts.md. Update that.
 185. [J] CI fails in analyze: fix unused_element and unused_element_parameter warnings. Update prompts.md and commit.
 186. [J] Now dart format fails in CI. Fix that.
+
+187. Generalize the "Test organisation note" in the README to say several tests were extracted to separate files, without mentioning that the human invented the workaround at that location.

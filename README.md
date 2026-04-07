@@ -97,7 +97,7 @@ flutter test --coverage       # generates coverage/lcov.info
 
 ### Test organisation note
 
-`test/widgets/home_screen_start_navigation_test.dart` exists as a separate file even though it tests the same `HomeScreen` as `test/widgets/home_screen_test.dart`. This is an intentional workaround: the *start navigation* test must run **last** because pushing `NavigationScreen` leaves persistent animation timers that prevent `pumpAndSettle()` from returning in any subsequent test. Dart's test runner processes files in alphabetical order within a directory, and `home_screen_start_navigation_test.dart` sorts after `home_screen_test.dart`. Placing the test in a named group marked "must run last" inside the original file does not work when another group in the same file also carries that constraint — the workaround of a separate file was not found by Claude Code even after extensive debugging.
+Several tests live in dedicated files rather than in the main `*_test.dart` file for their screen. This is an intentional workaround for a Flutter testing constraint: certain interactions — pushing `NavigationScreen`, opening a dialog with `autofocus: true` on an `Autocomplete` field — leave persistent animation tickers running after the test completes. Those tickers prevent `pumpAndSettle()` from returning in any subsequent test within the same file. Moving the offending test to its own file gives it an isolated `WidgetTester` with no prior ticker state. Dart's test runner processes files in alphabetical order within a directory, so the file name is chosen to sort after the main test file when execution order matters.
 
 ---
 
