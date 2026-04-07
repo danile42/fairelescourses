@@ -577,3 +577,5 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - Closed `improvement-analysis.md`: all issues resolved.
 
 193. Document local-only, within-household, and cross-household data relationships in docs/synchronization.md.
+
+194. Add Mermaid diagrams to docs/synchronization.md: Firestore collection structure, key-derivation flowchart, sync-flow sequence diagram, and cross-household isolation graph.

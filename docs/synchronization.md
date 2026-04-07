@@ -54,6 +54,25 @@ householdHash = hex(SHA-256(householdId))
 
 Shops for the household are stored in the top-level `shops` collection, each tagged with the `householdHash`. Lists are stored under `h/{householdHash}/l/`.
 
+```mermaid
+graph TD
+    FS[(Firestore)]
+
+    FS --> shops["shops/{shopId}\n─────────────\nhouseholdHash\nname, cells, …\nownerUid"]
+    FS --> h["h/{householdHash}"]
+    FS --> ps["public_shops/{osmId}\n─────────────\ncell layout only"]
+
+    h --> l["l/{listId}\n─────────────\nd: &lt;ciphertext&gt;"]
+    h --> nav["nav/current\n─────────────\nlistId\nstartedBy\nstartedAt"]
+
+    style l fill:#fffbe6,stroke:#d4a000
+    style shops fill:#f0f0f0,stroke:#888
+    style ps fill:#f0f0f0,stroke:#888
+    style nav fill:#f0f0f0,stroke:#888
+```
+
+> Yellow = encrypted.
+
 ### Encryption
 
 Shopping lists are encrypted before upload. The key is derived from the household code:
@@ -61,6 +80,19 @@ Shopping lists are encrypted before upload. The key is derived from the househol
 ```
 AES key = SHA-256(householdId)   // 32-byte key
 Ciphertext = AES-CBC(key, randomIV) prepended with the 16-byte IV, base64-encoded
+```
+
+The same household code also produces the Firestore path hash via a second SHA-256 pass — same input, two independent outputs used for different purposes:
+
+```mermaid
+flowchart LR
+    id["householdId\ne.g. A3KZ7F"]
+
+    id -->|"SHA-256\n→ hex string"| ph["householdHash\n(Firestore path\n& shop filter)"]
+    id -->|"SHA-256\n→ 32-byte key"| ek["AES-256 key\n(list encryption)"]
+
+    ph --> pf["h/{householdHash}/l/\nshops?householdHash=…"]
+    ek --> enc["IV · AES-CBC(plaintext)\n→ base64 → field d"]
 ```
 
 Shops are **not** encrypted. They are filtered by `householdHash` at query time, but their field values (name, cell layout, address) are stored in plain text.
@@ -77,6 +109,29 @@ The link is one-directional. Shops have no knowledge of which lists reference th
 
 - **shopsStream** → feeds `supermarketsProvider`
 - **listsStream** → feeds `shoppingListsProvider`
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Hive
+    participant firestoreSyncProvider
+    participant Firestore
+
+    Note over firestoreSyncProvider,Firestore: start-up — open real-time listeners
+    Firestore-->>firestoreSyncProvider: snapshot (shops)
+    Firestore-->>firestoreSyncProvider: snapshot (lists)
+
+    Note over User,Firestore: local write (add / update / delete)
+    User->>Hive: write immediately (authoritative)
+    User->>Firestore: upsert in background
+    Firestore-->>User: error → surfaced via syncErrorProvider
+
+    Note over firestoreSyncProvider,Firestore: incoming remote snapshot
+    Firestore-->>firestoreSyncProvider: updated snapshot
+    firestoreSyncProvider->>Hive: write remote items
+    firestoreSyncProvider->>Firestore: re-upload local items absent from snapshot
+    Firestore-->>firestoreSyncProvider: PERMISSION_DENIED → add to blocklist, skip
+```
 
 On every incoming snapshot the notifier runs a **merge**:
 
@@ -108,6 +163,27 @@ Household data is isolated at the Firestore query level:
 
 - **Shops** are queried with a `where('householdHash', isEqualTo: ...)` filter, so only shops tagged for the current household are ever downloaded.
 - **Lists** are under `h/{householdHash}/l/`, a path that is structurally separate for every household.
+
+```mermaid
+graph TB
+    subgraph hhA ["Household A  (code: A3KZ7F)"]
+        direction LR
+        D1["📱 Device 1"]
+        D2["📱 Device 2"]
+        FSA["Firestore\nh/sha256(A3KZ7F)/\nshops?hash=sha256(A3KZ7F)"]
+        D1 <-->|sync| FSA
+        D2 <-->|sync| FSA
+    end
+
+    subgraph hhB ["Household B  (code: ZX9Q2M)"]
+        direction LR
+        D3["📱 Device 3"]
+        FSB["Firestore\nh/sha256(ZX9Q2M)/\nshops?hash=sha256(ZX9Q2M)"]
+        D3 <-->|sync| FSB
+    end
+
+    FSA -. "no access\n(different path / filter)" .- FSB
+```
 
 There is no server-side membership check. The household code is the only credential. Two devices that share the same 6-character code share all data, regardless of who created the code. Two devices with different codes never see each other's shops or lists.
 
