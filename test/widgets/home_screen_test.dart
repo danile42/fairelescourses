@@ -764,7 +764,9 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('tapping "Markt erstellen" opens store editor', (tester) async {
+    testWidgets('only "Markt suchen" is visible in empty shops state', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -789,9 +791,8 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Märkte'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Markt erstellen'));
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
+      expect(find.text('Markt erstellen'), findsNothing);
+      expect(find.text('Markt suchen'), findsOneWidget);
     });
 
     testWidgets('tapping "Markt suchen" opens shop search screen', (

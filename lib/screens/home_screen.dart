@@ -883,14 +883,6 @@ class _StoresTab extends ConsumerWidget {
         body: l.emptyShopsBody,
         actions: [
           FilledButton.icon(
-            icon: const Icon(Icons.add),
-            label: Text(l.emptyShopsCreate),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const StoreEditorScreen()),
-            ),
-          ),
-          OutlinedButton.icon(
             icon: const Icon(Icons.search),
             label: Text(l.emptyShopsFind),
             onPressed: () => Navigator.push(

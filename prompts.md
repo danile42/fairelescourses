@@ -615,4 +615,7 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - Added `/fɛʁ le kuʁs/` in brackets after "Fairelescourses" in the main heading of `README.md` and `docs/user-guide.md`.
     - Updated `prompts.md` with the latest prompt.
 
-207. Fix splash screen icon clipping on Android 12+: increased adaptive icon inset from 16% to 20% in `mipmap-anydpi-v26/ic_launcher.xml`. Android 12 splash screen safe zone is the inner 61.1% (66dp of 108dp canvas); 16% inset put content at 68% (overflowing), 20% puts it at 60% (within safe zone). Also correctly sizes the icon for adaptive launchers on Android 8+.
+208. When there are no shops in the shops tab, only keep the search button to add a shop. (Shops can be created manually as a fallback in different situations after search.)
+    - [J] Modified `_StoresTab` in `home_screen.dart` to remove the "Create shop" button in the empty state; the "Search shop" button is now the primary action.
+    - [J] Updated `home_screen_test.dart`: replaced the "tapping Markt erstellen" test with a check that only "Markt suchen" is visible in the empty state.
+    - [J] Verified that manual creation is still possible via the "New shop" button in `ShopSearchScreen` when no results are found.
