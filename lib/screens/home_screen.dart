@@ -10,6 +10,7 @@ import '../providers/household_provider.dart';
 import '../providers/nav_session_provider.dart';
 import '../providers/shopping_list_provider.dart';
 import '../providers/supermarket_provider.dart';
+import '../providers/sync_error_provider.dart';
 import '../providers/tour_provider.dart';
 import '../widgets/celebration_overlay.dart';
 import '../widgets/tour_spotlight.dart';
@@ -71,6 +72,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     });
     ref.listen(shoppingListsProvider, (_, next) {
       if (next.isNotEmpty) ref.read(tourStepProvider.notifier).advance(1);
+    });
+
+    // Show a snackbar when a background Firestore sync write fails.
+    ref.listen(syncErrorProvider, (_, error) {
+      if (error == null || !mounted) return;
+      final l = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l.syncError)));
+      ref.read(syncErrorProvider.notifier).clear();
     });
 
     return DefaultTabController(

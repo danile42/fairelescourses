@@ -864,4 +864,21 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get navUpdateRoute => 'Route aktualisieren';
+
+  @override
+  String get joiningStepUploadingShops => 'Märkte werden hochgeladen…';
+
+  @override
+  String get joiningStepUploadingLists => 'Listen werden hochgeladen…';
+
+  @override
+  String get joiningStepJoining => 'Haushalt wird beigetreten…';
+
+  @override
+  String get syncError =>
+      'Synchronisierung fehlgeschlagen — Änderungen lokal gespeichert, werden automatisch wiederholt.';
+
+  @override
+  String get sessionEndFailed =>
+      'Kollaborative Sitzung konnte nicht beendet werden. Sie läuft in 24 Stunden ab.';
 }

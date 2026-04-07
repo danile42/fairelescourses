@@ -854,4 +854,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navUpdateRoute => 'Update route';
+
+  @override
+  String get joiningStepUploadingShops => 'Uploading shops…';
+
+  @override
+  String get joiningStepUploadingLists => 'Uploading lists…';
+
+  @override
+  String get joiningStepJoining => 'Joining household…';
+
+  @override
+  String get syncError =>
+      'Sync failed — changes saved locally and will retry automatically.';
+
+  @override
+  String get sessionEndFailed =>
+      'Couldn\'t end collaborative session. It will expire in 24 hours.';
 }

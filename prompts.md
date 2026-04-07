@@ -559,3 +559,13 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - `docs/architecture/screens-navigation.md`: updated ListEditorScreen to document auto-add-on-save and category pre-fill; updated ShopSearchScreen to 2 modes.
     - `docs/architecture/services.md`: updated NavigationPlanner algorithm diagram to include the category-based fallback search.
     - `docs/architecture/key-flows.md`: updated item matching flowchart (§5) to include category-fallback branch.
+
+191. Start a new branch and fix the problems described in improvement-analysis.md.
+    - Branch: `fix/improvement-analysis`.
+    - #1 (Firestore error feedback): Added `sync_error_provider.dart` — a `NotifierProvider<SyncErrorNotifier, String?>` that providers write to on Firestore failure. `supermarket_provider` and `shopping_list_provider` report errors via `ref.read(syncErrorProvider.notifier).report(...)` in their `add`/`update`/`remove` catchError handlers. `HomeScreen` listens with `ref.listen` and shows a `SnackBar` with `l.syncError`, then clears the state.
+    - #3 (household join progress): `_setHousehold` in `sync_screen.dart` is now async and sets `_joiningStep` (a new `String?` state variable) at each stage ("Uploading shops…", "Uploading lists…", "Joining household…"). The step label is displayed below the spinner when non-null.
+    - #4 (Firebase form validation): Added `_firebaseFieldsComplete` getter checking all 5 field controllers are non-empty. `initState` registers `_onFirebaseFieldChanged` listeners on all 5 controllers. The Apply button is disabled when `!_pasteJsonMode && !_firebaseFieldsComplete`. `_field()` helper appends ` *` to the label.
+    - #6 (session cleanup feedback): `_finishTour` made `async`; it now `await`s `deleteNavSession` inside a try/catch. On failure it shows a `SnackBar` with `l.sessionEndFailed` (session auto-expires in 24 h) before calling `Navigator.pop`.
+    - #8 (duplicate suggestions): `addBarSuggestions` in `list_editor_screen.dart` filters out names already present in `_items` (case-insensitive). The rename dialog still receives the full `suggestions` list.
+    - B1/B2: Marked ✓ DONE in `improvement-analysis.md` (already implemented in prior commits).
+    - l10n: Added 5 new strings to `app_en.arb` and `app_de.arb`: `joiningStepUploadingShops`, `joiningStepUploadingLists`, `joiningStepJoining`, `syncError`, `sessionEndFailed`.

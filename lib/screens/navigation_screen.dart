@@ -301,7 +301,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     });
   }
 
-  void _finishTour() {
+  Future<void> _finishTour() async {
     ref
         .read(shoppingListsProvider.notifier)
         .uncheckAll(widget.listId)
@@ -312,15 +312,22 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     if (widget.isCollaborative && widget.isHost) {
       final hid = _cachedHid;
       if (hid != null) {
-        _cachedSvc
-            ?.deleteNavSession(hid)
-            .catchError(
-              (Object e) => debugPrint('Firestore deleteNavSession error: $e'),
-            )
-            .ignore();
+        try {
+          await _cachedSvc?.deleteNavSession(hid);
+        } catch (e) {
+          debugPrint('Firestore deleteNavSession error: $e');
+          if (mounted) {
+            final l = AppLocalizations.of(context)!;
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(l.sessionEndFailed)));
+          }
+        }
       }
     }
-    Navigator.pop(context, true); // true = tour finished, not just paused
+    if (mounted) {
+      Navigator.pop(context, true); // true = tour finished, not just paused
+    }
   }
 
   /// Creates a new list from [items], then navigates to edit it.

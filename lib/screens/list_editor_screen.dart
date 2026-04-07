@@ -325,6 +325,10 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
             .toSet()
             .toList()
           ..sort();
+    final existingNames = _items.map((i) => i.name.toLowerCase()).toSet();
+    final addBarSuggestions = suggestions
+        .where((s) => !existingNames.contains(s.toLowerCase()))
+        .toList();
 
     return PopScope(
       canPop: !_dirty && !_pendingItemText,
@@ -490,7 +494,7 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
             ),
             _AddItemBar(
               key: _barKey,
-              suggestions: suggestions,
+              suggestions: addBarSuggestions,
               onAdd: _addItem,
               label: l.addItem,
               hint: l.itemHint,

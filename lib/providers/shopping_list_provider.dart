@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import '../models/shopping_list.dart';
 import 'firestore_sync_provider.dart';
 import 'household_provider.dart';
+import 'sync_error_provider.dart';
 
 const _boxName = 'shopping_lists';
 
@@ -35,13 +36,12 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
     _sync();
     final hid = _hid;
     if (hid != null) {
-      ref
-          .read(firestoreServiceProvider)
-          .upsertList(hid, l)
-          .catchError(
-            (Object e) => debugPrint('Firestore upsertList error: $e'),
-          )
-          .ignore();
+      ref.read(firestoreServiceProvider).upsertList(hid, l).catchError((
+        Object e,
+      ) {
+        debugPrint('Firestore upsertList error: $e');
+        ref.read(syncErrorProvider.notifier).report(e.toString());
+      }).ignore();
     }
   }
 
@@ -50,13 +50,12 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
     _sync();
     final hid = _hid;
     if (hid != null) {
-      ref
-          .read(firestoreServiceProvider)
-          .upsertList(hid, l)
-          .catchError(
-            (Object e) => debugPrint('Firestore upsertList error: $e'),
-          )
-          .ignore();
+      ref.read(firestoreServiceProvider).upsertList(hid, l).catchError((
+        Object e,
+      ) {
+        debugPrint('Firestore upsertList error: $e');
+        ref.read(syncErrorProvider.notifier).report(e.toString());
+      }).ignore();
     }
   }
 
@@ -65,13 +64,12 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
     _sync();
     final hid = _hid;
     if (hid != null) {
-      ref
-          .read(firestoreServiceProvider)
-          .deleteList(hid, id)
-          .catchError(
-            (Object e) => debugPrint('Firestore deleteList error: $e'),
-          )
-          .ignore();
+      ref.read(firestoreServiceProvider).deleteList(hid, id).catchError((
+        Object e,
+      ) {
+        debugPrint('Firestore deleteList error: $e');
+        ref.read(syncErrorProvider.notifier).report(e.toString());
+      }).ignore();
     }
   }
 
