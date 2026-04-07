@@ -540,6 +540,10 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 
 187. Generalize the "Test organisation note" in the README to say several tests were extracted to separate files, without mentioning that the human invented the workaround at that location.
 
+188. Add a /finish-feature skill file at .claude/commands/finish-feature.md with the post-feature checklist (analyze, test, format, update prompts.md, commit).
+
+189. Commit outstanding README changes (Junie had simplified the intro and restructured the top of the file).
+
 188. When an item is entered, but not yet added to a list: when I then save (either directly or via the dialog that appears if I try to go back), the entered item should be added to the list before saving.
     - Added `GlobalKey<_AddItemBarState> _barKey` to `_ListEditorScreenState` and passed it to `_AddItemBar` (added `super.key` to its constructor).
     - Added `submitCurrent()` to `_AddItemBarState`: calls `_submit(_autoCtrl?.text ?? '')`, which synchronously adds the item via `onAdd` then clears the field on the next frame.

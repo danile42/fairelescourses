@@ -2,7 +2,7 @@
 
 **A supermarket navigation assistant for Android.**
 
-Fairelescourses lets you map out the layout of your local shops as a grid, assign goods to cells, and then plans the shortest route through all the cells that contain items from your shopping list — guiding you step by step, floor by floor, store by store.
+Fairelescourses maps your local shops as a grid, assigns goods to cells, and plans the shortest route through the store for your shopping list — guiding you step by step, store by store.
 
 [![CI](https://github.com/danile42/fairelescourses/actions/workflows/ci.yml/badge.svg)](https://github.com/danile42/fairelescourses/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/danile42/fairelescourses/branch/main/graph/badge.svg)](https://codecov.io/gh/danile42/fairelescourses)
@@ -10,65 +10,8 @@ Fairelescourses lets you map out the layout of your local shops as a grid, assig
 
 ---
 
-## What it does
-
-Most supermarket apps tell you *what* to buy. Fairelescourses tells you *where to walk*.
-
-You draw each shop's floor plan as a grid, tag every cell with the goods it contains, and the app turns your shopping list into an optimised route — handling multiple stores, multiple floors, and real-time collaborative check-off with household members.
-
----
-
-## Features
-
-### Shop editor
-- Draw a shop's floor plan as a named grid of cells (up to 26 × 26 per floor)
-- Assign comma-separated goods to each cell (e.g. *Milk, Yoghurt, Butter*)
-- Set entrance and exit cells; navigation always starts and ends there
-- Add multiple floors with independent grids
-- Split any cell into two halves (left/right or top/bottom) for aisles with distinct sides; promote a split to a full grid row or column
-- Optional address with geocoding for distance-sorted search results
-- Import nearby shops from OpenStreetMap with one tap, including category filter and map view
-- In-editor help screen explaining all gestures
-
-### Shopping lists
-- Create named lists with optional preferred-store filters
-- Add items with autocomplete suggestions drawn from all known shop cells
-- Reorder items by drag-and-drop
-- Tap any item to rename it inline
-- Move or copy individual items to other lists
-- Merge multiple lists into one (long-press to multi-select)
-- Copy or rename a list from the home screen
-
-### Navigation
-- One tap generates the optimal route: items are matched to cells using exact → all-words → partial matching; unmatched items are grouped at the end
-- **Grid view**: walk through stops cell by cell, with the shop grid highlighted at the current position and a mini-map for orientation
-- **List view**: flat view of all items across all stores with shop sub-headers, unmatched items last — useful for quick scanning
-- Toggle between grid and list view at any time during navigation
-- Carry-over: if an item is unavailable, defer it to the next shop or a new list
-- Collaborative mode: all household members see check-offs in real time via Firestore
-
-### Sync & households
-- Create or join a 6-character household code to share shops and lists across devices
-- All synced data is AES-encrypted client-side with the household ID before upload — the server stores only ciphertext
-- Optional local-only mode: disable sync entirely; all data stays on-device
-- Configure a custom Firebase backend (Firestore + Anonymous Auth) for self-hosting
-
-### Internationalisation
-- Full English and German localisation (ARB + `flutter gen-l10n`)
-
----
-
-## Screenshots
-
-| Home | Shop editor | Navigation (grid) | Navigation (list) |
-|------|-------------|-------------------|-------------------|
-| *(coming soon)* | *(coming soon)* | *(coming soon)* | *(coming soon)* |
-
----
-
-## Architecture
-
-See [`docs/architecture/`](docs/architecture/) for detailed architecture documentation, including component diagrams, data flow, and design decisions.
+For a full feature walkthrough see the **[User guide](docs/user-guide.md)**.
+For technical details see the **[Architecture docs](docs/architecture/)**.
 
 ---
 
@@ -97,7 +40,7 @@ flutter test --coverage       # generates coverage/lcov.info
 
 ### Test organisation note
 
-Several tests live in dedicated files rather than in the main `*_test.dart` file for their screen. This is an intentional workaround for a Flutter testing constraint: certain interactions — pushing `NavigationScreen`, opening a dialog with `autofocus: true` on an `Autocomplete` field — leave persistent animation tickers running after the test completes. Those tickers prevent `pumpAndSettle()` from returning in any subsequent test within the same file. Moving the offending test to its own file gives it an isolated `WidgetTester` with no prior ticker state. Dart's test runner processes files in alphabetical order within a directory, so the file name is chosen to sort after the main test file when execution order matters.
+Several tests live in dedicated files rather than in the main `*_test.dart` file for their screen. This is an intentional workaround for a Flutter testing constraint: certain interactions leave persistent animation tickers running after a test completes, preventing `pumpAndSettle()` from returning in any subsequent test in the same file. Moving such tests to their own file gives each an isolated `WidgetTester` with no prior ticker state.
 
 ---
 
@@ -115,8 +58,6 @@ To enable Codecov on your fork:
 ## Written by LLMs
 
 Almost every line of code in this repository was written by LLM assistants — specifically **Claude Sonnet 4.6**, used via [Claude Code](https://claude.ai/claude-code) (Anthropic's CLI tool), and **Junie** (JetBrains' LLM agent). All documentation, including architecture docs and diagrams, was written by these LLM tools as well.
-
-**Exception:** the workaround of splitting `home_screen_start_navigation_test.dart` into a separate file (described in the [Test organisation note](#test-organisation-note) above) was devised by the human author after Claude Code was unable to find it through extensive debugging. That file's placement is the only piece of the codebase not produced by an LLM.
 
 The human author provided product direction through natural-language prompts (see [`prompts.md`](prompts.md)) and reviewed the results on a device, but did not otherwise write, edit, or modify source code or documentation. The complete prompt history is preserved in `prompts.md`; prompts handled by Junie are marked with **[J]**.
 
