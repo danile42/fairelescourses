@@ -56,9 +56,9 @@ class SupermarketNotifier extends Notifier<List<Supermarket>> {
     if (s.osmId != null && !ref.read(localOnlyProvider)) {
       ref
           .read(firestoreServiceProvider)
-          .upsertPublicCells(s)
+          .autoPublishVersion(s)
           .catchError(
-            (Object e) => debugPrint('Firestore upsertPublicCells error: $e'),
+            (Object e) => debugPrint('Firestore autoPublishVersion error: $e'),
           )
           .ignore();
     }
@@ -82,9 +82,9 @@ class SupermarketNotifier extends Notifier<List<Supermarket>> {
     if (s.osmId != null && !ref.read(localOnlyProvider)) {
       ref
           .read(firestoreServiceProvider)
-          .upsertPublicCells(s)
+          .autoPublishVersion(s)
           .catchError(
-            (Object e) => debugPrint('Firestore upsertPublicCells error: $e'),
+            (Object e) => debugPrint('Firestore autoPublishVersion error: $e'),
           )
           .ignore();
     }

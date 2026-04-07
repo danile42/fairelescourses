@@ -7,7 +7,6 @@ import '../models/community_layout.dart';
 import '../models/shop_floor.dart';
 import '../models/supermarket.dart';
 import '../providers/firestore_sync_provider.dart';
-import '../providers/local_only_provider.dart';
 import '../providers/supermarket_provider.dart';
 import '../providers/shopping_list_provider.dart';
 import '../services/nominatim_service.dart';
@@ -97,7 +96,6 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
   int _currentFloor = 0;
   bool _dirty = false;
   bool _geocoding = false;
-  bool _publishing = false;
   String? _highlightCell;
 
   // Proxy getters/setters — all grid-editing methods work unchanged.
@@ -572,51 +570,6 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) Navigator.pop(context);
     });
-  }
-
-  Future<void> _publishLayout() async {
-    final l = AppLocalizations.of(context)!;
-    if (_dirty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l.publishLayoutSaveFirst)));
-      return;
-    }
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l.publishLayout),
-        content: Text(l.publishLayoutConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(l.publishLayout),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
-    setState(() => _publishing = true);
-    try {
-      await ref
-          .read(firestoreServiceProvider)
-          .publishLayoutVersion(widget.existing!);
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l.publishLayoutSuccess)));
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l.publishLayoutError)));
-    } finally {
-      if (mounted) setState(() => _publishing = false);
-    }
   }
 
   Future<void> _applyFromCommunity() async {
@@ -1236,25 +1189,6 @@ class _StoreEditorScreenState extends ConsumerState<StoreEditorScreen> {
                 MaterialPageRoute(builder: (_) => const ShopEditorHelpScreen()),
               ),
             ),
-            if (widget.existing?.osmId != null && !ref.watch(localOnlyProvider))
-              _publishing
-                  ? const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12),
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      ),
-                    )
-                  : IconButton(
-                      icon: const Icon(Icons.upload_outlined),
-                      color: Colors.white,
-                      tooltip: l.publishLayoutTooltip,
-                      onPressed: _publishLayout,
-                    ),
             if (_geocoding)
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),

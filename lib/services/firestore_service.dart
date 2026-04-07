@@ -98,19 +98,20 @@ class FirestoreService {
   CollectionReference<Map<String, dynamic>> _versionsCol(int osmId) =>
       _publicShopsCol.doc('$osmId').collection('versions');
 
-  /// Publishes the current cell layout of [s] as a new community version.
+  /// Upserts a community version for [s] using the current user's UID as the
+  /// document key, so each user has at most one slot per OSM shop.
   ///
-  /// Always appends a new document; never overwrites an existing version.
-  /// Also updates the flat top-level `public_shops/{osmId}` document so the
-  /// existing [fetchPublicShop] auto-import path keeps working.
-  /// Returns the auto-generated version document ID.
-  Future<String> publishLayoutVersion(Supermarket s) async {
-    assert(s.osmId != null);
-    final data = <String, dynamic>{
+  /// On first save [importCount] is initialised to 0; subsequent saves
+  /// preserve the existing count via [FieldValue.increment(0)].
+  /// Also keeps the flat fast-path `public_shops/{osmId}` document in sync.
+  Future<void> autoPublishVersion(Supermarket s) async {
+    if (s.osmId == null) return;
+    final uid = _auth.currentUser?.uid ?? 'anon';
+    await _versionsCol(s.osmId!).doc(uid).set({
       'osmId': s.osmId,
-      'publishedBy': _auth.currentUser?.uid ?? '',
+      'publishedBy': uid,
       'publishedAt': FieldValue.serverTimestamp(),
-      'importCount': 0,
+      'importCount': FieldValue.increment(0),
       'shopName': s.name,
       if (s.address != null) 'address': s.address,
       'rows': s.rows,
@@ -122,10 +123,8 @@ class FirestoreService {
         'subcells': s.subcells.map((k, v) => MapEntry(k, List<String>.from(v))),
       if (s.additionalFloors.isNotEmpty)
         'floors': s.additionalFloors.map((f) => f.toMap()).toList(),
-    };
-    final ref = await _versionsCol(s.osmId!).add(data);
+    }, SetOptions(merge: true));
     await upsertPublicCells(s);
-    return ref.id;
   }
 
   /// Returns up to 20 community layout versions for [osmId], sorted by

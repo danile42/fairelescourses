@@ -1700,42 +1700,6 @@ abstract class AppLocalizations {
   /// **'No internet connection'**
   String get offlineIndicator;
 
-  /// No description provided for @publishLayout.
-  ///
-  /// In en, this message translates to:
-  /// **'Publish layout'**
-  String get publishLayout;
-
-  /// No description provided for @publishLayoutTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Share this cell layout with the community'**
-  String get publishLayoutTooltip;
-
-  /// No description provided for @publishLayoutConfirm.
-  ///
-  /// In en, this message translates to:
-  /// **'Publish your current cell layout for this shop? Anyone can import it.'**
-  String get publishLayoutConfirm;
-
-  /// No description provided for @publishLayoutSaveFirst.
-  ///
-  /// In en, this message translates to:
-  /// **'Save the shop before publishing.'**
-  String get publishLayoutSaveFirst;
-
-  /// No description provided for @publishLayoutSuccess.
-  ///
-  /// In en, this message translates to:
-  /// **'Layout published.'**
-  String get publishLayoutSuccess;
-
-  /// No description provided for @publishLayoutError.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not publish layout. Check your connection.'**
-  String get publishLayoutError;
-
   /// No description provided for @communityLayouts.
   ///
   /// In en, this message translates to:

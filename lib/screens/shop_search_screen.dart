@@ -287,8 +287,15 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     }
 
     if (!mounted) return;
+    // OSM-linked shops are now auto-published to the community versions
+    // subcollection on every save, so they surface via the community layouts
+    // sheet when tapping an OSM card.  Only show non-OSM Firestore results as
+    // standalone cards; let the OSM cards handle the rest.
+    final nonOsmFirestoreHits = firestoreHits
+        .where((r) => r.shop.osmId == null)
+        .toList();
     setState(() {
-      _firestoreResults = firestoreHits;
+      _firestoreResults = nonOsmFirestoreHits;
       _loading = false;
       _searched = true;
     });
@@ -302,7 +309,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       );
       if (!mounted) return;
       final osmOnly = osmHits
-          .where((osm) => !_coveredByFirestore(osm, firestoreHits))
+          .where((osm) => !_coveredByFirestore(osm, nonOsmFirestoreHits))
           .toList();
       setState(() {
         _osmResults = osmOnly;

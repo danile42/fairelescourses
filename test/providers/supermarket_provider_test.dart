@@ -29,7 +29,7 @@ ProviderContainer _makeContainerWithHousehold() {
   final mock = MockFirestoreService();
   when(() => mock.upsertShop(any(), any())).thenAnswer((_) async {});
   when(() => mock.deleteShop(any(), any())).thenAnswer((_) async {});
-  when(() => mock.upsertPublicCells(any())).thenAnswer((_) async {});
+  when(() => mock.autoPublishVersion(any())).thenAnswer((_) async {});
   return ProviderContainer(
     overrides: [
       householdProvider.overrideWith(() => _FakeHouseholdNotifier()),
@@ -66,7 +66,7 @@ ProviderContainer _makeContainer({bool localOnly = false}) {
   final mock = MockFirestoreService();
   when(() => mock.upsertShop(any(), any())).thenAnswer((_) async {});
   when(() => mock.deleteShop(any(), any())).thenAnswer((_) async {});
-  when(() => mock.upsertPublicCells(any())).thenAnswer((_) async {});
+  when(() => mock.autoPublishVersion(any())).thenAnswer((_) async {});
   return ProviderContainer(
     overrides: [
       householdProvider.overrideWith(() => _NullHouseholdNotifier()),
@@ -217,8 +217,8 @@ void main() {
     });
   });
 
-  group('SupermarketNotifier – public cell sharing', () {
-    test('add with osmId calls upsertPublicCells', () async {
+  group('SupermarketNotifier – auto-publish on save', () {
+    test('add with osmId calls autoPublishVersion', () async {
       final container = _makeContainer();
       addTearDown(container.dispose);
 
@@ -226,10 +226,10 @@ void main() {
           .read(supermarketsProvider.notifier)
           .add(_store('osm_1', osmId: 1));
 
-      verify(() => _mockFrom(container).upsertPublicCells(any())).called(1);
+      verify(() => _mockFrom(container).autoPublishVersion(any())).called(1);
     });
 
-    test('update with osmId calls upsertPublicCells', () async {
+    test('update with osmId calls autoPublishVersion', () async {
       final container = _makeContainer();
       addTearDown(container.dispose);
       final notifier = container.read(supermarketsProvider.notifier);
@@ -239,10 +239,10 @@ void main() {
 
       await notifier.update(_store('osm_2', osmId: 2));
 
-      verify(() => _mockFrom(container).upsertPublicCells(any())).called(1);
+      verify(() => _mockFrom(container).autoPublishVersion(any())).called(1);
     });
 
-    test('add without osmId does not call upsertPublicCells', () async {
+    test('add without osmId does not call autoPublishVersion', () async {
       final container = _makeContainer();
       addTearDown(container.dispose);
 
@@ -250,11 +250,11 @@ void main() {
           .read(supermarketsProvider.notifier)
           .add(_store('S1')); // no osmId
 
-      verifyNever(() => _mockFrom(container).upsertPublicCells(any()));
+      verifyNever(() => _mockFrom(container).autoPublishVersion(any()));
     });
 
     test(
-      'add with osmId in local-only mode does not call upsertPublicCells',
+      'add with osmId in local-only mode does not call autoPublishVersion',
       () async {
         final container = _makeContainer(localOnly: true);
         addTearDown(container.dispose);
@@ -263,7 +263,7 @@ void main() {
             .read(supermarketsProvider.notifier)
             .add(_store('osm_3', osmId: 3));
 
-        verifyNever(() => _mockFrom(container).upsertPublicCells(any()));
+        verifyNever(() => _mockFrom(container).autoPublishVersion(any()));
       },
     );
   });
@@ -324,7 +324,7 @@ void main() {
     });
 
     test(
-      'add with osmId and syncToFirestore:false does not call upsertPublicCells',
+      'add with osmId and syncToFirestore:false does not call autoPublishVersion',
       () async {
         final container = _makeContainer();
         addTearDown(container.dispose);
@@ -333,7 +333,7 @@ void main() {
             .read(supermarketsProvider.notifier)
             .add(_store('osm_9', osmId: 9), syncToFirestore: false);
 
-        verifyNever(() => _mockFrom(container).upsertPublicCells(any()));
+        verifyNever(() => _mockFrom(container).autoPublishVersion(any()));
       },
     );
 

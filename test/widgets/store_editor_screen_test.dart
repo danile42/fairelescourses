@@ -485,7 +485,7 @@ void main() {
       _FakeStoresNotifier? captured;
       final mockSvc = MockFirestoreService();
       when(() => mockSvc.upsertShop(any(), any())).thenAnswer((_) async {});
-      when(() => mockSvc.upsertPublicCells(any())).thenAnswer((_) async {});
+      when(() => mockSvc.autoPublishVersion(any())).thenAnswer((_) async {});
 
       await tester.pumpWidget(
         ProviderScope(

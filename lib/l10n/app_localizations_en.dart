@@ -879,27 +879,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get offlineIndicator => 'No internet connection';
 
   @override
-  String get publishLayout => 'Publish layout';
-
-  @override
-  String get publishLayoutTooltip =>
-      'Share this cell layout with the community';
-
-  @override
-  String get publishLayoutConfirm =>
-      'Publish your current cell layout for this shop? Anyone can import it.';
-
-  @override
-  String get publishLayoutSaveFirst => 'Save the shop before publishing.';
-
-  @override
-  String get publishLayoutSuccess => 'Layout published.';
-
-  @override
-  String get publishLayoutError =>
-      'Could not publish layout. Check your connection.';
-
-  @override
   String get communityLayouts => 'Community layouts';
 
   @override

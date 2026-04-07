@@ -889,28 +889,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get offlineIndicator => 'Keine Internetverbindung';
 
   @override
-  String get publishLayout => 'Layout veröffentlichen';
-
-  @override
-  String get publishLayoutTooltip =>
-      'Dieses Zellen-Layout mit der Community teilen';
-
-  @override
-  String get publishLayoutConfirm =>
-      'Aktuelles Zellen-Layout für diesen Markt veröffentlichen? Alle können es importieren.';
-
-  @override
-  String get publishLayoutSaveFirst =>
-      'Markt zuerst speichern, bevor veröffentlicht werden kann.';
-
-  @override
-  String get publishLayoutSuccess => 'Layout veröffentlicht.';
-
-  @override
-  String get publishLayoutError =>
-      'Layout konnte nicht veröffentlicht werden. Verbindung prüfen.';
-
-  @override
   String get communityLayouts => 'Community-Layouts';
 
   @override
