@@ -575,3 +575,5 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - #7 (nav state persistence): `_NavigationScreenState` now mixes in `WidgetsBindingObserver`. On `AppLifecycleState.paused` or `.detached`, `_saveNavState()` writes `_storeIndex`, `_deferNextShop`, `_forNewList`, `_carriedOverItems`, and `_carriedFromStoreName` as JSON to the Hive settings box under key `navState_<listId>`. On `initState`, `_restoreNavState()` reads this back (only for non-collaborative tours). `_finishTour()` calls `_clearNavState()` to remove the saved state. Checked item progress was already persisted via shopping list toggles.
     - Test fix: `navigation_screen_test.dart` lacked Hive setup; added `setUpAll`/`tearDownAll`/`setUp(clearHive)` using the shared `hive_helper.dart`. `home_screen_helpers.dart` overrides `isOfflineProvider` with `Stream.value(false)` to avoid the `MissingPluginException` from the connectivity platform channel in tests.
     - Closed `improvement-analysis.md`: all issues resolved.
+
+193. Document local-only, within-household, and cross-household data relationships in docs/synchronization.md.
