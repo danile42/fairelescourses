@@ -539,3 +539,10 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 186. [J] Now dart format fails in CI. Fix that.
 
 187. Generalize the "Test organisation note" in the README to say several tests were extracted to separate files, without mentioning that the human invented the workaround at that location.
+
+188. When an item is entered, but not yet added to a list: when I then save (either directly or via the dialog that appears if I try to go back), the entered item should be added to the list before saving.
+    - Added `GlobalKey<_AddItemBarState> _barKey` to `_ListEditorScreenState` and passed it to `_AddItemBar` (added `super.key` to its constructor).
+    - Added `submitCurrent()` to `_AddItemBarState`: calls `_submit(_autoCtrl?.text ?? '')`, which synchronously adds the item via `onAdd` then clears the field on the next frame.
+    - `_save()` now calls `_barKey.currentState?.submitCurrent()` before building the updated list, so any pending text is flushed into `_items` first.
+    - Simplified the AppBar Save button: was showing the unsaved-changes dialog when `_pendingItemText` was true; now always calls `_save()` directly (pending text is added automatically).
+    - The back-navigation dialog path (`onPopInvokedWithResult` → `_confirmUnsaved` → Save) already called `_save()`, so it gains the same behaviour for free.

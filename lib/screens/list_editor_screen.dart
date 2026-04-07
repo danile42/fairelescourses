@@ -33,6 +33,7 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
   late List<String> _preferredStoreIds;
   bool _dirty = false;
   bool _pendingItemText = false;
+  final _barKey = GlobalKey<_AddItemBarState>();
 
   @override
   void initState() {
@@ -50,6 +51,7 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
   }
 
   void _save() {
+    _barKey.currentState?.submitCurrent();
     final updated = widget.list.copyWith(
       name: _nameCtrl.text.trim().isEmpty ? '—' : _nameCtrl.text.trim(),
       items: _items,
@@ -344,15 +346,7 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
           foregroundColor: Colors.white,
           actions: [
             TextButton(
-              onPressed: () async {
-                if (_pendingItemText) {
-                  final action = await _confirmUnsaved();
-                  if (!mounted) return;
-                  if (action == _ExitAction.save) _save();
-                } else {
-                  _save();
-                }
-              },
+              onPressed: _save,
               child: Text(l.save, style: const TextStyle(color: Colors.white)),
             ),
           ],
@@ -495,6 +489,7 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
                     ),
             ),
             _AddItemBar(
+              key: _barKey,
               suggestions: suggestions,
               onAdd: _addItem,
               label: l.addItem,
@@ -591,6 +586,7 @@ class _AddItemBar extends StatefulWidget {
   final ValueChanged<bool>? onPendingChanged;
 
   const _AddItemBar({
+    super.key,
     required this.suggestions,
     required this.onAdd,
     required this.label,
@@ -604,6 +600,8 @@ class _AddItemBar extends StatefulWidget {
 
 class _AddItemBarState extends State<_AddItemBar> {
   TextEditingController? _autoCtrl;
+
+  void submitCurrent() => _submit(_autoCtrl?.text ?? '');
 
   void _submit(String value) {
     final name = value.trim();
