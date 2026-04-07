@@ -581,3 +581,7 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 194. Add Mermaid diagrams to docs/synchronization.md: Firestore collection structure, key-derivation flowchart, sync-flow sequence diagram, and cross-household isolation graph.
 
 195. Implement Option B community shop layout sharing: community pool with multiple versions per OSM ID, ranked by import count. Created `CommunityLayout` model, `publishLayoutVersion` / `listLayoutVersions` / `incrementImportCount` Firestore methods, ARB strings for both locales, `CommunityLayoutsSheet` bottom-sheet widget, publish button in `StoreEditorScreen` AppBar (existing OSM shops, non-local-only mode), "Browse community layouts" button in store editor body, and "Community layouts" TextButton in `_buildOsmCard` trailing on `ShopSearchScreen`.
+196. [J] Are these problems that need fixing? (Followed by a log with `PERMISSION_DENIED` errors on `public_shops/38027276/versions`).
+    - Diagnosed `PERMISSION_DENIED` on community layouts as a missing match block in `firestore.rules`.
+    - Added match rules for `public_shops/{osmId}` and `public_shops/{osmId}/versions/{versionId}` to allow authenticated users to read and write these collections.
+197. [J] Update `prompts.md` and commit.
