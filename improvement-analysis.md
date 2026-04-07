@@ -1,37 +1,41 @@
 # Improvement Analysis
 
-Generated: 2026-04-07
+Generated: 2026-04-08
 
 ---
 
-## Potential Bugs & Architectural Issues
+## Resolved Issues
 
-### 1. Firebase Initialization Race Conditions
-In `lib/main.dart`, the default Firebase app is initialized, followed by an asynchronous call to `initActiveFirebaseApp()` which may initialize a custom app.
-- **Risk**: `FirebaseAppNotifier.build` might execute before the custom app is ready, returning the default app instance. This can lead to a state where the UI shows the default app while the background processes eventually switch to the custom one, causing inconsistent data or multiple anonymous sign-ins.
-- **Recommendation**: Ensure `initActiveFirebaseApp()` completes before the app's `ProviderScope` is built, or handle the transition more robustly in `FirebaseAppNotifier`.
+### 1. Firebase Initialization Race Conditions (Fixed)
+- **Status**: Resolved. `main.dart` now initializes the active Firebase app before calling `runApp`, and `FirebaseAppNotifier` handles existing instances correctly.
+- **Verification**: `main.dart` lines 34–46 ensure that the app is initialized before the UI starts building.
 
-### 2. Household Joining & Data Integrity
-The joining process in `lib/screens/sync_screen.dart` (`_setHousehold`) uploads local data *before* setting the household ID.
-- **Risk**: If the upload succeeds but `setId` fails (e.g., due to a crash), local data is pushed to a household that the user hasn't successfully joined.
-- **Risk**: The "re-upload local items" logic in `ShoppingListNotifier.syncFromRemote` and `SupermarketNotifier.syncFromRemote` can cause deleted items to reappear (resurrection). If User A deletes a list while offline, and User B (who has the list) syncs, User A might re-download it. If User A joins a household, their local shops/lists are merged, which is intended, but lacks a mechanism to resolve conflicts or deletions.
+### 2. Household Joining & Data Integrity (Fixed)
+- **Status**: Resolved. `sync_screen.dart` has been updated to set the household ID before attempting to upload local data. Additionally, "resurrection" of deleted items in `syncFromRemote` has been addressed.
+- **Verification**: `_setHousehold` in `lib/screens/sync_screen.dart` reordered operations.
 
-### 3. Collaborative Navigation Desync
-`NavigationScreen` manages a large amount of local state (`_checkedPerStore`, `_checkedUnmatched`) that it manually synchronizes with the `shoppingListsProvider`.
-- **Risk**: In collaborative mode, updates from other users might conflict with local state, especially if the local state hasn't been updated to reflect the latest remote changes before the user interacts with it.
-- **Recommendation**: Refactor `NavigationScreen` to rely more directly on the provider state or implement a more robust merging strategy for collaborative updates.
+### 3. Memory Leaks in Search (Fixed)
+- **Status**: Resolved. `ShopSearchScreen` now cancels timers in `dispose` and uses `mounted` checks in async callbacks.
+- **Verification**: `lib/screens/shop_search_screen.dart` contains `_debounce?.cancel()` in `dispose` and `if (!mounted) return` in `_search`.
 
-### 4. Memory Leaks in Search
-`ShopSearchScreen` creates a `Timer` for debouncing but might not always cancel it correctly if multiple rapid changes occur, although `dispose` does cancel it.
-- **Risk**: In `_onChanged`, `_debounce?.cancel()` is called, but if `_search` is already running, it continues. Firestore searches are not aborted.
-- **Recommendation**: Use a `CancelableOperation` or check for `mounted` more strictly in all async callbacks.
+### 4. Stale Navigation Sessions (Fixed)
+- **Status**: Resolved. `FirestoreService.navSessionStream` now proactively deletes sessions older than 24 hours from Firestore.
+- **Verification**: `lib/services/firestore_service.dart` line 297.
 
-### 5. Stale Navigation Sessions
-`FirestoreService.navSessionStream` filters out sessions older than 24 hours from the stream, but they are never deleted from Firestore.
-- **Risk**: Orphaned session documents will accumulate in the `nav` subcollection over time.
-- **Recommendation**: Implement a cleanup trigger or handle deletion of old sessions more proactively.
+### 5. Local-Only Mode Transition (Fixed)
+- **Status**: Resolved. `firestoreSyncProvider` watches `localOnlyProvider` and immediately cancels all Firestore listeners when it changes to true.
+- **Verification**: `lib/providers/firestore_sync_provider.dart` line 25.
 
-### 6. Local-Only Mode Transition
-Switching to local-only mode clears the household ID but doesn't explicitly stop any active Firebase listeners until the next app restart or provider refresh.
-- **Risk**: Background sync might briefly continue after enabling local-only mode.
-- **Recommendation**: Ensure all sync listeners are immediately terminated when `localOnlyProvider` changes to true.
+---
+
+## Potential Bugs & Architectural Issues (Remaining)
+
+### 1. Collaborative Navigation State Sync
+`NavigationScreen` still manages a large amount of local state (`_checkedPerStore`, `_checkedUnmatched`, `_deferNextShop`) which it manually synchronizes with the `shoppingListsProvider`.
+- **Risk**: While `_syncCheckedFromList` is now used to keep the checked state in sync with remote updates, there is still a risk of race conditions or state desync for complex operations like "collect later" or multi-floor navigation where local state is modified before (or without) a provider update.
+- **Recommendation**: Continue refactoring `NavigationScreen` to move more state (like current floor, deferred items) into Riverpod providers that can be more easily kept in sync with the source of truth.
+
+### 2. OSM Search Rate Limiting
+`ShopSearchScreen` allows rapid searches which could trigger Overpass API rate limiting.
+- **Risk**: Repeated searches in a short window might lead to temporary bans for the user's IP.
+- **Recommendation**: Implement a more robust client-side rate limiter or exponential backoff for Overpass queries beyond simple debouncing.
