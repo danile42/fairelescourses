@@ -1,4 +1,4 @@
-# Fairelescourses — User guide
+# Fairelescourses [/fɛʁ le kuʁs/] — User guide
 
 **Version 0.9.27**
 

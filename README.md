@@ -1,4 +1,4 @@
-# Fairelescourses
+# Fairelescourses [/fɛʁ le kuʁs/]
 
 **A supermarket navigation assistant for Android.**
 
