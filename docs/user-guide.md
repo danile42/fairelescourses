@@ -291,16 +291,13 @@ Search for a specific product (e.g. "tofu") to find Firestore shops that stock i
 4. Filter by category (Supermarket, Convenience, Pharmacy…) and adjust the search radius.
 5. Toggle between the **list view** and **map view**.
 
-Tap a result to import it:
-- The shop editor opens pre-filled with the name and address from OSM.
-- If other users have already set up a grid for this shop, a **template** is offered.
-- Draw or refine the grid, then tap **Save**.
+Each OSM result shows a **people icon** (👥) button. Tap it to open the community layouts sheet, where you can pick an existing layout or create a new shop from scratch (see §6.3).
 
-Each OSM result appears exactly once: if it's already in your list, it shows **Already defined** with a tap-to-edit action instead of an **Import** button.
+If the shop is already in your list, it shows **Already defined** with a tap-to-edit action instead of the icon button.
 
 ### 6.3 Community layouts
 
-Next to the **Create** button on each OSM result, a **people icon** (👥) opens the community layouts sheet — a list of cell-layout blueprints that other users have contributed for that exact shop.
+Each OSM result shows a **people icon** (👥) as its action button. Tapping it opens the community layouts sheet — a list of cell-layout blueprints that other users have contributed for that exact shop.
 
 ```mermaid
 flowchart LR
@@ -308,7 +305,7 @@ flowchart LR
     Icon --> Sheet["Community layouts sheet"]
     Sheet --> Versions["Layout versions\n(ranked by imports)"]
     Sheet --> Empty["No layouts yet\n→ Create button"]
-    Versions -->|"Tap Use"| Editor["StoreEditorScreen\n(pre-filled)"]
+    Versions -->|"Tap Use"| Editor["StoreEditorScreen\n(pre-filled with template)"]
     Empty -->|"Tap Create"| Editor
 ```
 
@@ -320,7 +317,13 @@ If no community layouts exist yet, the sheet offers a **Create** button that ope
 
 #### Publishing your own layout
 
-Once you have saved a shop that was imported from OpenStreetMap, a **share icon** appears in the shop editor's app bar (only for OSM shops, only outside local-only mode). Tap it to publish your current grid to the community pool. A new version is always added — existing versions contributed by others are never overwritten.
+Saving an OSM-linked shop automatically shares its cell layout in the background (it becomes the fast-path template other users see when first importing the same shop). To create a proper community version — one that appears in the ranked list — you need to publish explicitly:
+
+1. Open the saved OSM shop in the editor.
+2. Tap the **share icon** in the app bar (visible only for OSM shops outside local-only mode).
+3. Confirm the dialog.
+
+A new version is always appended; existing versions contributed by others are never overwritten.
 
 Shop location data is from **OpenStreetMap contributors (ODbL)**.
 

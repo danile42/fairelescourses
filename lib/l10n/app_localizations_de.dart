@@ -361,6 +361,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get createShop => 'Erstellen';
 
   @override
+  String get createNewLayout => 'Neues Layout erstellen';
+
+  @override
   String get alreadyDefined => 'Bereits vorhanden';
 
   @override

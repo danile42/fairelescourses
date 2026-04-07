@@ -312,7 +312,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       if (!mounted) return;
       setState(() {
         _osmLoading = false;
-        _osmError = e.toString();
+        _osmError = e is OverpassException ? e.shortLabel : 'error';
       });
       _startRetryCountdown();
     }
@@ -362,7 +362,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       if (!mounted) return;
       setState(() {
         _osmLoading = false;
-        _osmError = e.toString();
+        _osmError = e is OverpassException ? e.shortLabel : 'error';
       });
       _startRetryCountdown();
     }
@@ -940,6 +940,8 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     if (!mounted || !ctx.mounted) return;
     if (wantCreate) {
       await _createFromOsm(ctx, osm);
+      if (!mounted) return;
+      if (widget.focusItem != null) nav.pop();
       return;
     }
     if (layout == null) return;
@@ -996,27 +998,10 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                 backgroundColor: theme.colorScheme.secondaryContainer,
                 padding: EdgeInsets.zero,
               )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    onPressed: () => _browseLayouts(context, osm),
-                    icon: const Icon(Icons.group_outlined),
-                    tooltip: l.communityLayouts,
-                  ),
-                  const SizedBox(width: 4),
-                  FilledButton(
-                    onPressed: () async {
-                      final nav = Navigator.of(context);
-                      await _createFromOsm(context, osm);
-                      if (!mounted) return;
-                      if (widget.focusItem != null) {
-                        nav.pop();
-                      }
-                    },
-                    child: Text(l.createShop),
-                  ),
-                ],
+            : IconButton(
+                onPressed: () => _browseLayouts(context, osm),
+                icon: const Icon(Icons.group_outlined),
+                tooltip: l.communityLayouts,
               ),
       ),
     );
@@ -1329,6 +1314,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       );
     }
     final cooling = _retrySecondsLeft > 0;
+    final errorLabel = _osmError;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       child: Row(
@@ -1341,6 +1327,25 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
               style: const TextStyle(color: Colors.grey),
             ),
           ),
+          if (errorLabel != null)
+            IconButton(
+              icon: const Icon(Icons.info_outline, size: 18),
+              color: Colors.grey,
+              tooltip: errorLabel,
+              onPressed: () => showDialog<void>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: Text(l.osmLoadFailed),
+                  content: Text(errorLabel),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: Text(l.ok),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           TextButton.icon(
             onPressed: cooling ? null : _retryOsm,
             icon: const Icon(Icons.refresh, size: 18),

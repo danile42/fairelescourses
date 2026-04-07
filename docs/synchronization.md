@@ -220,14 +220,16 @@ Each version document contains:
 | `subcells` | Optional subcell assignments |
 | `floors` | Optional additional floors |
 
-The parent document `public_shops/{osmId}` (no subcollection) holds the **most recently published** layout in the same field format. It exists as a fast-path for auto-import when a user first adds an OSM shop — the app reads it once with `fetchPublicShop` and pre-populates the editor, without needing to query and rank the full versions subcollection.
+The parent document `public_shops/{osmId}` (no subcollection) holds the **most recently saved** layout for that OSM shop. It is written automatically every time any user saves an OSM-linked shop (via `upsertPublicCells` in the `SupermarketNotifier`), regardless of whether they have explicitly published a community version. It exists as a fast-path for auto-import: when a different user first adds the same OSM shop, `fetchPublicShop` reads this document and pre-populates the editor without needing to query and rank the full versions subcollection.
 
 ### Publish flow
+
+The flat `public_shops/{osmId}` document is updated automatically on every save of an OSM-linked shop. Publishing is a separate, explicit step.
 
 When a user publishes a layout from the store editor (`publishLayoutVersion`):
 
 1. A new document is appended to `public_shops/{osmId}/versions/` with `importCount: 0`.
-2. The flat `public_shops/{osmId}` document is overwritten with the same layout (keeping the fast-path current).
+2. The flat `public_shops/{osmId}` document is overwritten with the same layout (redundant if the user just saved, but keeps the fast-path consistent).
 
 Publishing always creates a new version; existing versions are never overwritten.
 

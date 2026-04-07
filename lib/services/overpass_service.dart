@@ -1,6 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:math';
 
 import 'package:fairelescourses/l10n/app_localizations.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class OsmShopCategory {
@@ -151,6 +155,20 @@ String formatOsmRadius(int meters) {
   return '$meters m';
 }
 
+/// Thrown when an Overpass API request fails for a known reason.
+///
+/// [shortLabel] is a compact human-readable description suitable for display
+/// in the UI (e.g. "429 – rate limited", "timeout").
+class OverpassException implements Exception {
+  final String shortLabel;
+  final String message;
+
+  const OverpassException(this.shortLabel, this.message);
+
+  @override
+  String toString() => 'OverpassException($shortLabel): $message';
+}
+
 class OverpassService {
   static const _endpoint = 'https://overpass-api.de/api/interpreter';
 
@@ -182,15 +200,55 @@ class OverpassService {
             headers: {'User-Agent': 'Fairelescourses/1.0'},
           )
           .timeout(Duration(seconds: timeout + 10));
+    } on TimeoutException {
+      const label = 'timeout';
+      debugPrint(
+        'Overpass: client-side timeout after ${timeout + 10} s '
+        '(query timeout was $timeout s)',
+      );
+      throw const OverpassException(label, 'Client-side HTTP timeout');
+    } on SocketException catch (e) {
+      debugPrint('Overpass: network error — $e');
+      throw OverpassException('no network', e.toString());
     } finally {
       if (httpClient == null) client.close();
     }
 
     if (response.statusCode != 200) {
-      throw Exception('Overpass HTTP ${response.statusCode}');
+      final snippet = response.body.substring(
+        0,
+        min(300, response.body.length),
+      );
+      final (label, reason) = switch (response.statusCode) {
+        429 => ('429 – rate limited', 'rate-limited (429)'),
+        400 => ('400 – bad query', 'bad query (400)'),
+        504 => ('504 – server timeout', 'server-side timeout (504)'),
+        502 => ('502 – bad gateway', 'bad gateway (502)'),
+        503 => ('503 – service unavailable', 'service unavailable (503)'),
+        _ => ('HTTP ${response.statusCode}', 'HTTP ${response.statusCode}'),
+      };
+      debugPrint('Overpass: $reason — $snippet');
+      throw OverpassException(label, '$reason\n$snippet');
     }
 
-    final json = jsonDecode(response.body) as Map<String, dynamic>;
+    final Map<String, dynamic> json;
+    try {
+      json = jsonDecode(response.body) as Map<String, dynamic>;
+    } on FormatException catch (e) {
+      final snippet = response.body.substring(
+        0,
+        min(300, response.body.length),
+      );
+      debugPrint('Overpass: malformed JSON — $e — body: $snippet');
+      throw OverpassException('bad response', 'Malformed JSON: $e\n$snippet');
+    }
+
+    // Overpass sometimes returns HTTP 200 with a remark describing a runtime
+    // error (e.g. query timeout, memory exceeded).
+    final remark = json['remark'] as String?;
+    if (remark != null) {
+      debugPrint('Overpass: remark in 200 response — $remark');
+    }
     final elements = json['elements'] as List<dynamic>;
 
     final shops = <OsmShop>[];

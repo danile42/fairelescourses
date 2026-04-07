@@ -752,6 +752,12 @@ abstract class AppLocalizations {
   /// **'Create'**
   String get createShop;
 
+  /// No description provided for @createNewLayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Create new layout'**
+  String get createNewLayout;
+
   /// No description provided for @alreadyDefined.
   ///
   /// In en, this message translates to:

@@ -124,6 +124,7 @@
   "findNearby": "In der Nähe suchen",
   "osmShopsTitle": "Nahegelegene Märkte (OpenStreetMap)",
   "createShop": "Erstellen",
+  "createNewLayout": "Neues Layout erstellen",
   "alreadyDefined": "Bereits vorhanden",
   "noOsmShopsFound": "Keine Supermärkte in der Nähe gefunden.",
   "osmSearching": "Suche nahegelegene Supermärkte…",

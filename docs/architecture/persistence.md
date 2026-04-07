@@ -111,7 +111,7 @@ Indexes used:
 
 ### `public_shops/{osmId}` — Fast-path OSM template
 
-Unencrypted. Written (overwritten) each time a layout version is published via `upsertPublicCells`. Read by `fetchPublicShop` to auto-populate the editor when importing a new OSM shop, without needing to query the versions subcollection.
+Unencrypted. Written (overwritten) automatically every time any user saves an OSM-linked shop (`SupermarketNotifier` calls `upsertPublicCells` on both `add` and `update`). Also overwritten when a layout version is explicitly published. Read by `fetchPublicShop` to auto-populate the editor when a different user imports the same OSM shop, without querying the versions subcollection.
 
 ```
 {

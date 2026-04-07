@@ -55,7 +55,7 @@ Shop layouts (grid structure and goods) are **not encrypted** — they are commu
 | Path | Encrypted | Description |
 |---|---|---|
 | `shops/{shopId}` | No | Shop layouts indexed by ownerUid + householdHash |
-| `public_shops/{osmId}` | No | Latest community cell layout for an OSM shop (fast-path auto-import) |
+| `public_shops/{osmId}` | No | Most recently saved layout for an OSM shop; written on every save of an OSM-linked shop (fast-path for auto-import) |
 | `public_shops/{osmId}/versions/{versionId}` | No | Community-contributed layout versions, ranked by import count |
 | `h/{pathId}/l/{listId}` | Yes (`d` field) | Shopping lists per household |
 | `h/{pathId}/nav/current` | No | Active collaborative nav session |
@@ -77,7 +77,7 @@ Shop layouts (grid structure and goods) are **not encrypted** — they are commu
 | `searchByItem(itemName)` | Query `goodsList` array-contains |
 | `searchNearby(lat, lng, radius)` | Client-side haversine filter |
 | `fetchPublicShop(osmId)` | Load the fast-path flat layout for an OSM shop |
-| `upsertPublicCells(shop)` | Overwrite the flat `public_shops/{osmId}` document (called on publish) |
+| `upsertPublicCells(shop)` | Overwrite the flat `public_shops/{osmId}` document; called automatically on every OSM-linked shop save and also on explicit publish |
 | `publishLayoutVersion(shop)` | Append a new version to `public_shops/{osmId}/versions/`; also updates the flat doc |
 | `listLayoutVersions(osmId)` | Fetch up to 20 versions ordered by `importCount` desc |
 | `incrementImportCount(osmId, versionId)` | Atomically increment `importCount` when a version is imported |

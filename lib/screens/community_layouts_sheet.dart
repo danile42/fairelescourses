@@ -16,7 +16,7 @@ import '../providers/firestore_sync_provider.dart';
 class CommunityLayoutsSheet extends ConsumerStatefulWidget {
   final int osmId;
 
-  /// Called when the user taps the "Create" button in the empty state.
+  /// Called when the user taps the "Create" button in the sheet footer.
   /// The sheet pops itself before invoking this callback.
   final VoidCallback? onCreateTap;
 
@@ -108,24 +108,9 @@ class _CommunityLayoutsSheetState extends ConsumerState<CommunityLayoutsSheet> {
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.all(24),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            l.communityLayoutsEmpty,
-                            textAlign: TextAlign.center,
-                          ),
-                          if (widget.onCreateTap != null) ...[
-                            const SizedBox(height: 16),
-                            FilledButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                                widget.onCreateTap!();
-                              },
-                              child: Text(l.createShop),
-                            ),
-                          ],
-                        ],
+                      child: Text(
+                        l.communityLayoutsEmpty,
+                        textAlign: TextAlign.center,
                       ),
                     ),
                   );
@@ -143,6 +128,21 @@ class _CommunityLayoutsSheetState extends ConsumerState<CommunityLayoutsSheet> {
               },
             ),
           ),
+
+          // ── Footer: create from scratch ─────────────────────────────────────
+          if (widget.onCreateTap != null) ...[
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: OutlinedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  widget.onCreateTap!();
+                },
+                child: Text(l.createNewLayout),
+              ),
+            ),
+          ],
         ],
       ),
     );
