@@ -159,11 +159,26 @@ String formatOsmRadius(int meters) {
 ///
 /// [shortLabel] is a compact human-readable description suitable for display
 /// in the UI (e.g. "429 – rate limited", "timeout").
+///
+/// [retryable] is true when the error is transient (e.g. server timeout,
+/// bad gateway) and the caller may benefit from retrying. The service already
+/// retries automatically; this flag is exposed so the UI can decide whether to
+/// offer a manual retry as well.
+///
+/// [retryAfterSeconds] is an optional hint from the server (via
+/// `Retry-After`) about how long to wait before retrying.
 class OverpassException implements Exception {
   final String shortLabel;
   final String message;
+  final bool retryable;
+  final int? retryAfterSeconds;
 
-  const OverpassException(this.shortLabel, this.message);
+  const OverpassException(
+    this.shortLabel,
+    this.message, {
+    this.retryable = false,
+    this.retryAfterSeconds,
+  });
 
   @override
   String toString() => 'OverpassException($shortLabel): $message';
@@ -172,13 +187,57 @@ class OverpassException implements Exception {
 class OverpassService {
   static const _endpoint = 'https://overpass-api.de/api/interpreter';
 
+  /// Maximum number of total attempts (1 initial + retries).
+  static const _kMaxAttempts = 3;
+
+  /// Delays in seconds between consecutive attempts.
+  static const _kRetryDelays = [1, 2];
+
   /// Returns shops of [category] within [radiusMeters] of [lat]/[lng].
+  ///
+  /// Transient errors (502, 503, 504, client timeout) are retried
+  /// automatically up to [_kMaxAttempts] times before re-throwing.
   static Future<List<OsmShop>> searchNearby(
     double lat,
     double lng,
     int radiusMeters, {
     Set<OsmShopCategory> categories = const <OsmShopCategory>{},
     http.Client? httpClient,
+  }) async {
+    final client = httpClient ?? http.Client();
+    try {
+      for (int attempt = 0; attempt < _kMaxAttempts; attempt++) {
+        try {
+          return await _singleAttempt(
+            lat,
+            lng,
+            radiusMeters,
+            categories: categories,
+            client: client,
+          );
+        } on OverpassException catch (e) {
+          if (!e.retryable || attempt == _kMaxAttempts - 1) rethrow;
+          final delaySecs = e.retryAfterSeconds ?? _kRetryDelays[attempt];
+          debugPrint(
+            'Overpass: ${e.shortLabel} — retrying in ${delaySecs}s '
+            '(attempt ${attempt + 2}/$_kMaxAttempts)',
+          );
+          await Future.delayed(Duration(seconds: delaySecs));
+        }
+      }
+    } finally {
+      if (httpClient == null) client.close();
+    }
+    // Unreachable: the loop either returns or rethrows.
+    throw StateError('unreachable');
+  }
+
+  static Future<List<OsmShop>> _singleAttempt(
+    double lat,
+    double lng,
+    int radiusMeters, {
+    required Set<OsmShopCategory> categories,
+    required http.Client client,
   }) async {
     final cats = categories.isEmpty ? osmShopCategories : categories.toList();
     final clauses = cats
@@ -190,7 +249,7 @@ class OverpassService {
     final timeout = (cats.length * 8).clamp(15, 45);
     final query =
         '[out:json][timeout:$timeout];\n(\n$clauses\n);\nout center tags;\n';
-    final client = httpClient ?? http.Client();
+
     final http.Response response;
     try {
       response = await client
@@ -201,17 +260,18 @@ class OverpassService {
           )
           .timeout(Duration(seconds: timeout + 10));
     } on TimeoutException {
-      const label = 'timeout';
       debugPrint(
         'Overpass: client-side timeout after ${timeout + 10} s '
         '(query timeout was $timeout s)',
       );
-      throw const OverpassException(label, 'Client-side HTTP timeout');
+      throw const OverpassException(
+        'timeout',
+        'Client-side HTTP timeout',
+        retryable: true,
+      );
     } on SocketException catch (e) {
       debugPrint('Overpass: network error — $e');
       throw OverpassException('no network', e.toString());
-    } finally {
-      if (httpClient == null) client.close();
     }
 
     if (response.statusCode != 200) {
@@ -219,16 +279,25 @@ class OverpassService {
         0,
         min(300, response.body.length),
       );
-      final (label, reason) = switch (response.statusCode) {
-        429 => ('429 – rate limited', 'rate-limited (429)'),
-        400 => ('400 – bad query', 'bad query (400)'),
-        504 => ('504 – server timeout', 'server-side timeout (504)'),
-        502 => ('502 – bad gateway', 'bad gateway (502)'),
-        503 => ('503 – service unavailable', 'service unavailable (503)'),
-        _ => ('HTTP ${response.statusCode}', 'HTTP ${response.statusCode}'),
+      final (label, reason, retryable) = switch (response.statusCode) {
+        429 => ('429 – rate limited', 'rate-limited (429)', false),
+        400 => ('400 – bad query', 'bad query (400)', false),
+        504 => ('504 – server timeout', 'server-side timeout (504)', true),
+        502 => ('502 – bad gateway', 'bad gateway (502)', true),
+        503 => ('503 – service unavailable', 'service unavailable (503)', true),
+        _ => (
+          'HTTP ${response.statusCode}',
+          'HTTP ${response.statusCode}',
+          false,
+        ),
       };
       debugPrint('Overpass: $reason — $snippet');
-      throw OverpassException(label, '$reason\n$snippet');
+      throw OverpassException(
+        label,
+        '$reason\n$snippet',
+        retryable: retryable,
+        retryAfterSeconds: retryable ? _parseRetryAfter(response) : null,
+      );
     }
 
     final Map<String, dynamic> json;
@@ -284,6 +353,15 @@ class OverpassService {
       );
     }
     return shops;
+  }
+
+  /// Parses the `Retry-After` response header (seconds form only), capped at
+  /// 8 seconds so the app never hangs for long.
+  static int? _parseRetryAfter(http.Response response) {
+    final header = response.headers['retry-after'];
+    if (header == null) return null;
+    final secs = int.tryParse(header.trim());
+    return secs?.clamp(0, 8);
   }
 
   static String? _matchedCategory(Map<String, dynamic> tags) {

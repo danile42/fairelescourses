@@ -396,6 +396,22 @@ void main() {
       expect(e.shortLabel, '429 – rate limited');
       expect(e.message, 'rate-limited (429)');
     });
+
+    test('retryable defaults to false', () {
+      const e = OverpassException('timeout', 'msg');
+      expect(e.retryable, isFalse);
+    });
+
+    test('retryable and retryAfterSeconds are preserved', () {
+      const e = OverpassException(
+        '503 – service unavailable',
+        'msg',
+        retryable: true,
+        retryAfterSeconds: 5,
+      );
+      expect(e.retryable, isTrue);
+      expect(e.retryAfterSeconds, 5);
+    });
   });
 
   group('OverpassService.searchNearby – HTTP error shortLabels', () {
@@ -415,35 +431,96 @@ void main() {
       }
     }
 
-    test('HTTP 429 → shortLabel "429 – rate limited"', () async {
+    test('HTTP 429 → shortLabel "429 – rate limited", not retryable', () async {
       final e = await expectOverpassException(_rawClient('', status: 429));
       expect(e.shortLabel, '429 – rate limited');
+      expect(e.retryable, isFalse);
     });
 
-    test('HTTP 400 → shortLabel "400 – bad query"', () async {
+    test('HTTP 400 → shortLabel "400 – bad query", not retryable', () async {
       final e = await expectOverpassException(_rawClient('', status: 400));
       expect(e.shortLabel, '400 – bad query');
+      expect(e.retryable, isFalse);
     });
 
-    test('HTTP 504 → shortLabel "504 – server timeout"', () async {
-      final e = await expectOverpassException(_rawClient('', status: 504));
+    test('HTTP 504 → shortLabel "504 – server timeout", retryable', () async {
+      // 504 is retried internally; pass a client that always returns 504 so
+      // the exception reaches the caller only after all attempts are exhausted.
+      int calls = 0;
+      final client = MockClient((_) async {
+        calls++;
+        return http.Response('', 504);
+      });
+      final e = await expectOverpassException(client);
       expect(e.shortLabel, '504 – server timeout');
+      expect(e.retryable, isTrue);
+      expect(calls, 3); // 3 total attempts (1 initial + 2 retries)
     });
 
-    test('HTTP 502 → shortLabel "502 – bad gateway"', () async {
-      final e = await expectOverpassException(_rawClient('', status: 502));
+    test('HTTP 502 → shortLabel "502 – bad gateway", retryable', () async {
+      int calls = 0;
+      final client = MockClient((_) async {
+        calls++;
+        return http.Response('', 502);
+      });
+      final e = await expectOverpassException(client);
       expect(e.shortLabel, '502 – bad gateway');
+      expect(e.retryable, isTrue);
+      expect(calls, 3);
     });
 
-    test('HTTP 503 → shortLabel "503 – service unavailable"', () async {
-      final e = await expectOverpassException(_rawClient('', status: 503));
-      expect(e.shortLabel, '503 – service unavailable');
-    });
+    test(
+      'HTTP 503 → shortLabel "503 – service unavailable", retryable',
+      () async {
+        int calls = 0;
+        final client = MockClient((_) async {
+          calls++;
+          return http.Response('', 503);
+        });
+        final e = await expectOverpassException(client);
+        expect(e.shortLabel, '503 – service unavailable');
+        expect(e.retryable, isTrue);
+        expect(calls, 3);
+      },
+    );
 
-    test('other HTTP error → shortLabel "HTTP {code}"', () async {
-      final e = await expectOverpassException(_rawClient('', status: 500));
-      expect(e.shortLabel, 'HTTP 500');
-    });
+    test(
+      'HTTP 503 with Retry-After header propagates retryAfterSeconds',
+      () async {
+        // First call returns 503 with Retry-After, second call succeeds.
+        int calls = 0;
+        final successBody = jsonEncode({
+          'version': 0.6,
+          'elements': [
+            _node(1, 48.1, 11.5, {'name': 'Shop', 'shop': 'supermarket'}),
+          ],
+        });
+        final client = MockClient((_) async {
+          calls++;
+          if (calls == 1) {
+            return http.Response('', 503, headers: {'retry-after': '3'});
+          }
+          return http.Response(successBody, 200);
+        });
+        final results = await OverpassService.searchNearby(
+          48.0,
+          11.0,
+          2000,
+          httpClient: client,
+        );
+        expect(results.length, 1);
+        expect(calls, 2);
+      },
+    );
+
+    test(
+      'other HTTP error → shortLabel "HTTP {code}", not retryable',
+      () async {
+        final e = await expectOverpassException(_rawClient('', status: 500));
+        expect(e.shortLabel, 'HTTP 500');
+        expect(e.retryable, isFalse);
+      },
+    );
 
     test('malformed JSON on 200 → shortLabel "bad response"', () async {
       final e = await expectOverpassException(
@@ -469,6 +546,40 @@ void main() {
       );
       expect(results.length, 1);
       expect(results.first.name, 'Shop A');
+    });
+
+    test('retryable error succeeds on second attempt', () async {
+      int calls = 0;
+      final successBody = jsonEncode({
+        'version': 0.6,
+        'elements': [
+          _node(1, 48.1, 11.5, {'name': 'Market', 'shop': 'supermarket'}),
+        ],
+      });
+      final client = MockClient((_) async {
+        calls++;
+        if (calls == 1) return http.Response('', 504);
+        return http.Response(successBody, 200);
+      });
+      final results = await OverpassService.searchNearby(
+        48.0,
+        11.0,
+        2000,
+        httpClient: client,
+      );
+      expect(results.length, 1);
+      expect(results.first.name, 'Market');
+      expect(calls, 2);
+    });
+
+    test('non-retryable 429 does not trigger retries', () async {
+      int calls = 0;
+      final client = MockClient((_) async {
+        calls++;
+        return http.Response('', 429);
+      });
+      await expectOverpassException(client);
+      expect(calls, 1); // no retries
     });
   });
 
