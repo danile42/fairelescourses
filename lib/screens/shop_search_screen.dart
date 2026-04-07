@@ -985,7 +985,9 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
         leading: Icon(Icons.store_outlined, color: theme.colorScheme.secondary),
         title: Text(osm.name),
         subtitle: Text([?osm.address].nonNulls.join('  •  ')),
-        onTap: alreadyLocal ? () => _openInEditor(context, localStore) : null,
+        onTap: alreadyLocal
+            ? () => _openInEditor(context, localStore)
+            : () => _browseLayouts(context, osm),
         trailing: alreadyLocal
             ? Chip(
                 label: Text(
@@ -998,11 +1000,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                 backgroundColor: theme.colorScheme.secondaryContainer,
                 padding: EdgeInsets.zero,
               )
-            : IconButton(
-                onPressed: () => _browseLayouts(context, osm),
-                icon: const Icon(Icons.group_outlined),
-                tooltip: l.communityLayouts,
-              ),
+            : null,
       ),
     );
   }

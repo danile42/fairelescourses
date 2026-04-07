@@ -597,3 +597,9 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - Add classified error logging to `OverpassService.searchNearby`: `TimeoutException` → "timeout", `SocketException` → "no network", HTTP 429/400/504/502/503 → labelled strings, `FormatException` → "bad response", plus log the `remark` field on HTTP 200 error responses. Introduced `OverpassException(shortLabel, message)` typed exception.
     - Show an `Icons.info_outline` button in the OSM error status row; tapping it opens an `AlertDialog` with the `shortLabel` (e.g. "429 – rate limited"). Long-press shows it as a tooltip.
     - Corrected docs: flat `public_shops/{osmId}` is written on every OSM-linked shop save (not only on publish); updated `synchronization.md`, `persistence.md`, `services.md`, and `user-guide.md` accordingly.
+
+201. OSM tile: tapping anywhere on an unimported OSM result now opens `CommunityLayoutsSheet` directly (no trailing icon button). Already-imported shops still open the editor on tap. Docs updated: user-guide §6.2–6.3, screens-navigation diagram and ShopSearchScreen description, CommunityLayoutsSheet widget hierarchy.
+
+202. Intro tour and help screen: rephrase to make cell assignment optional. Updated `tourShopEditorHint` ("optionally assign goods"), `tourShopSearchHint` (mention community layouts), and `helpShopsBody` (mention community layouts as an alternative to manual cell assignment). Both EN and DE ARB files updated.
+
+203. Docs: services.md — added OverpassException error-handling table and description of the info-button UX in ShopSearchScreen.

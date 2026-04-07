@@ -65,11 +65,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tourShopSearchHint =>
-      'Search by location to find nearby shops — faster than creating one manually.';
+      'Search by location to find nearby shops. Tap a result to browse community layouts or create a new one from scratch.';
 
   @override
   String get tourShopEditorHint =>
-      'Give your shop a name, tap any cell and enter a product, then tap Save.';
+      'Give your shop a name, optionally assign goods to cells, and tap Save.';
 
   @override
   String get tourListEditorHint =>
@@ -688,7 +688,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpShopsBody =>
-      'Create a shop and draw its layout as a grid. Assign goods to cells so the app knows where to find each product.';
+      'Create a shop and map its layout as a grid. Tap cells to assign goods — or browse community layouts to get started quickly with a ready-made grid.';
 
   @override
   String get helpListsTitle => 'Shopping lists';

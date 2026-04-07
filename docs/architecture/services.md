@@ -166,3 +166,20 @@ Searches OpenStreetMap for physical shops near a coordinate.
 - Builds a single Overpass QL query for all requested categories within `radius` metres.
 - Handles both `node` and `way` elements (uses `center` lat/lng for ways).
 - Results cross-referenced with Firestore in `ShopSearchScreen` to identify already-known shops.
+
+### Error handling
+
+Failures are thrown as `OverpassException(shortLabel, message)` with a compact `shortLabel` suitable for display (e.g. `"429 – rate limited"`, `"timeout"`, `"no network"`). Each failure case is also logged via `debugPrint` before throwing.
+
+| Cause | `shortLabel` |
+|---|---|
+| Client-side HTTP timeout | `timeout` |
+| `SocketException` (no network) | `no network` |
+| HTTP 429 | `429 – rate limited` |
+| HTTP 400 | `400 – bad query` |
+| HTTP 504 | `504 – server timeout` |
+| HTTP 502 / 503 | `502 – bad gateway` / `503 – service unavailable` |
+| Malformed JSON | `bad response` |
+| Other HTTP error | `HTTP {code}` |
+
+`ShopSearchScreen` catches `OverpassException` and stores `shortLabel` in `_osmError`. The error status row shows an `Icons.info_outline` button; tapping it opens an `AlertDialog` with the label so power users can diagnose the failure.

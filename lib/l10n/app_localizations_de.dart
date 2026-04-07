@@ -67,11 +67,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tourShopSearchHint =>
-      'Suche nach Standort, um nahegelegene Märkte zu finden – schneller als manuell anlegen.';
+      'Suche nach Standort, um nahegelegene Märkte zu finden. Tippe auf ein Ergebnis, um Community-Layouts zu durchsuchen oder einen neuen Markt anzulegen.';
 
   @override
   String get tourShopEditorHint =>
-      'Gib dem Markt einen Namen, tippe auf ein Feld und trage ein Produkt ein, dann tippe auf Speichern.';
+      'Gib dem Markt einen Namen, weise optional Waren den Feldern zu und tippe auf Speichern.';
 
   @override
   String get tourListEditorHint =>
@@ -698,7 +698,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get helpShopsBody =>
-      'Lege einen Markt an und zeichne sein Layout als Raster. Weise Waren den Feldern zu, damit die App weiß, wo jedes Produkt zu finden ist.';
+      'Lege einen Markt an und zeichne sein Layout als Raster. Tippe auf Felder, um Waren zuzuweisen – oder nutze ein Community-Layout für einen schnellen Einstieg mit fertigem Raster.';
 
   @override
   String get helpListsTitle => 'Einkaufslisten';

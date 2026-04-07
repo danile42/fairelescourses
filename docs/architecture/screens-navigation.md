@@ -22,9 +22,9 @@ flowchart TD
     Home -->|"AppBar → Settings icon"| Sync
     ListEditor -->|"Generate plan button"| Nav
     Search -->|"Import shop"| StoreEditor
-    Search -->|"👥 community layouts icon"| CommunitySheet["CommunityLayoutsSheet\n(modal bottom sheet)"]
+    Search -->|"tap OSM result"| CommunitySheet["CommunityLayoutsSheet\n(modal bottom sheet)"]
     CommunitySheet -->|"Use this layout"| StoreEditor
-    CommunitySheet -->|"Create (empty state)"| StoreEditor
+    CommunitySheet -->|"Create new layout (footer)"| StoreEditor
 ```
 
 ## Screen descriptions
@@ -107,7 +107,7 @@ Results are shown as a list of cards (or on a `flutter_map` map). Proximity dist
 
 Import action: opens `StoreEditorScreen` pre-filled with the result's data. Duplicate detection prevents importing a shop already within 0.2 km of an existing one.
 
-Each OSM result card also shows a **people icon** button that opens `CommunityLayoutsSheet` — a draggable modal bottom sheet listing community-contributed cell layouts for that OSM shop, ranked by import count. If no layouts exist, the sheet shows an empty state with a **Create** button. Selecting a layout (or tapping Create) opens `StoreEditorScreen` pre-filled accordingly.
+Tapping any unimported OSM result opens `CommunityLayoutsSheet` directly — a draggable modal bottom sheet listing community-contributed cell layouts for that shop, ranked by import count. A **Create new layout** `OutlinedButton` is always visible in the sheet footer. Selecting a layout or tapping Create opens `StoreEditorScreen` pre-filled accordingly. Already-imported shops open the editor directly on tap.
 
 ---
 
@@ -160,6 +160,6 @@ flowchart TD
     subgraph CommunityLayoutsSheet["CommunityLayoutsSheet (modal)"]
         CL1[DraggableScrollableSheet]
         CL2["_LayoutCard ×N\n(FutureBuilder)"]
-        CL3["Empty state + Create button"]
+        CL3["'Create new layout' OutlinedButton\n(persistent footer)"]
     end
 ```

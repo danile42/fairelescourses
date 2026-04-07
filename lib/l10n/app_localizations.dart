@@ -209,13 +209,13 @@ abstract class AppLocalizations {
   /// No description provided for @tourShopSearchHint.
   ///
   /// In en, this message translates to:
-  /// **'Search by location to find nearby shops — faster than creating one manually.'**
+  /// **'Search by location to find nearby shops. Tap a result to browse community layouts or create a new one from scratch.'**
   String get tourShopSearchHint;
 
   /// No description provided for @tourShopEditorHint.
   ///
   /// In en, this message translates to:
-  /// **'Give your shop a name, tap any cell and enter a product, then tap Save.'**
+  /// **'Give your shop a name, optionally assign goods to cells, and tap Save.'**
   String get tourShopEditorHint;
 
   /// No description provided for @tourListEditorHint.
@@ -1367,7 +1367,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpShopsBody.
   ///
   /// In en, this message translates to:
-  /// **'Create a shop and draw its layout as a grid. Assign goods to cells so the app knows where to find each product.'**
+  /// **'Create a shop and map its layout as a grid. Tap cells to assign goods — or browse community layouts to get started quickly with a ready-made grid.'**
   String get helpShopsBody;
 
   /// No description provided for @helpListsTitle.

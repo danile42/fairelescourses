@@ -25,7 +25,7 @@ When you open the app for the first time, the help screen explains the basics. T
 
 To get started:
 
-1. Create a **shop** — draw its grid and assign goods to cells.
+1. Create a **shop** — draw its grid and optionally assign goods to cells (or start from a community layout).
 2. Create a **shopping list** — add the items you want to buy.
 3. Tap the **play** button next to your list to start your first shopping trip.
 
@@ -291,29 +291,28 @@ Search for a specific product (e.g. "tofu") to find Firestore shops that stock i
 4. Filter by category (Supermarket, Convenience, Pharmacy…) and adjust the search radius.
 5. Toggle between the **list view** and **map view**.
 
-Each OSM result shows a **people icon** (👥) button. Tap it to open the community layouts sheet, where you can pick an existing layout or create a new shop from scratch (see §6.3).
+Tap any OSM result to open the community layouts sheet, where you can pick an existing layout or create a new one from scratch (see §6.3).
 
-If the shop is already in your list, it shows **Already defined** with a tap-to-edit action instead of the icon button.
+If the shop is already in your list, it shows **Already defined** and tapping opens the shop editor directly.
 
 ### 6.3 Community layouts
 
-Each OSM result shows a **people icon** (👥) as its action button. Tapping it opens the community layouts sheet — a list of cell-layout blueprints that other users have contributed for that exact shop.
+Tapping any OSM result opens the community layouts sheet — a list of cell-layout blueprints that other users have contributed for that exact shop.
 
 ```mermaid
 flowchart LR
-    OSMCard["OSM shop card"] --> Icon["👥 icon"]
-    Icon --> Sheet["Community layouts sheet"]
+    OSMCard["OSM shop card\n(tap anywhere)"] --> Sheet["Community layouts sheet"]
     Sheet --> Versions["Layout versions\n(ranked by imports)"]
-    Sheet --> Empty["No layouts yet\n→ Create button"]
+    Sheet --> Footer["'Create new layout' button\n(always visible at bottom)"]
     Versions -->|"Tap Use"| Editor["StoreEditorScreen\n(pre-filled with template)"]
-    Empty -->|"Tap Create"| Editor
+    Footer -->|"Tap"| Editor
 ```
 
 Layouts are ranked by how many times they have been imported — the most-used layout appears first. Each entry shows the grid size, number of floors, and how long ago it was published.
 
 Tapping **Use this layout** opens the shop editor pre-filled with that layout. You can adjust it before saving.
 
-If no community layouts exist yet, the sheet offers a **Create** button that opens the shop editor directly so you can be the first contributor.
+A **Create new layout** button is always visible at the bottom of the sheet, so you can start from scratch even when community layouts exist.
 
 #### Publishing your own layout
 
