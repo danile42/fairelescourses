@@ -22,6 +22,9 @@ flowchart TD
     Home -->|"AppBar → Settings icon"| Sync
     ListEditor -->|"Generate plan button"| Nav
     Search -->|"Import shop"| StoreEditor
+    Search -->|"👥 community layouts icon"| CommunitySheet["CommunityLayoutsSheet\n(modal bottom sheet)"]
+    CommunitySheet -->|"Use this layout"| StoreEditor
+    CommunitySheet -->|"Create (empty state)"| StoreEditor
 ```
 
 ## Screen descriptions
@@ -69,6 +72,7 @@ Key interactions:
 - Double-tap a cell to enter split-cell mode (divides the cell into sub-cells).
 - Multi-floor: add/remove floors, rename floor labels.
 - Pre-fill from a public OSM template when importing.
+- **Publish** action (share icon in AppBar): available for OSM-linked shops outside local-only mode. Calls `publishLayoutVersion`, appending the current grid to the community pool and updating the fast-path `public_shops/{osmId}` document.
 
 A `TourHintBanner` is shown at the bottom during tour step 0.
 
@@ -102,6 +106,8 @@ Two search modes (segmented button):
 Results are shown as a list of cards (or on a `flutter_map` map). Proximity distance from the user's home location is shown when available.
 
 Import action: opens `StoreEditorScreen` pre-filled with the result's data. Duplicate detection prevents importing a shop already within 0.2 km of an existing one.
+
+Each OSM result card also shows a **people icon** button that opens `CommunityLayoutsSheet` — a draggable modal bottom sheet listing community-contributed cell layouts for that OSM shop, ranked by import count. If no layouts exist, the sheet shows an empty state with a **Create** button. Selecting a layout (or tapping Create) opens `StoreEditorScreen` pre-filled accordingly.
 
 ---
 
@@ -149,5 +155,11 @@ flowchart TD
         SE1[Scaffold]
         SE2[StoreGrid]
         SE3[TourHintBanner]
+    end
+
+    subgraph CommunityLayoutsSheet["CommunityLayoutsSheet (modal)"]
+        CL1[DraggableScrollableSheet]
+        CL2["_LayoutCard ×N\n(FutureBuilder)"]
+        CL3["Empty state + Create button"]
     end
 ```

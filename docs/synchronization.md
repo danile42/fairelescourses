@@ -24,7 +24,8 @@ The app uses two storage layers in parallel.
 | `shops/{id}` | One document per shop, with a `householdHash` field | No |
 | `h/{householdHash}/l/{listId}` | One document per list, with a single `d` field containing the ciphertext | Yes |
 | `h/{householdHash}/nav/current` | Active collaborative navigation session | No |
-| `public_shops/{osmId}` | Shared cell layouts imported from OpenStreetMap | No |
+| `public_shops/{osmId}` | Latest cell layout for an OSM shop (fast-path auto-import) | No |
+| `public_shops/{osmId}/versions/{versionId}` | Community-contributed layout versions, ranked by import count | No |
 
 Hive is always the authoritative live state inside the app. Firestore is a sync medium, not the primary database.
 
@@ -60,14 +61,16 @@ graph TD
 
     FS --> shops["shops/{shopId}\n─────────────\nhouseholdHash\nname, cells, …\nownerUid"]
     FS --> h["h/{householdHash}"]
-    FS --> ps["public_shops/{osmId}\n─────────────\ncell layout only"]
+    FS --> ps["public_shops/{osmId}\n─────────────\ncell layout\n(fast-path)"]
 
     h --> l["l/{listId}\n─────────────\nd: &lt;ciphertext&gt;"]
     h --> nav["nav/current\n─────────────\nlistId\nstartedBy\nstartedAt"]
+    ps --> ver["versions/{versionId}\n─────────────\npublishedBy\nimportCount\nrows, cols, cells…"]
 
     style l fill:#fffbe6,stroke:#d4a000
     style shops fill:#f0f0f0,stroke:#888
     style ps fill:#f0f0f0,stroke:#888
+    style ver fill:#f0f0f0,stroke:#888
     style nav fill:#f0f0f0,stroke:#888
 ```
 
@@ -198,6 +201,66 @@ Switching the Firebase backend (entering custom Firebase credentials on the Sync
 
 ---
 
+## Community layouts
+
+Community layouts are cell-layout snapshots contributed by any user and browsable by any other user for the same OSM shop. They are stored in `public_shops/{osmId}/versions/` and are **not** tied to any household.
+
+### Data model
+
+Each version document contains:
+
+| Field | Content |
+|-------|---------|
+| `osmId` | OpenStreetMap node ID |
+| `publishedBy` | Firebase UID of the publisher |
+| `publishedAt` | Server timestamp |
+| `importCount` | How many times this version has been imported (incremented atomically) |
+| `shopName`, `address` | Display metadata |
+| `rows`, `cols`, `entrance`, `exit`, `cells` | Full cell layout |
+| `subcells` | Optional subcell assignments |
+| `floors` | Optional additional floors |
+
+The parent document `public_shops/{osmId}` (no subcollection) holds the **most recently published** layout in the same field format. It exists as a fast-path for auto-import when a user first adds an OSM shop — the app reads it once with `fetchPublicShop` and pre-populates the editor, without needing to query and rank the full versions subcollection.
+
+### Publish flow
+
+When a user publishes a layout from the store editor (`publishLayoutVersion`):
+
+1. A new document is appended to `public_shops/{osmId}/versions/` with `importCount: 0`.
+2. The flat `public_shops/{osmId}` document is overwritten with the same layout (keeping the fast-path current).
+
+Publishing always creates a new version; existing versions are never overwritten.
+
+### Browse and import flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App
+    participant Firestore
+
+    User->>App: tap community layouts icon (shop search)
+    App->>Firestore: query versions ordered by importCount desc, limit 20
+    Firestore-->>App: version list
+    App-->>User: bottom sheet — versions ranked by popularity
+
+    User->>App: tap "Use this layout"
+    App->>Firestore: increment importCount (atomic)
+    App->>App: open store editor pre-filled with chosen layout
+```
+
+The import count increment is fire-and-forget (`.ignore()`); a failure does not block the editor from opening.
+
+If no versions exist for the shop the bottom sheet shows an empty state with a **Create** button that opens the store editor directly, letting the user be the first to contribute.
+
+### Isolation and access control
+
+Community layouts are **global** — they are not filtered by household. Any authenticated user can read or write any `public_shops` document. There is no ownership check on individual versions.
+
+This is intentional: the purpose of the collection is cross-household sharing. The trade-off is that any authenticated user can publish a layout for any OSM shop. Abuse is limited by the anonymous-auth requirement (a Firebase account is always present) and by the fact that layouts contain only cell/aisle geometry — no personal data.
+
+---
+
 ## Security properties
 
 | Property | Mechanism |
@@ -206,5 +269,6 @@ Switching the Firebase backend (entering custom Firebase credentials on the Sync
 | Household ID not stored in plain text in Firestore | SHA-256 hash used as path and filter field |
 | Shops visible only to household members | `householdHash` filter (trusts the client) |
 | No server-side access control | The app relies on secrecy of the 6-character code; anyone with the code has full read/write access |
+| Community layouts are not confidential | `public_shops` is readable and writable by any authenticated user; layouts contain only aisle geometry, no personal data |
 
 The threat model assumes that the 6-character household code is kept within the household. There is no revocation mechanism: removing a device from a household requires changing the code on all remaining devices.

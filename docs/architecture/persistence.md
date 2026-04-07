@@ -15,6 +15,7 @@ flowchart TB
     subgraph Firestore["Firestore (remote, optional)"]
         FSShops[("shops/{shopId}")]
         FSPublic[("public_shops/{osmId}")]
+        FSVersions[("public_shops/{osmId}/versions/{versionId}")]
         FSLists[("h/{pathId}/l/{listId}")]
         FSNav[("h/{pathId}/nav/current")]
     end
@@ -24,7 +25,8 @@ flowchart TB
     ShoppingListNotifier -->|"reads/writes"| HiveLists
     ShoppingListNotifier -->|"syncs (household, encrypted)"| FSLists
     navSessionProvider -->|"streams"| FSNav
-    FirestoreService -.->|"read/write OSM templates"| FSPublic
+    FirestoreService -.->|"fast-path template read/write"| FSPublic
+    FirestoreService -.->|"community versions read/write"| FSVersions
 ```
 
 ---
@@ -107,9 +109,9 @@ Indexes used:
 - `nameLower` (range) — prefix search by shop name
 - `goodsList` (array-contains) — search by item name
 
-### `public_shops/{osmId}` — Community OSM templates
+### `public_shops/{osmId}` — Fast-path OSM template
 
-Unencrypted. Read by any user; written when a user imports a shop from OSM and has set up the grid.
+Unencrypted. Written (overwritten) each time a layout version is published via `upsertPublicCells`. Read by `fetchPublicShop` to auto-populate the editor when importing a new OSM shop, without needing to query the versions subcollection.
 
 ```
 {
@@ -122,6 +124,30 @@ Unencrypted. Read by any user; written when a user imports a shop from OSM and h
   updatedAt: Timestamp
 }
 ```
+
+### `public_shops/{osmId}/versions/{versionId}` — Community layout versions
+
+Unencrypted. One document per published layout. Documents are never overwritten — only appended. Any authenticated user may read or write.
+
+```
+{
+  osmId: int,
+  publishedBy: String,          // Firebase UID
+  publishedAt: Timestamp,
+  importCount: int,             // incremented atomically on each import
+  shopName: String,
+  address: String?,
+  rows: [String],
+  cols: [String],
+  entrance: String,
+  exit: String,
+  cells: Map<String, [String]>,
+  subcells: Map<String, [String]>?,   // omitted if empty
+  floors: [Map]?                      // omitted if single-floor
+}
+```
+
+Queried as: `orderBy('importCount', descending: true).limit(20)`.
 
 ### `h/{pathId}/l/{listId}` — Encrypted shopping lists
 

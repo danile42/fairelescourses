@@ -1,6 +1,6 @@
 # Fairelescourses — User guide
 
-**Version 0.9.25**
+**Version 0.9.27**
 
 Fairelescourses is a supermarket navigation assistant. You draw your shops as grids, assign goods to cells, and the app plans the shortest route through the store for your shopping list — so you never have to backtrack.
 
@@ -297,6 +297,30 @@ Tap a result to import it:
 - Draw or refine the grid, then tap **Save**.
 
 Each OSM result appears exactly once: if it's already in your list, it shows **Already defined** with a tap-to-edit action instead of an **Import** button.
+
+### 6.3 Community layouts
+
+Next to the **Create** button on each OSM result, a **people icon** (👥) opens the community layouts sheet — a list of cell-layout blueprints that other users have contributed for that exact shop.
+
+```mermaid
+flowchart LR
+    OSMCard["OSM shop card"] --> Icon["👥 icon"]
+    Icon --> Sheet["Community layouts sheet"]
+    Sheet --> Versions["Layout versions\n(ranked by imports)"]
+    Sheet --> Empty["No layouts yet\n→ Create button"]
+    Versions -->|"Tap Use"| Editor["StoreEditorScreen\n(pre-filled)"]
+    Empty -->|"Tap Create"| Editor
+```
+
+Layouts are ranked by how many times they have been imported — the most-used layout appears first. Each entry shows the grid size, number of floors, and how long ago it was published.
+
+Tapping **Use this layout** opens the shop editor pre-filled with that layout. You can adjust it before saving.
+
+If no community layouts exist yet, the sheet offers a **Create** button that opens the shop editor directly so you can be the first contributor.
+
+#### Publishing your own layout
+
+Once you have saved a shop that was imported from OpenStreetMap, a **share icon** appears in the shop editor's app bar (only for OSM shops, only outside local-only mode). Tap it to publish your current grid to the community pool. A new version is always added — existing versions contributed by others are never overwritten.
 
 Shop location data is from **OpenStreetMap contributors (ODbL)**.
 
