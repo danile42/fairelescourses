@@ -46,11 +46,12 @@ The app's root screen with a `TabController` for two tabs:
 Create or edit a shopping list.
 
 Key interactions:
-- Add items via a `TextField` + add button (or keyboard submit).
+- Add items via a `TextField` + add button (or keyboard submit). Any text left in the field when the user taps **Save** is automatically added to the list before persisting.
+- Each item has an optional **category** field. The rename dialog exposes both name and category; the category is pre-filled from the `item_categories` Hive box if a previous value was saved for that item name. On confirm, the mapping is written back to the box.
 - Remove items with a trailing delete icon.
 - Multi-select preferred stores via a chip list (drives planner store ordering).
 - **Generate plan** builds a `NavigationPlan` synchronously via `NavigationPlanner` and pushes `NavigationScreen`.
-- Unsaved changes trigger a confirmation dialog on back-press.
+- Unsaved changes (including pending text in the add-item field) trigger a confirmation dialog on back-press. Choosing **Save** from that dialog also flushes the pending text.
 
 A `TourHintBanner` is shown at the bottom during tour step 1.
 
@@ -94,10 +95,9 @@ Key features:
 
 Discover and import supermarkets.
 
-Three search modes (segmented button):
-1. **By name** — queries Firestore `shops` collection on `nameLower`.
-2. **By item** — queries Firestore `shops` collection on `goodsList` array field.
-3. **By location** — geocodes the query via Nominatim, then queries Overpass API for nearby shops, then cross-references Firestore for known layouts.
+Two search modes (segmented button):
+1. **By location** (default) — geocodes the query via Nominatim, then queries Overpass API for nearby shops, then cross-references Firestore for known layouts.
+2. **By item** — queries Firestore `shops` collection on the `goodsList` array field.
 
 Results are shown as a list of cards (or on a `flutter_map` map). Proximity distance from the user's home location is shown when available.
 

@@ -90,10 +90,15 @@ Pure Dart service — no I/O. Converts a `ShoppingList` + `List<Supermarket>` in
 flowchart TD
     A([Input: ShoppingList + List of Supermarkets]) --> B[Order stores: preferred first then rest]
     B --> C[For each item in list]
-    C --> D["Three-pass cell search\n1. Exact tag match\n2. All words match\n3. Substring match"]
+    C --> D["Three-pass cell search on item name:\n1. Exact tag match\n2. All words match\n3. Substring match"]
     D --> E{Found in a store?}
     E -->|yes| F[Assign item to first matching store]
-    E -->|no| G[Add to globalUnmatched]
+    E -->|no| Cat{Item has\ncategory?}
+    Cat -->|yes| D2["Three-pass cell search on category:\n1. Exact tag match\n2. All words match\n3. Substring match"]
+    D2 --> E2{Found?}
+    E2 -->|yes| F
+    E2 -->|no| G[Add to globalUnmatched]
+    Cat -->|no| G
     F --> H[For each store plan]
     G --> H
     H --> I[Group assigned items by cell]

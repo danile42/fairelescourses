@@ -550,3 +550,12 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - `_save()` now calls `_barKey.currentState?.submitCurrent()` before building the updated list, so any pending text is flushed into `_items` first.
     - Simplified the AppBar Save button: was showing the unsaved-changes dialog when `_pendingItemText` was true; now always calls `_save()` directly (pending text is added automatically).
     - The back-navigation dialog path (`onPopInvokedWithResult` → `_confirmUnsaved` → Save) already called `_save()`, so it gains the same behaviour for free.
+
+190. Update user doc and architecture docs according to the current state of the project. Keep the description in readme minimal and point to either user doc or architecture doc for details.
+    - README: replaced the long features list with a two-line summary + pointers to `docs/user-guide.md` and `docs/architecture/`; kept build/test/CI/LLM attribution sections.
+    - `docs/user-guide.md`: bumped version to 0.9.25; added item category and auto-add-on-save to §4.1; updated §4.2 (Rename now edits category too); replaced 3-mode shop search diagram with 2-mode (By location + By item, no By name); updated item-matching appendix flowchart to show the category-fallback pass.
+    - `docs/architecture/data-models.md`: added `category String?` to `ShoppingItem`; expanded model notes to explain dual role of category (display + matching fallback) and the `item_categories` Hive box.
+    - `docs/architecture/persistence.md`: added `item_categories` box to the Hive boxes table.
+    - `docs/architecture/screens-navigation.md`: updated ListEditorScreen to document auto-add-on-save and category pre-fill; updated ShopSearchScreen to 2 modes.
+    - `docs/architecture/services.md`: updated NavigationPlanner algorithm diagram to include the category-based fallback search.
+    - `docs/architecture/key-flows.md`: updated item matching flowchart (§5) to include category-fallback branch.

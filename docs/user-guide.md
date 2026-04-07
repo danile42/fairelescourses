@@ -1,6 +1,6 @@
 # Fairelescourses — User guide
 
-**Version 0.9.21**
+**Version 0.9.25**
 
 Fairelescourses is a supermarket navigation assistant. You draw your shops as grids, assign goods to cells, and the app plans the shortest route through the store for your shopping list — so you never have to backtrack.
 
@@ -150,12 +150,14 @@ Each floor has its own grid, entrance, and exit. New floors inherit the dimensio
 2. Give the list a name (e.g. "Weekly shop").
 3. Optionally, select one or more **preferred shops**. The navigation planner will try to match items to those shops first.
 4. Add items one by one in the field at the bottom. The app suggests goods from your shops as you type.
-5. Tap **Save**.
+   - Each item can have an optional **category** (e.g. "Dairy"). Tap the item after adding it to set or change the category.
+   - The app remembers the last category you assigned to each item name and pre-fills it automatically next time.
+5. Tap **Save**. Any text typed in the add-item field but not yet confirmed is automatically added to the list before saving.
 
 ### 4.2 Editing items
 
 Each item has a three-dot menu with:
-- **Rename** — edit the name, with autocomplete
+- **Rename** — edit the name and optional category, with autocomplete
 - **Delete** — remove from list
 - **Move to list** — transfer the item to a different list
 
@@ -262,32 +264,26 @@ When all items are resolved, a **Finish** button appears. Tapping it:
 
 ## 6. Finding shops
 
-The **search** icon in the app bar opens the shop search screen. You can discover shops from three sources:
+The **search** icon in the app bar opens the shop search screen. You can discover shops from two sources:
 
 ```mermaid
 flowchart LR
-    Search["🔍 Shop Search"] --> ByName["By Name\n(Firestore / local)"]
+    Search["🔍 Shop Search"] --> ByLocation["By Location\n(OpenStreetMap)"]
     Search --> ByItem["By Item\n(Firestore)"]
-    Search --> ByLocation["By Location\n(OpenStreetMap)"]
 
     ByLocation --> Map["Map view"]
     ByLocation --> ListResults["List view\n(with distance)"]
 
-    ByName --> Import["Import → Shop Editor"]
-    ByItem --> Import
+    ByItem --> Import["Import → Shop Editor"]
     Map --> Import
     ListResults --> Import
 ```
 
-### 6.1 Search by name
+### 6.1 Search by item
 
-Type at least two characters to search your household's shared shops and your local list. If a shop is already in your list, it shows **In your list** — tap to edit it.
+Search for a specific product (e.g. "tofu") to find Firestore shops that stock it. Results show shops from your household's shared Firestore pool that have that product tagged in a cell.
 
-### 6.2 Search by item
-
-Search for a specific product (e.g. "tofu") to find Firestore shops that stock it. Useful when you're looking for a speciality item.
-
-### 6.3 Search by location (OpenStreetMap)
+### 6.2 Search by location (OpenStreetMap)
 
 1. Set your home location in **Settings** first (enter your city or address and tap **Set**).
 2. Switch to **By location** mode.
@@ -458,11 +454,15 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    Item["Shopping list item\n(e.g. 'Butter')"] --> Pass1["Pass 1: exact match\n(case-insensitive)"]
+    Item["Shopping list item\n(e.g. 'Butter', category: 'Dairy')"] --> Pass1["Pass 1: exact match\n(case-insensitive)"]
     Pass1 -- Found --> Matched
     Pass1 -- Not found --> Pass2["Pass 2: all words match\n(ground floor first)"]
     Pass2 -- Found --> Matched
     Pass2 -- Not found --> Pass3["Pass 3: partial / substring match"]
     Pass3 -- Found --> Matched["✅ Matched to cell\n→ added to route"]
-    Pass3 -- Not found --> Unmatched["⚠️ Unmatched\n→ shown at end of route"]
+    Pass3 -- Not found --> Cat{Item has\ncategory?}
+    Cat -- No --> Unmatched["⚠️ Unmatched\n→ shown at end of route"]
+    Cat -- Yes --> Pass4["Passes 1–3 repeated\nusing the category as query\n(e.g. 'Dairy')"]
+    Pass4 -- Found --> Matched
+    Pass4 -- Not found --> Unmatched
 ```

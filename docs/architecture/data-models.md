@@ -67,6 +67,7 @@ classDiagram
         <<HiveType 1>>
         +name String
         +checked bool
+        +category String?
     }
 
     class NavigationPlan {
@@ -132,7 +133,13 @@ The central domain object. Represents a physical shop as a named 2D grid.
 
 ### ShoppingList / ShoppingItem
 
-A named list of grocery items with a `checked` flag per item. `preferredStoreIds` drives which shops the planner tries first.
+A named list of grocery items. Each `ShoppingItem` has a `name`, a `checked` flag, and an optional `category` string (e.g. `"Dairy"`). `preferredStoreIds` drives which shops the planner tries first.
+
+The category serves two purposes:
+1. **Display**: shown as a subtitle on the item tile in the list editor.
+2. **Matching fallback**: if the item name yields no cell match during route planning, the planner retries using the category as the search query (see [services.md](services.md) — NavigationPlanner).
+
+Categories are remembered per item name in the `item_categories` Hive box so the field is pre-filled automatically on re-entry.
 
 ### NavigationPlan (runtime)
 

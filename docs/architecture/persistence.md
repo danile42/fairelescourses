@@ -40,6 +40,7 @@ Hive is initialised in `main()` before the app starts. Adapters are registered v
 | `supermarkets` | `Box<Supermarket>` | 0 | All saved shop grids |
 | `shopping_lists` | `Box<ShoppingList>` | 2 (list), 1 (item) | All shopping lists |
 | `settings` | `Box<String>` | — (String primitives) | Key-value app settings |
+| `item_categories` | `Box<String>` | — (String primitives) | Item name → category mapping (key: lowercased item name) |
 
 ### Settings keys
 

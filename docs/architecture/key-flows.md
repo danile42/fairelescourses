@@ -169,10 +169,15 @@ sequenceDiagram
 flowchart TD
     A([Input: ShoppingList + List of Supermarkets]) --> B["Sort stores:\n1. Preferred stores\n2. Remaining stores"]
     B --> C[For each unchecked item]
-    C --> D["Three-pass cell search:\n1. Exact tag match\n2. All words match\n3. Substring match"]
+    C --> D["Three-pass cell search on item name:\n1. Exact tag match\n2. All words match\n3. Substring match"]
     D --> E{Found in a store?}
     E -->|yes| F[Assign to first matching store]
-    E -->|no| G[Add to globalUnmatched]
+    E -->|no| Cat{Item has\ncategory?}
+    Cat -->|yes| D2["Three-pass cell search on category"]
+    D2 --> E2{Found?}
+    E2 -->|yes| F
+    E2 -->|no| G[Add to globalUnmatched]
+    Cat -->|no| G
     F --> H[For each store with items]
     G --> H
     H --> I[Group items by cell ID]
