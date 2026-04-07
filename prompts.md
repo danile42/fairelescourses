@@ -15,7 +15,7 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 
 > **Note:** Prompts marked with 🤖 were handled by Junie (JetBrains' LLM agent); those marked with 👤 were handled by Claude Code (Claude Sonnet 4.6).
 
-1. *(Initial project setup — exact prompt not recorded; covered Firebase sync, shop grid editor, shopping lists, navigation planning, and OSM shop discovery)*
+1. 👤 *(Initial project setup — exact prompt not recorded; covered Firebase sync, shop grid editor, shopping lists, navigation planning, and OSM shop discovery)*
 
 2. 👤 Add Firebase sync, shop search, and location-based features.
 
@@ -628,3 +628,7 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - Updated the "Note" section in `prompts.md` to reflect the new visual clues: 🤖 for Junie and 👤 for Claude.
     - Replaced all existing `[J]` markers with 🤖 and prepended 👤 to prompts handled by Claude.
     - Added prompt #210 to `prompts.md`.
+
+211. 🤖 Prompt 1 was handled by Claude Code, too. Update prompts.md and commit.
+    - Added the 👤 emoji to Prompt 1 in `prompts.md` to indicate it was handled by Claude Code.
+    - Documented this change in Prompt 211.
