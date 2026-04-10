@@ -1,6 +1,6 @@
 #!/bin/bash
-# Commit script for Claude - signs commits with Claude as co-author
-# Usage: ./.claude/scripts/commit-as-claude.sh "commit message"
+# Commit script for GitHub Copilot - signs commits with Copilot as co-author
+# Usage: ./.claude/scripts/commit-as-copilot.sh "commit message"
 
 if [ -z "$1" ]; then
   echo "Usage: $0 \"commit message\""
@@ -14,4 +14,5 @@ message_with_coauthor=$(printf "%s\n\nCo-authored-by: GitHub Copilot <copilot-ag
 
 # Commit with the co-author trailer
 git commit -m "$message_with_coauthor"
+
 

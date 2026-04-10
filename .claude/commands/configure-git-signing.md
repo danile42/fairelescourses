@@ -1,19 +1,19 @@
-# Claude Commit Signing
+# GitHub Copilot Commit Signing
 
-When Claude (GitHub Copilot) makes commits, they should be attributed to the project author with Claude listed as a co-author.
+When GitHub Copilot makes commits, they should be attributed to the project author with Copilot listed as a co-author.
 
 ## How it works
 
 - Project user commits are made under **your** identity (configured locally)
-- Claude commits are made using the script `.claude/scripts/commit-as-claude.sh`, which adds a co-author trailer
+- Copilot commits are made using the script `.claude/scripts/commit-as-copilot.sh`, which adds a co-author trailer
 - GitHub automatically recognizes the `Co-authored-by:` trailer and displays both authors on the commit
 
-## For Claude: Making a commit
+## For Copilot: Making a commit
 
 Use the provided script instead of `git commit`:
 
 ```bash
-./.claude/scripts/commit-as-claude.sh "feat: description of the change
+./.claude/scripts/commit-as-copilot.sh "feat: description of the change
 
 - Detail 1
 - Detail 2"
