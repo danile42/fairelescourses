@@ -642,3 +642,10 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
     - Ensured sync listeners are properly terminated when switching to local-only mode in `firestore_sync_provider.dart`.
 
 214. 🤖 [J] Updated `improvement-analysis.md` to reflect the current project state: moved 5 items to "Resolved Issues" (Firebase initialization, household joining integrity, search memory leaks, stale navigation sessions, local-only mode transitions), refined "Collaborative Navigation State Sync", and added "OSM Search Rate Limiting" as a new potential issue.
+
+215. 👤 Fix the initial shop search near home location being empty with no retry button. Add a search button on demand (for all search modes). Place it on the same level as the "Near me" button but on the right.
+     - Fixed empty-search error handling: when OSM search fails (`_osmError != null`) during `byLocation` mode with "Near home", `_buildOsmStatusRow` with retry button is now displayed.
+     - Added manual search triggers for both modes: Search button (`Icons.search`) appears on the right side of the "Near me" filter row in byLocation mode; a second Search button appears in the input row for byItem mode.
+     - Removed automatic search on screen init; users now tap the Search button to start queries.
+     - Improved empty-state messaging: when no search has been performed, the results area shows "Press 🔍 to search." with an inline search icon, guiding users to use the button.
+     - Enhanced error resilience: retry button is now always visible when OSM queries fail, both during and after search completion, preventing users from getting stuck with empty results.

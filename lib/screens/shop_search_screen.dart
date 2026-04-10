@@ -564,59 +564,80 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                   ),
                   const SizedBox(width: 8),
                   _buildRadiusPicker(theme),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.search),
+                    onPressed: _nearMe ? () => _search('') : null,
+                  ),
                 ],
               ),
             ),
           if (!(_mode == _SearchMode.byLocation && _nearMe && homeLoc != null))
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-              child: Autocomplete<String>(
-                optionsBuilder: (tv) {
-                  if (_mode != _SearchMode.byItem || tv.text.trim().isEmpty) {
-                    return const [];
-                  }
-                  final q = tv.text.toLowerCase();
-                  return itemSuggestions
-                      .where((s) => s.toLowerCase().contains(q))
-                      .take(8);
-                },
-                onSelected: (value) {
-                  _debounce?.cancel();
-                  _search(value);
-                },
-                fieldViewBuilder: (context, ctrl, focusNode, onFieldSubmitted) {
-                  _autoCtrl = ctrl;
-                  return TextField(
-                    controller: ctrl,
-                    focusNode: focusNode,
-                    autofocus: _mode != _SearchMode.byLocation,
-                    decoration: InputDecoration(
-                      hintText: _mode == _SearchMode.byItem
-                          ? l.searchItemHint
-                          : l.locationSearchHint,
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: (_loading || _geocoding)
-                          ? const Padding(
-                              padding: EdgeInsets.all(12),
-                              child: SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Autocomplete<String>(
+                      optionsBuilder: (tv) {
+                        if (_mode != _SearchMode.byItem ||
+                            tv.text.trim().isEmpty) {
+                          return const [];
+                        }
+                        final q = tv.text.toLowerCase();
+                        return itemSuggestions
+                            .where((s) => s.toLowerCase().contains(q))
+                            .take(8);
+                      },
+                      onSelected: (value) {
+                        _debounce?.cancel();
+                        _search(value);
+                      },
+                      fieldViewBuilder:
+                          (context, ctrl, focusNode, onFieldSubmitted) {
+                            _autoCtrl = ctrl;
+                            return TextField(
+                              controller: ctrl,
+                              focusNode: focusNode,
+                              autofocus: _mode != _SearchMode.byLocation,
+                              decoration: InputDecoration(
+                                hintText: _mode == _SearchMode.byItem
+                                    ? l.searchItemHint
+                                    : l.locationSearchHint,
+                                prefixIcon: const Icon(Icons.search),
+                                suffixIcon: (_loading || _geocoding)
+                                    ? const Padding(
+                                        padding: EdgeInsets.all(12),
+                                        child: SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        ),
+                                      )
+                                    : null,
+                                border: const OutlineInputBorder(),
                               ),
-                            )
-                          : null,
-                      border: const OutlineInputBorder(),
+                              onChanged: _onChanged,
+                              textInputAction: TextInputAction.search,
+                              onSubmitted: (q) {
+                                _debounce?.cancel();
+                                if (q.trim().length >= 2) _search(q.trim());
+                              },
+                            );
+                          },
                     ),
-                    onChanged: _onChanged,
-                    textInputAction: TextInputAction.search,
-                    onSubmitted: (q) {
-                      _debounce?.cancel();
-                      if (q.trim().length >= 2) _search(q.trim());
-                    },
-                  );
-                },
+                  ),
+                  const SizedBox(width: 8),
+                  if (_mode == _SearchMode.byItem)
+                    IconButton(
+                      icon: const Icon(Icons.search),
+                      onPressed: (_autoCtrl?.text.trim().length ?? 0) >= 2
+                          ? () => _search(_autoCtrl!.text.trim())
+                          : null,
+                    ),
+                ],
               ),
             ),
           if (_mode == _SearchMode.byLocation ||
@@ -716,7 +737,38 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
 
     if (!_searched) {
       if (_mode == _SearchMode.byLocation && _nearMe) {
-        return const SizedBox.shrink();
+        // Show error/retry if search failed, otherwise show message to press search button
+        if (_osmError != null) {
+          return _buildOsmStatusRow(l, theme);
+        }
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.search, size: 48, color: Colors.grey.shade400),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Press ',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey, fontSize: 16),
+                    ),
+                    Icon(Icons.search, size: 18, color: Colors.grey.shade400),
+                    const Text(
+                      ' to search.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey, fontSize: 16),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
       }
       return Center(
         child: Text(
@@ -729,6 +781,11 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     final hasFirestore = filteredFirestore.isNotEmpty;
     final hasOsm = filteredOsm.isNotEmpty;
     final showOsmSection = hasOsm || _osmLoading || _osmError != null;
+
+    // If search completed but has no results and OSM had an error, show retry
+    if (!hasFirestore && !hasOsm && _osmError != null) {
+      return _buildOsmStatusRow(l, theme);
+    }
 
     if (!hasFirestore && !showOsmSection) {
       if (_selectedBrands.isNotEmpty) {
