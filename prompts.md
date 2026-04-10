@@ -401,3 +401,7 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 
 225. ⚙️ Remove remaining indented bullet points from prompt 83 (deeper indentation level).
 
+226. ⚙️ Document second exception in README: manual removal of a redundant [J] marker from prompts.md that GitHub Copilot was unable to locate.
+
+227. ⚙️ Correct README exception description: clarify that only one [J] marker had to be removed manually, not multiple.
+
