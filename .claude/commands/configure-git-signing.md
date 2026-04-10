@@ -21,7 +21,7 @@ Use the provided script instead of `git commit`:
 
 The script automatically adds:
 ```
-Co-authored-by: GitHub Copilot <copilot@github.com>
+Co-authored-by: GitHub Copilot <copilot-agent@users.noreply.github.com>
 ```
 
 ## For the project author: Making commits

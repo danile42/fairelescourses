@@ -10,7 +10,7 @@ fi
 commit_message="$1"
 
 # Add co-author trailer
-message_with_coauthor=$(printf "%s\n\nCo-authored-by: GitHub Copilot <copilot@github.com>" "$commit_message")
+message_with_coauthor=$(printf "%s\n\nCo-authored-by: GitHub Copilot <copilot-agent@users.noreply.github.com>" "$commit_message")
 
 # Commit with the co-author trailer
 git commit -m "$message_with_coauthor"
