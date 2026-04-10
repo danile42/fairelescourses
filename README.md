@@ -63,7 +63,7 @@ The human author provided product direction through natural-language prompts (se
 
 **Exceptions:** Two pieces of the codebase were not produced by an LLM:
 1. The workaround of placing the start-navigation test in a separate file (`test/widgets/home_screen_start_navigation_test.dart`) was devised by the human author after Claude Code was unable to find the solution through extensive debugging.
-2. Manual removal of redundant `[J]` markers from `prompts.md` — GitHub Copilot was unable to locate these markers programmatically despite multiple attempts.
+2. Manual removal of a redundant `[J]` marker from `prompts.md` — GitHub Copilot was unable to locate it programmatically despite multiple attempts.
 
 > **Note:** The numbering in `prompts.md` reflects the order in which the LLM logged the entries, which does not always match the exact order the prompts were given — especially toward the end of the file, where multi-session context compression occasionally caused entries to be recorded slightly out of sequence.
 
