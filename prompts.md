@@ -397,3 +397,7 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 
 223. ⚙️ Document manual correction made to prompts.md.
 
+224. ⚙️ Clean up prompts.md - remove all implementation descriptions (lines starting with indented bullet points) from all prompts. Keep only the original prompts given by the user.
+
+225. ⚙️ Remove remaining indented bullet points from prompt 83 (deeper indentation level).
+
