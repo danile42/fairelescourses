@@ -57,9 +57,9 @@ To enable Codecov on your fork:
 
 ## Written by LLMs
 
-Almost every line of code in this repository was written by LLM assistants — specifically **Claude Sonnet 4.6**, used via [Claude Code](https://claude.ai/claude-code) (Anthropic's CLI tool), and **Junie** (JetBrains' LLM agent). All documentation, including architecture docs and diagrams, was written by these LLM tools as well.
+Almost every line of code in this repository was written by LLM assistants — specifically **Claude Sonnet 4.6** (used via [Claude Code](https://claude.ai/claude-code)), **Junie** (JetBrains' LLM agent), and **GitHub Copilot**. All documentation, including architecture docs and diagrams, was written by these LLM tools as well.
 
-The human author provided product direction through natural-language prompts (see [`prompts.md`](prompts.md)) and reviewed the results on a device, but did not otherwise write, edit, or modify source code or documentation. The complete prompt history is preserved in `prompts.md`; prompts handled by Junie are marked with **[J]**.
+The human author provided product direction through natural-language prompts (see [`prompts.md`](prompts.md)) and reviewed the results on a device, but did not otherwise write, edit, or modify source code or documentation. The complete prompt history is preserved in `prompts.md`, with each entry marked to indicate which LLM handled it.
 
 > **Note:** The numbering in `prompts.md` reflects the order in which the LLM logged the entries, which does not always match the exact order the prompts were given — especially toward the end of the file, where multi-session context compression occasionally caused entries to be recorded slightly out of sequence.
 
