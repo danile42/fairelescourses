@@ -189,8 +189,6 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 82. 👤 It looks better now: after click on "Import", I briefly see "In your list", but the import seems to fail — Firestore PERMISSION_DENIED on `shops/{uuid}`.
 
 83. 👤 Good, that seems to work now. Add tests for these changes, if you didn't already. Then format, update prompts.md, and commit.
-      - `add with duplicate id replaces rather than appends` (upsert behaviour)
-      - Group `SupermarketNotifier – syncToFirestore: false` with 3 tests: `syncToFirestore:false` skips `upsertShop`, skips `upsertPublicCells`, but still updates local state.
 
 84. 👤 In list edit mode, list items should not be checkable — only in navigation mode. In navigation mode, unmatched items should also be checkable (with the assign-to-store button still present).
 
