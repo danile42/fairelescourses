@@ -13,7 +13,7 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 
 ## Prompt history
 
-> **Note:** Prompts marked with 🤖 were handled by Junie (JetBrains' LLM agent); those marked with 👤 were handled by Claude Code (Claude Sonnet 4.6).
+> **Note:** Prompts marked with 👤 were handled by Claude Code (Claude Sonnet 4.6); those marked with 🤖 were handled by Junie (JetBrains' LLM agent); those marked with ⚙️ were handled by GitHub Copilot.
 
 1. 👤 *(Initial project setup — exact prompt not recorded; covered Firebase sync, shop grid editor, shopping lists, navigation planning, and OSM shop discovery)*
 
@@ -643,36 +643,36 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 
 214. 🤖 [J] Updated `improvement-analysis.md` to reflect the current project state: moved 5 items to "Resolved Issues" (Firebase initialization, household joining integrity, search memory leaks, stale navigation sessions, local-only mode transitions), refined "Collaborative Navigation State Sync", and added "OSM Search Rate Limiting" as a new potential issue.
 
-215. 👤 Fix the initial shop search near home location being empty with no retry button. Add a search button on demand (for all search modes). Place it on the same level as the "Near me" button but on the right.
+215. ⚙️ Fix the initial shop search near home location being empty with no retry button. Add a search button on demand (for all search modes). Place it on the same level as the "Near me" button but on the right.
      - Fixed empty-search error handling: when OSM search fails (`_osmError != null`) during `byLocation` mode with "Near home", `_buildOsmStatusRow` with retry button is now displayed.
      - Added manual search triggers for both modes: Search button (`Icons.search`) appears on the right side of the "Near me" filter row in byLocation mode; a second Search button appears in the input row for byItem mode.
       - Removed automatic search on screen init; users now tap the Search button to start queries.
       - Improved empty-state messaging: when no search has been performed, the results area shows "Press 🔍 to search." with an inline search icon, guiding users to use the button.
       - Enhanced error resilience: retry button is now always visible when OSM queries fail, both during and after search completion, preventing users from getting stuck with empty results.
 
-216. 👤 Configure git to always sign commits under Claude/GitHub Copilot identity for this project.
+216. ⚙️ Configure git to always sign commits under Claude/GitHub Copilot identity for this project.
      - Created `.claude/commands/configure-git-signing.md` skill file documenting the setup procedure and verification steps.
      - Applied local git configuration: `user.name = "GitHub Copilot"`, `user.email = "copilot@github.com"`.
      - Future commits will automatically be attributed to GitHub Copilot.
 
-217. 👤 Correct the git signing approach: Claude should be listed as co-author (not main author) when Claude commits, but user commits remain under user identity.
+217. ⚙️ Correct the git signing approach: Claude should be listed as co-author (not main author) when Claude commits, but user commits remain under user identity.
      - Reset git config to project author's identity (`user.name = "daniel"`)
      - Created `.claude/scripts/commit-as-claude.sh` bash script that Claude uses for commits
      - Script automatically adds `Co-authored-by: GitHub Copilot <copilot@github.com>` trailer to commits
      - Updated `.claude/commands/configure-git-signing.md` with correct procedure: Claude uses the script, user commits normally
      - GitHub automatically recognizes the co-author trailer and displays both contributors on the commit
 
-218. 👤 Update GitHub Copilot co-author configuration with proper GitHub profile attribution.
+218. ⚙️ Update GitHub Copilot co-author configuration with proper GitHub profile attribution.
      - Changed co-author email to `copilot-agent@users.noreply.github.com` (corresponding to https://github.com/copilot-agent)
      - Updated both `commit-as-claude.sh` script and documentation
      - This enables GitHub to recognize Copilot contributions and list the profile as a contributor
 
-219. 👤 Rename commit script and update naming conventions.
+219. ⚙️ Rename commit script and update naming conventions.
      - Renamed `.claude/scripts/commit-as-claude.sh` to `.claude/scripts/commit-as-copilot.sh`
      - Updated script comments to reflect GitHub Copilot identity (not Claude-specific)
      - Updated documentation in `.claude/commands/configure-git-signing.md` to use "GitHub Copilot" branding
      - Future commits use the properly named script for clarity
 
-220. 👤 Clean up test reproduction file.
+220. ⚙️ Clean up test reproduction file.
      - Removed `test/repro_issue_test.dart` (test file created for issue reproduction, no longer needed)
 
