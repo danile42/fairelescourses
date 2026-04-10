@@ -646,6 +646,12 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 215. 👤 Fix the initial shop search near home location being empty with no retry button. Add a search button on demand (for all search modes). Place it on the same level as the "Near me" button but on the right.
      - Fixed empty-search error handling: when OSM search fails (`_osmError != null`) during `byLocation` mode with "Near home", `_buildOsmStatusRow` with retry button is now displayed.
      - Added manual search triggers for both modes: Search button (`Icons.search`) appears on the right side of the "Near me" filter row in byLocation mode; a second Search button appears in the input row for byItem mode.
-     - Removed automatic search on screen init; users now tap the Search button to start queries.
-     - Improved empty-state messaging: when no search has been performed, the results area shows "Press 🔍 to search." with an inline search icon, guiding users to use the button.
-     - Enhanced error resilience: retry button is now always visible when OSM queries fail, both during and after search completion, preventing users from getting stuck with empty results.
+      - Removed automatic search on screen init; users now tap the Search button to start queries.
+      - Improved empty-state messaging: when no search has been performed, the results area shows "Press 🔍 to search." with an inline search icon, guiding users to use the button.
+      - Enhanced error resilience: retry button is now always visible when OSM queries fail, both during and after search completion, preventing users from getting stuck with empty results.
+
+216. 👤 Configure git to always sign commits under Claude/GitHub Copilot identity for this project.
+     - Created `.claude/commands/configure-git-signing.md` skill file documenting the setup procedure and verification steps.
+     - Applied local git configuration: `user.name = "GitHub Copilot"`, `user.email = "copilot@github.com"`.
+     - Future commits will automatically be attributed to GitHub Copilot.
+
