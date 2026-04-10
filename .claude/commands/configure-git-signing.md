@@ -1,52 +1,50 @@
-# Configure Git Signing for Claude
+# Claude Commit Signing
 
-Ensure all commits are signed with Claude's identity.
+When Claude (GitHub Copilot) makes commits, they should be attributed to the project author with Claude listed as a co-author.
 
-## Setup
+## How it works
 
-Run once to configure:
+- Project user commits are made under **your** identity (configured locally)
+- Claude commits are made using the script `.claude/scripts/commit-as-claude.sh`, which adds a co-author trailer
+- GitHub automatically recognizes the `Co-authored-by:` trailer and displays both authors on the commit
+
+## For Claude: Making a commit
+
+Use the provided script instead of `git commit`:
 
 ```bash
-git config user.name "GitHub Copilot"
-git config user.email "copilot@github.com"
-git config commit.gpgSign false  # We sign via author metadata, not GPG
+./.claude/scripts/commit-as-claude.sh "feat: description of the change
+
+- Detail 1
+- Detail 2"
+```
+
+The script automatically adds:
+```
+Co-authored-by: GitHub Copilot <copilot@github.com>
+```
+
+## For the project author: Making commits
+
+Use `git commit` normally under your own identity:
+
+```bash
+git config --local user.name  # Should show your name
+git config --local user.email # Should show your email
+git commit -m "message"
 ```
 
 ## Verification
 
-To verify configuration:
+Check that git is using your identity (not Claude's):
 
 ```bash
 git config --local user.name
 git config --local user.email
 ```
 
-Expected output:
-```
-GitHub Copilot
-copilot@github.com
-```
+## Reference
 
-## Auto-apply on project setup
-
-Add this to your project initialization script or to `pubspec.yaml` post-gen hook if needed.
-
-## Commit template (optional)
-
-Create `.gitmessage` template with commit format guidelines:
-
-```
-feat/fix/docs/refactor: short summary (50 chars max)
-
-- Detailed change 1
-- Detailed change 2
-
-Fixes: (GitHub issue if applicable)
-```
-
-Then apply:
-```bash
-git config commit.template .gitmessage
-```
+- [GitHub Co-authored commits](https://docs.github.com/en/pull-requests/committing-changes-to-your-project/creating-and-editing-commits/creating-a-commit-with-multiple-authors)
 
 

@@ -655,3 +655,10 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
      - Applied local git configuration: `user.name = "GitHub Copilot"`, `user.email = "copilot@github.com"`.
      - Future commits will automatically be attributed to GitHub Copilot.
 
+217. 👤 Correct the git signing approach: Claude should be listed as co-author (not main author) when Claude commits, but user commits remain under user identity.
+     - Reset git config to project author's identity (`user.name = "daniel"`)
+     - Created `.claude/scripts/commit-as-claude.sh` bash script that Claude uses for commits
+     - Script automatically adds `Co-authored-by: GitHub Copilot <copilot@github.com>` trailer to commits
+     - Updated `.claude/commands/configure-git-signing.md` with correct procedure: Claude uses the script, user commits normally
+     - GitHub automatically recognizes the co-author trailer and displays both contributors on the commit
+
