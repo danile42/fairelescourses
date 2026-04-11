@@ -407,3 +407,5 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 
 228. ⚙️ The text "Press (icon) to search" should be localized. Also, collaborative navigation should not be shown as running when I have collected all items and finished the tour.
 
+229. ⚙️ Fix deleted lists reappearing: replace the local `deleted_list_ids` Hive box with a Firestore tombstone (`{deleted: true}`). `deleteList` now writes this document instead of deleting it; `listsStream` surfaces tombstones as `ShoppingList(deleted: true)`; `syncFromRemote` removes the local copy when it sees a tombstone, and skips re-uploading it. The `_deletedBox` / `deletedListIdsBoxProvider` and the `deleted_list_ids` Hive box have been removed entirely. Added `@HiveField(4) bool deleted` to `ShoppingList`, updated `shopping_list.g.dart` manually. Updated tests: removed old `deleted_list_ids`-based tests, added three new tombstone tests.
+

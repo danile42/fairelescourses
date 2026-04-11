@@ -266,8 +266,15 @@ class FirestoreService {
   Future<void> upsertList(String hid, ShoppingList l) =>
       _lists(hid).doc(l.id).set({'d': _encrypt(hid, l.toMap())});
 
+  /// Marks the list as deleted in Firestore by writing a lightweight tombstone
+  /// document (`{deleted: true}`).  The encrypted payload is intentionally
+  /// omitted so no list content is retained after deletion.
+  ///
+  /// When other household members sync, [listsStream] surfaces the tombstone as
+  /// a [ShoppingList] with `deleted == true`, which causes [syncFromRemote] to
+  /// delete their local copy instead of re-uploading it.
   Future<void> deleteList(String hid, String id) =>
-      _lists(hid).doc(id).delete();
+      _lists(hid).doc(id).set({'deleted': true});
 
   // ── Collaborative navigation session ─────────────────────────────────────
 
@@ -309,10 +316,22 @@ class FirestoreService {
       _lists(hid).snapshots().map((snap) {
         final lists = <ShoppingList>[];
         for (final d in snap.docs) {
-          try {
+          final data = d.data();
+          // Tombstone: another device deleted this list.
+          if (data['deleted'] == true) {
             lists.add(
-              ShoppingList.fromMap(_decrypt(hid, d.data()['d'] as String)),
+              ShoppingList(
+                id: d.id,
+                name: '',
+                preferredStoreIds: [],
+                items: [],
+                deleted: true,
+              ),
             );
+            continue;
+          }
+          try {
+            lists.add(ShoppingList.fromMap(_decrypt(hid, data['d'] as String)));
           } catch (e) {
             debugPrint('listsStream: skipping corrupt document ${d.id}: $e');
           }

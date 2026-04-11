@@ -27,7 +27,6 @@ void main() async {
   await Hive.openBox<ShoppingList>('shopping_lists');
   await Hive.openBox<String>('settings');
   await Hive.openBox<String>('item_categories');
-  await Hive.openBox<String>('deleted_list_ids');
 
   // Sign in anonymously on whichever Firebase app is configured
   // (initializes the custom named app if credentials are saved in Hive).

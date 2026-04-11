@@ -58,11 +58,17 @@ class ShoppingList extends HiveObject {
   @HiveField(3)
   List<ShoppingItem> items;
 
+  /// When `true` this list has been deleted.  During sync, other devices will
+  /// remove their local copy instead of re-uploading it.
+  @HiveField(4)
+  bool deleted;
+
   ShoppingList({
     required this.id,
     required this.name,
     required this.preferredStoreIds,
     required this.items,
+    this.deleted = false,
   });
 
   int get checkedCount => items.where((i) => i.checked).length;
@@ -72,6 +78,7 @@ class ShoppingList extends HiveObject {
     'name': name,
     'preferredStoreIds': preferredStoreIds,
     'items': items.map((i) => i.toMap()).toList(),
+    if (deleted) 'deleted': true,
   };
 
   factory ShoppingList.fromMap(Map<String, dynamic> m) => ShoppingList(
@@ -81,16 +88,19 @@ class ShoppingList extends HiveObject {
     items: (m['items'] as List? ?? [])
         .map((i) => ShoppingItem.fromMap(i as Map<String, dynamic>))
         .toList(),
+    deleted: m['deleted'] as bool? ?? false,
   );
 
   ShoppingList copyWith({
     String? name,
     List<String>? preferredStoreIds,
     List<ShoppingItem>? items,
+    bool? deleted,
   }) => ShoppingList(
     id: id,
     name: name ?? this.name,
     preferredStoreIds: preferredStoreIds ?? this.preferredStoreIds,
     items: items ?? this.items,
+    deleted: deleted ?? this.deleted,
   );
 }

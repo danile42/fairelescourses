@@ -342,20 +342,25 @@ void main() {
       ).called(greaterThanOrEqualTo(1));
     });
 
-    test('does not restore lists that have been explicitly deleted', () async {
-      final deletedBox = Hive.box<String>('deleted_list_ids');
+    test('does not restore lists that are tombstoned in remote', () async {
+      // Pre-populate a local copy of the list that was deleted on another device.
+      await box.put('deleted-list', makeList('deleted-list', ['Item']));
       final mock = MockFirestoreService();
       when(() => mock.upsertList(any(), any())).thenAnswer((_) async {});
       when(() => mock.deleteList(any(), any())).thenAnswer((_) async {});
       final container = makeContainerWithHousehold(box, mock);
       addTearDown(container.dispose);
 
-      // Mark 'deleted-list' as deleted
-      await deletedBox.put('deleted-list', 'deleted-list');
-
-      // Try to sync with a remote that includes the deleted list
+      // Remote sends a tombstone (deleted: true) for 'deleted-list'.
+      final tombstone = ShoppingList(
+        id: 'deleted-list',
+        name: '',
+        preferredStoreIds: [],
+        items: [],
+        deleted: true,
+      );
       await container.read(shoppingListsProvider.notifier).syncFromRemote([
-        makeList('deleted-list', ['Item']),
+        tombstone,
         makeList('remote-1', ['Remote Item']),
       ]);
 
@@ -363,7 +368,7 @@ void main() {
       expect(
         all.any((l) => l.id == 'deleted-list'),
         isFalse,
-        reason: 'explicitly deleted list must not be restored',
+        reason: 'tombstoned list must be removed locally',
       );
       expect(
         all.any((l) => l.id == 'remote-1'),
@@ -372,35 +377,65 @@ void main() {
       );
     });
 
-    test('clears deletion tracking after sync completes', () async {
-      final deletedBox = Hive.box<String>('deleted_list_ids');
+    test('does not re-upload tombstoned lists', () async {
       final mock = MockFirestoreService();
       when(() => mock.upsertList(any(), any())).thenAnswer((_) async {});
       when(() => mock.deleteList(any(), any())).thenAnswer((_) async {});
       final container = makeContainerWithHousehold(box, mock);
       addTearDown(container.dispose);
 
-      // Mark 'deleted-list' as deleted
-      await deletedBox.put('deleted-list', 'deleted-list');
-
-      // Sync once to clear the tracking
-      await container.read(shoppingListsProvider.notifier).syncFromRemote([
-        makeList('remote-1', ['Remote Item']),
-      ]);
-
-      // Now sync again with the deleted list in remote
-      await container.read(shoppingListsProvider.notifier).syncFromRemote([
-        makeList('deleted-list', ['Item']),
-        makeList('remote-1', ['Remote Item']),
-      ]);
-
-      final all = container.read(shoppingListsProvider);
-      expect(
-        all.any((l) => l.id == 'deleted-list'),
-        isTrue,
-        reason:
-            'deleted list should be restored if it reappears after deletion tracking clears',
+      // Remote sends only a tombstone – no local copy exists.
+      final tombstone = ShoppingList(
+        id: 'gone',
+        name: '',
+        preferredStoreIds: [],
+        items: [],
+        deleted: true,
       );
+      await container.read(shoppingListsProvider.notifier).syncFromRemote([
+        tombstone,
+      ]);
+
+      await Future<void>.delayed(Duration.zero);
+
+      // upsertList must never be called for the tombstone.
+      verifyNever(() => mock.upsertList('hh-test', any()));
     });
+
+    test(
+      'tombstone persists across multiple syncs without reappearing',
+      () async {
+        await box.put('deleted-list', makeList('deleted-list', ['Item']));
+        final mock = MockFirestoreService();
+        when(() => mock.upsertList(any(), any())).thenAnswer((_) async {});
+        when(() => mock.deleteList(any(), any())).thenAnswer((_) async {});
+        final container = makeContainerWithHousehold(box, mock);
+        addTearDown(container.dispose);
+
+        final tombstone = ShoppingList(
+          id: 'deleted-list',
+          name: '',
+          preferredStoreIds: [],
+          items: [],
+          deleted: true,
+        );
+
+        // First sync removes the local copy.
+        await container.read(shoppingListsProvider.notifier).syncFromRemote([
+          tombstone,
+        ]);
+        // Second sync (tombstone still in remote) – should not re-add it.
+        await container.read(shoppingListsProvider.notifier).syncFromRemote([
+          tombstone,
+        ]);
+
+        final all = container.read(shoppingListsProvider);
+        expect(
+          all.any((l) => l.id == 'deleted-list'),
+          isFalse,
+          reason: 'tombstoned list must stay gone across multiple syncs',
+        );
+      },
+    );
   });
 }
