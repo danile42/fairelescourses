@@ -775,46 +775,39 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     }
 
     if (!_searched) {
-      if (_mode == _SearchMode.byLocation && _nearMe) {
-        // Show error/retry if search failed, otherwise show message to press search button
-        if (_osmError != null) {
-          return _buildOsmStatusRow(l, theme);
-        }
-        return Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.search, size: 48, color: Colors.grey.shade400),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      l.searchPromptBeforeIcon,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.grey, fontSize: 16),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(Icons.search, size: 18, color: Colors.grey.shade400),
-                    const SizedBox(width: 4),
-                    Text(
-                      l.searchPromptAfterIcon,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.grey, fontSize: 16),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
+      // Show OSM status in location mode, otherwise show the same
+      // "press search" hint in both search modes.
+      if (_mode == _SearchMode.byLocation && _osmError != null) {
+        return _buildOsmStatusRow(l, theme);
       }
       return Center(
-        child: Text(
-          l.searchShopsMinChars,
-          style: const TextStyle(color: Colors.grey),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.search, size: 48, color: Colors.grey.shade400),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    l.searchPromptBeforeIcon,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.grey, fontSize: 16),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(Icons.search, size: 18, color: Colors.grey.shade400),
+                  const SizedBox(width: 4),
+                  Text(
+                    l.searchPromptAfterIcon,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.grey, fontSize: 16),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       );
     }

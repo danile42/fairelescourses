@@ -429,3 +429,6 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 238. ⚙️ Run the /finish-feature procedure that you find in Claude commands.
 
 239. ⚙️ Refined manual shop search execution in location mode: prevent duplicate search buttons when home location is set, debounce button-triggered searches to avoid rapid duplicate requests, and added a widget test covering the single-button behavior.
+
+240. ⚙️ In shop search, show the same "Press (icon) to search" pre-search hint not only for near-me/location mode but also for typed location and by-item mode.
+
