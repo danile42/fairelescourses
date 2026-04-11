@@ -209,6 +209,23 @@ void main() {
   });
 
   group('ShopSearchScreen – By item search', () {
+    testWidgets('typing in By item does not auto-search', (tester) async {
+      final svc = _mockSvc();
+      await tester.pumpWidget(_wrap(mockService: svc));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('By item'));
+      await tester.pumpAndSettle();
+
+      final itemField = find.byWidgetPredicate(
+        (w) => w is TextField && w.decoration?.hintText == 'Type an item name…',
+      );
+      await tester.enterText(itemField, 'milk');
+      await tester.pumpAndSettle();
+
+      verifyNever(() => svc.searchByItem(any()));
+    });
+
     testWidgets('searching by item calls searchByItem', (tester) async {
       final svc = _mockSvc();
       await tester.pumpWidget(_wrap(mockService: svc));
@@ -217,8 +234,16 @@ void main() {
       await tester.tap(find.text('By item'));
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.byType(TextField), 'milk');
-      await tester.pump(const Duration(milliseconds: 500));
+      final itemField = find.byWidgetPredicate(
+        (w) => w is TextField && w.decoration?.hintText == 'Type an item name…',
+      );
+      await tester.enterText(itemField, 'milk');
+      await tester.pump();
+      final button = tester.widget<IconButton>(
+        find.byKey(const Key('shopSearchExecuteButton')),
+      );
+      expect(button.onPressed, isNotNull);
+      await tester.tap(find.byKey(const Key('shopSearchExecuteButton')));
       await tester.pumpAndSettle();
 
       verify(() => svc.searchByItem('milk')).called(1);
@@ -227,17 +252,30 @@ void main() {
     testWidgets('By item no results shows advisory text, not Create shop', (
       tester,
     ) async {
-      await tester.pumpWidget(_wrap());
+      final svc = _mockSvc();
+      await tester.pumpWidget(_wrap(mockService: svc));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('By item'));
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.byType(TextField), 'milk');
-      await tester.pump(const Duration(milliseconds: 500));
+      final itemField = find.byWidgetPredicate(
+        (w) => w is TextField && w.decoration?.hintText == 'Type an item name…',
+      );
+      await tester.enterText(itemField, 'milk');
+      await tester.pump();
+      expect(
+        tester
+            .widget<IconButton>(
+              find.byKey(const Key('shopSearchExecuteButton')),
+            )
+            .onPressed,
+        isNotNull,
+      );
+      await tester.tap(find.byKey(const Key('shopSearchExecuteButton')));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Try searching by location'), findsOneWidget);
+      verify(() => svc.searchByItem('milk')).called(1);
       expect(find.text('New shop'), findsNothing);
     });
 
@@ -253,10 +291,23 @@ void main() {
       await tester.tap(find.text('By item'));
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.byType(TextField), 'milk');
-      await tester.pump(const Duration(milliseconds: 500));
+      final itemField = find.byWidgetPredicate(
+        (w) => w is TextField && w.decoration?.hintText == 'Type an item name…',
+      );
+      await tester.enterText(itemField, 'milk');
+      await tester.pump();
+      expect(
+        tester
+            .widget<IconButton>(
+              find.byKey(const Key('shopSearchExecuteButton')),
+            )
+            .onPressed,
+        isNotNull,
+      );
+      await tester.tap(find.byKey(const Key('shopSearchExecuteButton')));
       await tester.pumpAndSettle();
 
+      verify(() => svc.searchByItem('milk')).called(1);
       expect(find.text('Rewe Berlin'), findsOneWidget);
     });
 
@@ -273,15 +324,53 @@ void main() {
       await tester.tap(find.text('By item'));
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.byType(TextField), 'milk');
-      await tester.pump(const Duration(milliseconds: 500));
+      final itemField = find.byWidgetPredicate(
+        (w) => w is TextField && w.decoration?.hintText == 'Type an item name…',
+      );
+      await tester.enterText(itemField, 'milk');
+      await tester.pump();
+      expect(
+        tester
+            .widget<IconButton>(
+              find.byKey(const Key('shopSearchExecuteButton')),
+            )
+            .onPressed,
+        isNotNull,
+      );
+      await tester.tap(find.byKey(const Key('shopSearchExecuteButton')));
       await tester.pumpAndSettle();
 
+      verify(() => svc.searchByItem('milk')).called(1);
       expect(find.text('In your list'), findsOneWidget);
     });
   });
 
   group('ShopSearchScreen – By location', () {
+    testWidgets('near-me interactions do not auto-search', (tester) async {
+      final svc = _mockSvc();
+      await tester.pumpWidget(
+        _wrap(
+          mockService: svc,
+          homeLocation: const HomeLocation(
+            address: 'Berlin',
+            lat: 52.52,
+            lng: 13.405,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      verifyNever(() => svc.searchNearby(any(), any(), any()));
+
+      await tester.tap(find.byType(FilterChip).first);
+      await tester.pumpAndSettle();
+      verifyNever(() => svc.searchNearby(any(), any(), any()));
+
+      await tester.tap(find.byType(FilterChip).first);
+      await tester.pumpAndSettle();
+      verifyNever(() => svc.searchNearby(any(), any(), any()));
+    });
+
     testWidgets('By location without home shows no-location-set message', (
       tester,
     ) async {

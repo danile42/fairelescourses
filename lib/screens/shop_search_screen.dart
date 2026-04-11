@@ -87,6 +87,9 @@ class ShopSearchScreen extends ConsumerStatefulWidget {
   ConsumerState<ShopSearchScreen> createState() => _ShopSearchScreenState();
 }
 
+const _executeSearchButtonKey = Key('shopSearchExecuteButton');
+const _retrySearchButtonKey = Key('shopSearchRetryButton');
+
 class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
   TextEditingController? _autoCtrl;
   List<ShopSearchResult> _firestoreResults = [];
@@ -104,9 +107,9 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
   Set<OsmShopCategory> _selectedCategories = {osmShopCategories[0]};
   Set<String> _selectedBrands = {};
   String? _osmNameFilter;
+  String _draftQuery = '';
   bool _showMap = false;
   int _osmRadiusMeters = 2000;
-  Timer? _debounce;
   Timer? _retryTimer;
   int _retrySecondsLeft = 0;
 
@@ -145,7 +148,6 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
 
   @override
   void dispose() {
-    _debounce?.cancel();
     _retryTimer?.cancel();
     super.dispose();
   }
@@ -164,6 +166,48 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     _showMap = false;
   }
 
+  void _resetVisibleResults({bool preserveLastLocation = true}) {
+    _retryTimer?.cancel();
+    _firestoreResults = [];
+    _osmResults = [];
+    _loading = false;
+    _searched = false;
+    _geocoding = false;
+    _osmLoading = false;
+    _networkError = null;
+    _osmError = null;
+    _selectedBrands = {};
+    _osmNameFilter = null;
+    _showMap = false;
+    _retrySecondsLeft = 0;
+    if (!preserveLastLocation) {
+      _lastLat = null;
+      _lastLng = null;
+    }
+  }
+
+  bool _canExecuteSearch(HomeLocation? homeLoc) {
+    if (_mode == _SearchMode.byLocation && _nearMe && homeLoc != null) {
+      return true;
+    }
+    return _draftQuery.length >= 2;
+  }
+
+  Future<void> _runSearchFromCurrentInput() async {
+    final homeLoc = ref.read(homeLocationProvider);
+    if (_mode == _SearchMode.byLocation && _nearMe && homeLoc != null) {
+      await _search('');
+      return;
+    }
+    final query = _draftQuery;
+    if (query.length < 2) {
+      if (!mounted) return;
+      setState(() => _resetVisibleResults());
+      return;
+    }
+    await _search(query);
+  }
+
   bool get _hasMapData {
     if (!_searched) return false;
     return _firestoreResults.any(
@@ -173,13 +217,11 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
   }
 
   void _onChanged(String q) {
-    _debounce?.cancel();
-    final query = q.trim();
-    if (query.length < 2) {
-      setState(_clearResults);
-      return;
-    }
-    _debounce = Timer(const Duration(milliseconds: 400), () => _search(query));
+    if (!mounted) return;
+    setState(() {
+      _draftQuery = q.trim();
+      _resetVisibleResults();
+    });
   }
 
   Future<void> _search(String q) async {
@@ -414,12 +456,9 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
     _autoCtrl?.clear();
     setState(() {
       _mode = mode;
+      _draftQuery = '';
       _clearResults();
     });
-    if (mode == _SearchMode.byLocation) {
-      final home = ref.read(homeLocationProvider);
-      if (_nearMe && home != null) _search('');
-    }
   }
 
   Future<void> _import(BuildContext context, Supermarket source) async {
@@ -554,11 +593,11 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                     onSelected: (val) {
                       setState(() {
                         _nearMe = val;
-                        _clearResults();
+                        _resetVisibleResults();
                       });
                       if (val) {
                         _autoCtrl?.clear();
-                        _search('');
+                        _draftQuery = '';
                       }
                     },
                   ),
@@ -566,8 +605,11 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                   _buildRadiusPicker(theme),
                   const Spacer(),
                   IconButton(
+                    key: _executeSearchButtonKey,
                     icon: const Icon(Icons.search),
-                    onPressed: _nearMe ? () => _search('') : null,
+                    onPressed: _canExecuteSearch(homeLoc)
+                        ? _runSearchFromCurrentInput
+                        : null,
                   ),
                 ],
               ),
@@ -589,10 +631,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                             .where((s) => s.toLowerCase().contains(q))
                             .take(8);
                       },
-                      onSelected: (value) {
-                        _debounce?.cancel();
-                        _search(value);
-                      },
+                      onSelected: (_) => _onChanged(_autoCtrl?.text ?? ''),
                       fieldViewBuilder:
                           (context, ctrl, focusNode, onFieldSubmitted) {
                             _autoCtrl = ctrl;
@@ -620,23 +659,19 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                                 border: const OutlineInputBorder(),
                               ),
                               onChanged: _onChanged,
-                              textInputAction: TextInputAction.search,
-                              onSubmitted: (q) {
-                                _debounce?.cancel();
-                                if (q.trim().length >= 2) _search(q.trim());
-                              },
+                              textInputAction: TextInputAction.done,
                             );
                           },
                     ),
                   ),
                   const SizedBox(width: 8),
-                  if (_mode == _SearchMode.byItem)
-                    IconButton(
-                      icon: const Icon(Icons.search),
-                      onPressed: (_autoCtrl?.text.trim().length ?? 0) >= 2
-                          ? () => _search(_autoCtrl!.text.trim())
-                          : null,
-                    ),
+                  IconButton(
+                    key: _executeSearchButtonKey,
+                    icon: const Icon(Icons.search),
+                    onPressed: _canExecuteSearch(homeLoc)
+                        ? _runSearchFromCurrentInput
+                        : null,
+                  ),
                 ],
               ),
             ),
@@ -1288,7 +1323,6 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
           _osmError = null;
         });
         _persistFilters();
-        if (_lastLat != null) _retryOsm();
       },
       itemBuilder: (ctx) => osmShopCategories
           .map(
@@ -1321,7 +1355,6 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                   _osmError = null;
                 });
                 _persistFilters();
-                if (_lastLat != null) _retryOsm();
               }
             : null,
         onPressed: null,
@@ -1342,7 +1375,6 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
           _osmError = null;
         });
         _persistFilters();
-        if (_lastLat != null) _retryOsm();
       },
       itemBuilder: (ctx) => _radiusOptions
           .map(
@@ -1407,6 +1439,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
               ),
             ),
           TextButton.icon(
+            key: _retrySearchButtonKey,
             onPressed: cooling ? null : _retryOsm,
             icon: const Icon(Icons.refresh, size: 18),
             label: Text(cooling ? '${l.retry} ($_retrySecondsLeft)' : l.retry),

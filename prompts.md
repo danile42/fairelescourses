@@ -416,4 +416,16 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 
 232. ⚙️ Commit mit der bekannten Prozedur (/finish-feature).
 
+233. ⚙️ Update user and architecture docs.
+
+234. ⚙️ Yes, do that. *(Follow-up to also align `README.md` terminology with the updated docs.)*
+
+235. ⚙️ Commit as Copilot.
+
+236. ⚙️ Update prompts for the latest changes.
+
+237. ⚙️ Do not start any search before the user hits the search button. Only the search or retry buttons should execute the search (in any mode).
+
+238. ⚙️ Run the /finish-feature procedure that you find in Claude commands.
+
 
