@@ -432,3 +432,14 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 
 240. ⚙️ In shop search, show the same "Press (icon) to search" pre-search hint not only for near-me/location mode but also for typed location and by-item mode.
 
+241. ⚙️ When I navigate and some or all items are not found in shops, I can still check them off - that is good. When I check off the last item, I want to be able to finish (by button click) as if I navigation was running.
+
+242. ⚙️ Add committing as the currently active LLM here.
+
+243. ⚙️ prompts.md should always be updated with the correct marker for the currently active LLM.
+
+244. ⚙️ The marker should be taken from prompts.md - remove the example for Junie.
+
+245. ⚙️ prompts.md should be updated only with the relevant prompts, not an additional description of what was done.
+
+246. ⚙️ Run finish-feature.

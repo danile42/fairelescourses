@@ -737,6 +737,11 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen>
                 !_navigatedUnmatched.contains(i),
           )
           .toList();
+      final allUnmatchedHandled = stillUnmatched.every(
+        (item) => _checkedUnmatched.contains(item),
+      );
+      final canFinishNoStorePlan =
+          _resolvedUnmatched.isEmpty && allUnmatchedHandled;
       return Scaffold(
         appBar: AppBar(
           title: Text(l.navigationTitle),
@@ -892,6 +897,14 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen>
                 ),
               ],
             ],
+          ),
+        ),
+        bottomNavigationBar: SafeArea(
+          minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          child: OutlinedButton.icon(
+            onPressed: canFinishNoStorePlan ? _finishTour : null,
+            icon: const Icon(Icons.check),
+            label: Text(l.finish),
           ),
         ),
       );

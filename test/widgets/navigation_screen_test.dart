@@ -891,6 +891,32 @@ void main() {
       expect(find.text('Butter'), findsOneWidget);
     });
 
+    testWidgets('finish button is disabled until all unmatched are checked', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap(emptyStorePlan()));
+      await tester.pumpAndSettle();
+
+      final finishButton = tester.widget<OutlinedButton>(
+        find.widgetWithText(OutlinedButton, 'Finish'),
+      );
+      expect(finishButton.onPressed, isNull);
+
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pumpAndSettle();
+      final stillDisabled = tester.widget<OutlinedButton>(
+        find.widgetWithText(OutlinedButton, 'Finish'),
+      );
+      expect(stillDisabled.onPressed, isNull);
+
+      await tester.tap(find.byType(Checkbox).at(1));
+      await tester.pumpAndSettle();
+      final enabled = tester.widget<OutlinedButton>(
+        find.widgetWithText(OutlinedButton, 'Finish'),
+      );
+      expect(enabled.onPressed, isNotNull);
+    });
+
     testWidgets('assign-to-shop button appears for unmatched items', (
       tester,
     ) async {
@@ -1066,6 +1092,64 @@ void main() {
       // After finishing, back at the original page.
       expect(find.text('Open'), findsOneWidget);
     });
+
+    testWidgets(
+      'tapping Finish in unmatched-only flow pops the screen after last check',
+      (tester) async {
+        final unmatchedOnly = NavigationPlan(
+          storePlans: [],
+          globalUnmatched: ['Cheese', 'Butter'],
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Builder(
+              builder: (ctx) => Scaffold(
+                body: TextButton(
+                  onPressed: () => Navigator.of(ctx).push(
+                    MaterialPageRoute(
+                      builder: (_) => ProviderScope(
+                        overrides: [
+                          navViewModeProvider.overrideWith(
+                            () => _FakeNavViewModeNotifier(),
+                          ),
+                          shoppingListsProvider.overrideWith(
+                            () => _FakeListsNotifier([]),
+                          ),
+                          supermarketsProvider.overrideWith(
+                            () => _FakeStoresNotifier(),
+                          ),
+                        ],
+                        child: NavigationScreen(
+                          plan: unmatchedOnly,
+                          listId: _listId,
+                        ),
+                      ),
+                    ),
+                  ),
+                  child: const Text('Open'),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Open'));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byType(Checkbox).first);
+        await tester.pumpAndSettle();
+        await tester.tap(find.byType(Checkbox).at(1));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Finish'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Open'), findsOneWidget);
+      },
+    );
   });
 
   // ── Unmatched item checkboxes ─────────────────────────────────────────────
