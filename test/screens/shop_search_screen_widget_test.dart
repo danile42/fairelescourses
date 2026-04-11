@@ -346,6 +346,30 @@ void main() {
   });
 
   group('ShopSearchScreen – By location', () {
+    testWidgets(
+      'entered-location mode with home shows only one search button',
+      (tester) async {
+        await tester.pumpWidget(
+          _wrap(
+            homeLocation: const HomeLocation(
+              address: 'Berlin',
+              lat: 52.52,
+              lng: 13.405,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byType(FilterChip).first); // disable Near me
+        await tester.pumpAndSettle();
+
+        expect(
+          find.byKey(const Key('shopSearchExecuteButton')),
+          findsOneWidget,
+        );
+      },
+    );
+
     testWidgets('near-me interactions do not auto-search', (tester) async {
       final svc = _mockSvc();
       await tester.pumpWidget(

@@ -110,6 +110,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
   String _draftQuery = '';
   bool _showMap = false;
   int _osmRadiusMeters = 2000;
+  Timer? _debounce;
   Timer? _retryTimer;
   int _retrySecondsLeft = 0;
 
@@ -148,6 +149,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _retryTimer?.cancel();
     super.dispose();
   }
@@ -194,9 +196,10 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
   }
 
   Future<void> _runSearchFromCurrentInput() async {
+    _debounce?.cancel();
     final homeLoc = ref.read(homeLocationProvider);
     if (_mode == _SearchMode.byLocation && _nearMe && homeLoc != null) {
-      await _search('');
+      _debounce = Timer(const Duration(milliseconds: 400), () => _search(''));
       return;
     }
     final query = _draftQuery;
@@ -205,7 +208,7 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
       setState(() => _resetVisibleResults());
       return;
     }
-    await _search(query);
+    _debounce = Timer(const Duration(milliseconds: 400), () => _search(query));
   }
 
   bool get _hasMapData {
@@ -665,13 +668,14 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  IconButton(
-                    key: _executeSearchButtonKey,
-                    icon: const Icon(Icons.search),
-                    onPressed: _canExecuteSearch(homeLoc)
-                        ? _runSearchFromCurrentInput
-                        : null,
-                  ),
+                  if (!(_mode == _SearchMode.byLocation && homeLoc != null))
+                    IconButton(
+                      key: _executeSearchButtonKey,
+                      icon: const Icon(Icons.search),
+                      onPressed: _canExecuteSearch(homeLoc)
+                          ? _runSearchFromCurrentInput
+                          : null,
+                    ),
                 ],
               ),
             ),
