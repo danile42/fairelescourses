@@ -2,7 +2,9 @@
 
 **A supermarket navigation assistant for Android.**
 
-Fairelescourses maps your local shops as a grid, assigns goods to cells, and plans the shortest route through the store for your shopping list — guiding you step by step, store by store.
+Fairelescourses helps you find or import shops (OpenStreetMap + community layouts), map them as grids, assign goods to cells, and plan the shortest route through the store for your shopping list — guiding you step by step, store by store.
+
+For OSM-linked shops, saving automatically updates shared community layout data (fast-path template + per-user version entry); there is no separate publish step.
 
 [![CI](https://github.com/danile42/fairelescourses/actions/workflows/ci.yml/badge.svg)](https://github.com/danile42/fairelescourses/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/danile42/fairelescourses/branch/main/graph/badge.svg)](https://codecov.io/gh/danile42/fairelescourses)
@@ -12,6 +14,7 @@ Fairelescourses maps your local shops as a grid, assigns goods to cells, and pla
 
 For a full feature walkthrough see the **[User guide](docs/user-guide.md)**.
 For technical details see the **[Architecture docs](docs/architecture/)**.
+For sync/encryption details see **[Data synchronisation](docs/synchronization.md)**.
 
 ---
 

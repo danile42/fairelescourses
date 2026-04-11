@@ -127,7 +127,7 @@ Unencrypted. Written (overwritten) automatically every time any user saves an OS
 
 ### `public_shops/{osmId}/versions/{versionId}` — Community layout versions
 
-Unencrypted. One document per published layout. Documents are never overwritten — only appended. Any authenticated user may read or write.
+Unencrypted. One document per publisher (`versionId = Firebase UID`). Re-saving updates that publisher's existing document (merge update); it does not create an unbounded append-only history.
 
 ```
 {
@@ -156,6 +156,11 @@ Queried as: `orderBy('importCount', descending: true).limit(20)`.
 ```
 {
   d: String    // base64(IV + AES-256-CBC(JSON(ShoppingList), key=SHA-256(householdId)))
+}
+
+// Tombstone written on delete (so peers delete locally instead of re-uploading):
+{
+  deleted: true
 }
 ```
 

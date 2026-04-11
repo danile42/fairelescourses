@@ -1,6 +1,6 @@
 # Fairelescourses [/fɛʁ le kuʁs/] — User guide
 
-**Version 0.9.27**
+**Version 1.0.4**
 
 Fairelescourses is a supermarket navigation assistant. You draw your shops as grids, assign goods to cells, and the app plans the shortest route through the store for your shopping list — so you never have to backtrack.
 
@@ -42,7 +42,7 @@ flowchart TD
     Home --> FAB["＋ Floating Action Button"]
     Home --> AppBar["App Bar actions"]
 
-    FAB --> NewShop["New shop"]
+    FAB --> NewShop["New shop / Find shops"]
     FAB --> NewList["New list"]
 
     AppBar --> Help["? Help"]
@@ -74,7 +74,7 @@ Tap the card to open the shop editor. Tap the trash icon to delete the shop (wit
 ### Floating action button
 
 Tap **+** to expand two quick-create buttons:
-- **New shop** — opens the shop editor
+- **New shop** — opens shop search (OpenStreetMap + community data), then the editor
 - **New list** — opens the list editor
 
 ---
@@ -85,11 +85,12 @@ A "shop" in Fairelescourses is a grid where each cell represents a shelf, aisle 
 
 ### 3.1 Basic setup
 
-1. Open **New shop** from the FAB (or the Shops tab).
-2. Enter a **name** (required) and an optional **address**.
-3. Set the number of **rows** (labelled A, B, C…) and **columns** (labelled 1, 2, 3…).
-4. Set the **entrance** cell (e.g. `A1`) and **exit** cell (e.g. `E5`).
-5. Tap **Save**.
+1. Open **New shop** from the FAB.
+2. On the shop search screen, either pick an existing result (OSM/community) or create a new shop.
+3. Enter a **name** (required) and an optional **address**.
+4. Set the number of **rows** (labelled A, B, C…) and **columns** (labelled 1, 2, 3…).
+5. Set the **entrance** cell (e.g. `A1`) and **exit** cell (e.g. `E5`).
+6. Tap **Save**.
 
 The entrance and exit tell the navigation planner where your route starts and ends.
 
@@ -314,15 +315,14 @@ Tapping **Use this layout** opens the shop editor pre-filled with that layout. Y
 
 A **Create new layout** button is always visible at the bottom of the sheet, so you can start from scratch even when community layouts exist.
 
-#### Publishing your own layout
+#### Sharing your own layout
 
-Saving an OSM-linked shop automatically shares its cell layout in the background (it becomes the fast-path template other users see when first importing the same shop). To create a proper community version — one that appears in the ranked list — you need to publish explicitly:
+Saving an OSM-linked shop automatically updates both:
 
-1. Open the saved OSM shop in the editor.
-2. Tap the **share icon** in the app bar (visible only for OSM shops outside local-only mode).
-3. Confirm the dialog.
+1. The fast-path template used for quick imports.
+2. Your personal community version entry in the ranked list.
 
-A new version is always appended; existing versions contributed by others are never overwritten.
+There is no separate publish button. Re-saving the same OSM shop updates your own version entry; entries from other users are kept separately.
 
 Shop location data is from **OpenStreetMap contributors (ODbL)**.
 

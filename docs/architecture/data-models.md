@@ -57,6 +57,7 @@ classDiagram
         +name String
         +preferredStoreIds List~String~
         +items List~ShoppingItem~
+        +deleted bool
         +checkedCount int
         +copyWith() ShoppingList
         +toMap() Map
@@ -134,6 +135,8 @@ The central domain object. Represents a physical shop as a named 2D grid.
 ### ShoppingList / ShoppingItem
 
 A named list of grocery items. Each `ShoppingItem` has a `name`, a `checked` flag, and an optional `category` string (e.g. `"Dairy"`). `preferredStoreIds` drives which shops the planner tries first.
+
+`ShoppingList.deleted` is a sync tombstone flag used in Firestore replication. It is normally `false` in UI code; when a remote tombstone is received, peers delete their local list instead of re-uploading it.
 
 The category serves two purposes:
 1. **Display**: shown as a subtitle on the item tile in the list editor.

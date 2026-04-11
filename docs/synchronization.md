@@ -25,7 +25,7 @@ The app uses two storage layers in parallel.
 | `h/{householdHash}/l/{listId}` | One document per list, with a single `d` field containing the ciphertext | Yes |
 | `h/{householdHash}/nav/current` | Active collaborative navigation session | No |
 | `public_shops/{osmId}` | Latest cell layout for an OSM shop (fast-path auto-import) | No |
-| `public_shops/{osmId}/versions/{versionId}` | Community-contributed layout versions, ranked by import count | No |
+| `public_shops/{osmId}/versions/{versionId}` | Community-contributed layout versions (one per publisher UID), ranked by import count | No |
 
 Hive is always the authoritative live state inside the app. Firestore is a sync medium, not the primary database.
 
@@ -224,14 +224,14 @@ The parent document `public_shops/{osmId}` (no subcollection) holds the **most r
 
 ### Publish flow
 
-The flat `public_shops/{osmId}` document is updated automatically on every save of an OSM-linked shop. Publishing is a separate, explicit step.
+The flat `public_shops/{osmId}` document is updated automatically on every save of an OSM-linked shop. At the same time, the app upserts the publisher's version slot (`versions/{uid}`), so there is no separate publish step.
 
-When a user publishes a layout from the store editor (`publishLayoutVersion`):
+When a user saves an OSM-linked layout (`autoPublishVersion`):
 
-1. A new document is appended to `public_shops/{osmId}/versions/` with `importCount: 0`.
-2. The flat `public_shops/{osmId}` document is overwritten with the same layout (redundant if the user just saved, but keeps the fast-path consistent).
+1. The publisher's document at `public_shops/{osmId}/versions/{uid}` is created or updated (import count is preserved).
+2. The flat `public_shops/{osmId}` document is overwritten with the latest layout for fast-path imports.
 
-Publishing always creates a new version; existing versions are never overwritten.
+Different users keep separate version documents; re-saving by the same user updates their existing one.
 
 ### Browse and import flow
 

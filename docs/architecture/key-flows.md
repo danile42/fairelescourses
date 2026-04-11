@@ -122,16 +122,16 @@ sequenceDiagram
     ShopSearchScreen->>ShopSearchScreen: Merge and deduplicate results
 
     Note over User,Firestore: Import
-    User->>ShopSearchScreen: Tap Import on a result
-    ShopSearchScreen->>FirestoreService: fetchPublicShop(osmId)
-    FirestoreService-->>ShopSearchScreen: ShopFloor (community template, if any)
+    User->>ShopSearchScreen: Tap OSM result
+    ShopSearchScreen->>ShopSearchScreen: Open CommunityLayoutsSheet
+    User->>ShopSearchScreen: Choose layout or "Create"
     ShopSearchScreen->>StoreEditorScreen: push(prefilled Supermarket)
     User->>StoreEditorScreen: Adjust grid if needed, Save
     StoreEditorScreen->>SN: addSupermarket(supermarket)
     SN->>Hive: put(supermarket)
     SN->>Firestore: upsertShop(supermarket)
-    StoreEditorScreen->>FirestoreService: upsertPublicCells(osmId, floor)
-    FirestoreService->>Firestore: update public_shops/{osmId}
+    SN->>FirestoreService: autoPublishVersion(supermarket)
+    FirestoreService->>Firestore: upsert versions/{uid} + update public_shops/{osmId}
 ```
 
 ---

@@ -38,7 +38,7 @@ The app's root screen with a `TabController` for two tabs:
 
 **AppBar actions:** Help (pushes HelpScreen), Search shops (pushes ShopSearchScreen), Settings (pushes SyncScreen).
 
-**FAB** expands into three mini-buttons: New shop, New list, Import (alias for ShopSearchScreen). The tour spotlight highlights the FAB and its children.
+**FAB** expands into two mini-buttons: New shop and New list. The New shop action opens `ShopSearchScreen` first (instead of jumping directly into the editor). The tour spotlight highlights the FAB and its children.
 
 `HomeScreen` watches `firestoreSyncProvider` (a side-effect provider) to activate Firestore listeners as soon as the home screen is visible.
 
@@ -72,7 +72,8 @@ Key interactions:
 - Double-tap a cell to enter split-cell mode (divides the cell into sub-cells).
 - Multi-floor: add/remove floors, rename floor labels.
 - Pre-fill from a public OSM template when importing.
-- **Publish** action (share icon in AppBar): available for OSM-linked shops outside local-only mode. Calls `publishLayoutVersion`, appending the current grid to the community pool and updating the fast-path `public_shops/{osmId}` document.
+- For OSM-linked shops: **Browse community layouts** action opens `CommunityLayoutsSheet` and can apply a selected layout to the current editor state.
+- Saving an OSM-linked shop triggers automatic community sync via `autoPublishVersion` (fast-path doc + per-user community version).
 
 A `TourHintBanner` is shown at the bottom during tour step 0.
 
