@@ -2,10 +2,11 @@ name: fairelescourses
 description: "Fairelescourses - Shopping navigation assistant"
 publish_to: 'none'
 
-version: 1.0.2+49
+version: 1.0.4+51
 
 environment:
-  sdk: ^3.11.1
+  sdk: ^3.11.3
+  flutter: ">=3.41.5"
 
 dependencies:
   flutter:
@@ -17,7 +18,7 @@ dependencies:
   flutter_riverpod: ^3.0.0
   hive_ce: ^2.9.0
   hive_ce_flutter: ^2.2.0
-  share_plus: ^12.0.2
+  share_plus: ^13.0.0
   intl: ^0.20.2
   uuid: ^4.5.1
   collection: ^1.19.1
@@ -29,7 +30,7 @@ dependencies:
   http: ^1.2.0
   flutter_map: ^8.0.0
   latlong2: ^0.9.0
-  connectivity_plus: ^6.0.0
+  connectivity_plus: ^7.1.1
   url_launcher: ^6.3.0
 
 dev_dependencies:

@@ -19,7 +19,8 @@ For technical details see the **[Architecture docs](docs/architecture/)**.
 
 ### Prerequisites
 
-- Flutter 3.41+ (stable channel)
+- Flutter 3.41.5+ (stable channel)
+- Dart 3.11.3+ (comes with Flutter)
 - Android SDK (set `$ANDROID_HOME` or install via Android Studio)
 - Java 17+
 
