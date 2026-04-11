@@ -752,16 +752,18 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
-                      'Press ',
+                    Text(
+                      l.searchPromptBeforeIcon,
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey, fontSize: 16),
+                      style: const TextStyle(color: Colors.grey, fontSize: 16),
                     ),
+                    const SizedBox(width: 4),
                     Icon(Icons.search, size: 18, color: Colors.grey.shade400),
-                    const Text(
-                      ' to search.',
+                    const SizedBox(width: 4),
+                    Text(
+                      l.searchPromptAfterIcon,
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey, fontSize: 16),
+                      style: const TextStyle(color: Colors.grey, fontSize: 16),
                     ),
                   ],
                 ),

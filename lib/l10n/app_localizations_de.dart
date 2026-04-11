@@ -243,6 +243,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get searchShops => 'Märkte suchen';
 
   @override
+  String get searchPromptBeforeIcon => 'Tippe auf';
+
+  @override
+  String get searchPromptAfterIcon => 'zum Suchen.';
+
+  @override
   String get searchItemHint => 'Artikelname eingeben…';
 
   @override
@@ -942,4 +948,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get communityLayoutsTitle => 'Community-Layouts';
+
+  @override
+  String get helpGithubLink => 'Mehr auf GitHub erfahren';
+
+  @override
+  String get helpGithubUrl => 'https://github.com/danile42/fairelescourses';
 }

@@ -124,6 +124,56 @@ void main() {
       final deleteText = tester.widget<Text>(find.text('Delete'));
       expect(deleteText.style?.color, isNot(Colors.grey));
     });
+
+    testWidgets(
+      'completed collaborative session is not shown as active anymore',
+      (tester) async {
+        const session = NavSession(listId: 'L1', startedBy: 'uid-1');
+        final completedList = ShoppingList(
+          id: 'L1',
+          name: 'Groceries',
+          preferredStoreIds: [],
+          items: [ShoppingItem(name: 'Milk', checked: true)],
+        );
+
+        await tester.pumpWidget(
+          wrapHomeScreen(lists: [completedList], session: session),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Join'), findsNothing);
+
+        await tester.tap(find.byIcon(Icons.more_vert).first);
+        await tester.pumpAndSettle();
+
+        final deleteText = tester.widget<Text>(find.text('Delete'));
+        expect(deleteText.style?.color, isNot(Colors.grey));
+      },
+    );
+
+    testWidgets(
+      'locally dismissed collaborative session is hidden until stream updates',
+      (tester) async {
+        const session = NavSession(listId: 'L1', startedBy: 'uid-1');
+
+        await tester.pumpWidget(
+          wrapHomeScreen(
+            lists: [makeList('L1', 'Groceries')],
+            session: session,
+            dismissedSessionListId: 'L1',
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Join'), findsNothing);
+
+        await tester.tap(find.byIcon(Icons.more_vert).first);
+        await tester.pumpAndSettle();
+
+        final deleteText = tester.widget<Text>(find.text('Delete'));
+        expect(deleteText.style?.color, isNot(Colors.grey));
+      },
+    );
   });
 
   group('HomeScreen shops tab', () {

@@ -93,6 +93,8 @@
   "moreGoods": "+{n} more",
   "ok": "OK",
   "searchShops": "Search shops",
+  "searchPromptBeforeIcon": "Press",
+  "searchPromptAfterIcon": "to search.",
   "searchItemHint": "Type an item name…",
   "searchShopsMinChars": "Type at least 2 characters to search.",
   "noShopsFound": "No shops found.",
@@ -367,7 +369,9 @@
       "cols": { "type": "int" }
     }
   },
-  "browseLayouts": "Community layouts",
-  "browseLayoutsApplyWarning": "Applying a community layout will replace your current cell assignments.",
-  "communityLayoutsTitle": "Community layouts"
+   "browseLayouts": "Community layouts",
+   "browseLayoutsApplyWarning": "Applying a community layout will replace your current cell assignments.",
+   "communityLayoutsTitle": "Community layouts",
+   "helpGithubLink": "Learn more on GitHub",
+   "helpGithubUrl": "https://github.com/danile42/fairelescourses"
 }

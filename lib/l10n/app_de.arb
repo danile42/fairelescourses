@@ -82,6 +82,8 @@
   "moreGoods": "+{n} weitere",
   "ok": "OK",
   "searchShops": "Märkte suchen",
+  "searchPromptBeforeIcon": "Tippe auf",
+  "searchPromptAfterIcon": "zum Suchen.",
   "searchItemHint": "Artikelname eingeben…",
   "searchShopsMinChars": "Mindestens 2 Zeichen eingeben.",
   "noShopsFound": "Keine Märkte gefunden.",
@@ -367,7 +369,9 @@
       "cols": { "type": "int" }
     }
   },
-  "browseLayouts": "Community-Layouts",
-  "browseLayoutsApplyWarning": "Ein Community-Layout zu übernehmen ersetzt alle aktuellen Zellenzuweisungen.",
-  "communityLayoutsTitle": "Community-Layouts"
+   "browseLayouts": "Community-Layouts",
+   "browseLayoutsApplyWarning": "Ein Community-Layout zu übernehmen ersetzt alle aktuellen Zellenzuweisungen.",
+   "communityLayoutsTitle": "Community-Layouts",
+   "helpGithubLink": "Mehr auf GitHub erfahren",
+   "helpGithubUrl": "https://github.com/danile42/fairelescourses"
 }

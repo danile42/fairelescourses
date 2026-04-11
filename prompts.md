@@ -405,3 +405,5 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 
 227. ⚙️ Correct README exception description: clarify that only one [J] marker had to be removed manually, not multiple.
 
+228. ⚙️ The text "Press (icon) to search" should be localized. Also, collaborative navigation should not be shown as running when I have collected all items and finished the tour.
+

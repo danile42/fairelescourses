@@ -26,6 +26,23 @@ import 'package:uuid/uuid.dart';
 
 const _uuid = Uuid();
 
+bool _isCompletedNavigationList(ShoppingList? list) =>
+    list != null &&
+    list.items.isNotEmpty &&
+    list.checkedCount == list.items.length;
+
+NavSession? _visibleNavSession(
+  NavSession? session,
+  List<ShoppingList> lists,
+  String? dismissedListId,
+) {
+  if (session == null) return null;
+  if (dismissedListId == session.listId) return null;
+  final list = lists.where((l) => l.id == session.listId).firstOrNull;
+  if (_isCompletedNavigationList(list)) return null;
+  return session;
+}
+
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -67,6 +84,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final isOffline = ref.watch(isOfflineProvider).asData?.value ?? false;
     final session = ref.watch(navSessionProvider);
+    final dismissedListId = ref.watch(locallyDismissedNavSessionListIdProvider);
+    final visibleSession = session.whenData(
+      (value) => _visibleNavSession(value, lists, dismissedListId),
+    );
 
     // Auto-advance tour steps based on app state.
     ref.listen(supermarketsProvider, (_, next) {
@@ -74,6 +95,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     });
     ref.listen(shoppingListsProvider, (_, next) {
       if (next.isNotEmpty) ref.read(tourStepProvider.notifier).advance(1);
+    });
+    ref.listen(navSessionProvider, (_, next) {
+      final dismissed = ref.read(locallyDismissedNavSessionListIdProvider);
+      if (dismissed == null) return;
+      final active = next.asData?.value;
+      if (active == null || active.listId != dismissed) {
+        ref.read(locallyDismissedNavSessionListIdProvider.notifier).clear();
+      }
     });
 
     // Show a snackbar when a background Firestore sync write fails.
@@ -145,8 +174,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         body: Column(
           children: [
-            if (session.hasValue && session.value != null)
-              _JoinBanner(session: session.value!, lists: lists),
+            if (visibleSession.hasValue && visibleSession.value != null)
+              _JoinBanner(session: visibleSession.value!, lists: lists),
             Expanded(
               child: TabBarView(
                 children: [
@@ -433,7 +462,12 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
   void _showModePicker(ShoppingList list) {
     final l = AppLocalizations.of(context)!;
     final hasActiveCollabSession =
-        ref.read(navSessionProvider).asData?.value != null;
+        _visibleNavSession(
+          ref.read(navSessionProvider).asData?.value,
+          widget.lists.cast<ShoppingList>(),
+          ref.read(locallyDismissedNavSessionListIdProvider),
+        ) !=
+        null;
     // Mark as seen so that after this the two buttons appear directly.
     Hive.box<String>('settings').put('navModeSeen', 'true');
     setState(() {});
@@ -491,6 +525,9 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
     }
     final stores = ref.read(supermarketsProvider);
     final plan = NavigationPlanner.plan(list, stores);
+    if (collaborative) {
+      ref.read(locallyDismissedNavSessionListIdProvider.notifier).clear();
+    }
     if (!collaborative) {
       Hive.box<String>('settings').put(_singleNavKey, 'true');
       setState(() {});
@@ -559,7 +596,11 @@ class _ListsTabState extends ConsumerState<_ListsTab> {
     final lists = widget.lists;
     final hid = ref.watch(householdProvider);
     final showTwoNavButtons = hid != null && _navModeSeen;
-    final activeSession = ref.watch(navSessionProvider).asData?.value;
+    final activeSession = _visibleNavSession(
+      ref.watch(navSessionProvider).asData?.value,
+      lists.cast<ShoppingList>(),
+      ref.watch(locallyDismissedNavSessionListIdProvider),
+    );
     final hasActiveCollabSession = activeSession != null;
 
     if (lists.isEmpty) {

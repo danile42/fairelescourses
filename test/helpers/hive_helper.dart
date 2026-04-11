@@ -14,6 +14,7 @@ Future<Directory> setUpHive() async {
   await Hive.openBox<Supermarket>('supermarkets');
   await Hive.openBox<String>('settings');
   await Hive.openBox<String>('item_categories');
+  await Hive.openBox<String>('deleted_list_ids');
   return dir;
 }
 
@@ -35,4 +36,5 @@ Future<void> clearHive() async {
   await Hive.box<Supermarket>('supermarkets').clear();
   await Hive.box<String>('settings').clear();
   await Hive.box<String>('item_categories').clear();
+  await Hive.box<String>('deleted_list_ids').clear();
 }

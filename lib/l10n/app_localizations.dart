@@ -530,6 +530,18 @@ abstract class AppLocalizations {
   /// **'Search shops'**
   String get searchShops;
 
+  /// No description provided for @searchPromptBeforeIcon.
+  ///
+  /// In en, this message translates to:
+  /// **'Press'**
+  String get searchPromptBeforeIcon;
+
+  /// No description provided for @searchPromptAfterIcon.
+  ///
+  /// In en, this message translates to:
+  /// **'to search.'**
+  String get searchPromptAfterIcon;
+
   /// No description provided for @searchItemHint.
   ///
   /// In en, this message translates to:
@@ -1765,6 +1777,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Community layouts'**
   String get communityLayoutsTitle;
+
+  /// No description provided for @helpGithubLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Learn more on GitHub'**
+  String get helpGithubLink;
+
+  /// No description provided for @helpGithubUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'https://github.com/danile42/fairelescourses'**
+  String get helpGithubUrl;
 }
 
 class _AppLocalizationsDelegate

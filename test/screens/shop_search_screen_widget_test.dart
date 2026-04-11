@@ -10,6 +10,7 @@ import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import 'package:fairelescourses/l10n/app_localizations.dart';
 import 'package:fairelescourses/models/supermarket.dart';
 import 'package:fairelescourses/providers/firestore_sync_provider.dart';
+import 'package:fairelescourses/providers/home_location_provider.dart';
 import 'package:fairelescourses/providers/supermarket_provider.dart';
 import 'package:fairelescourses/screens/shop_search_screen.dart';
 import 'package:fairelescourses/services/firestore_service.dart';
@@ -30,6 +31,15 @@ class _FakeStoresNotifier extends SupermarketNotifier {
   @override
   Future<void> add(Supermarket s, {bool syncToFirestore = true}) async =>
       state = [...state, s];
+}
+
+class _FakeHomeLocationNotifier extends HomeLocationNotifier {
+  _FakeHomeLocationNotifier(this._location);
+
+  final HomeLocation? _location;
+
+  @override
+  HomeLocation? build() => _location;
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -57,12 +67,16 @@ Widget _wrap({
   MockFirestoreService? mockService,
   String? focusItem,
   Locale locale = const Locale('en'),
+  HomeLocation? homeLocation,
 }) {
   final svc = mockService ?? _mockSvc();
   return ProviderScope(
     overrides: [
       firestoreServiceProvider.overrideWithValue(svc),
       firestoreSyncProvider.overrideWith((ref) {}),
+      homeLocationProvider.overrideWith(
+        () => _FakeHomeLocationNotifier(homeLocation),
+      ),
       supermarketsProvider.overrideWith(() => _FakeStoresNotifier(stores)),
     ],
     child: MaterialApp(
@@ -125,6 +139,41 @@ void main() {
         find.text('No home location set. Go to Sync to set one.'),
         findsOneWidget,
       );
+    });
+
+    testWidgets('shows localized press-search hint in English', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          homeLocation: const HomeLocation(
+            address: 'Berlin',
+            lat: 52.52,
+            lng: 13.405,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Press'), findsOneWidget);
+      expect(find.text('to search.'), findsOneWidget);
+      expect(find.byIcon(Icons.search), findsWidgets);
+    });
+
+    testWidgets('shows localized press-search hint in German', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          locale: const Locale('de'),
+          homeLocation: const HomeLocation(
+            address: 'Berlin',
+            lat: 52.52,
+            lng: 13.405,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tippe auf'), findsOneWidget);
+      expect(find.text('zum Suchen.'), findsOneWidget);
+      expect(find.byIcon(Icons.search), findsWidgets);
     });
   });
 

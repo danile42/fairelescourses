@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fairelescourses/l10n/app_localizations.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HelpScreen extends StatelessWidget {
   const HelpScreen({super.key});
@@ -78,6 +79,18 @@ class HelpScreen extends StatelessWidget {
               theme: theme,
             ),
             const SizedBox(height: 32),
+            Center(
+              child: TextButton(
+                onPressed: () async {
+                  final uri = Uri.parse(l.helpGithubUrl);
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  }
+                },
+                child: Text(l.helpGithubLink),
+              ),
+            ),
+            const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: FilledButton(

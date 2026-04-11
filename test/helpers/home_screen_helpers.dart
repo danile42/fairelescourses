@@ -75,6 +75,16 @@ class FakeLocalOnlyNotifier extends LocalOnlyNotifier {
   bool build() => false; // no Hive access
 }
 
+class FakeDismissedNavSessionNotifier
+    extends LocallyDismissedNavSessionNotifier {
+  FakeDismissedNavSessionNotifier(this._listId);
+
+  final String? _listId;
+
+  @override
+  String? build() => _listId;
+}
+
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 ShoppingList makeList(String id, String name) => ShoppingList(
@@ -88,6 +98,7 @@ Widget wrapHomeScreen({
   required List<ShoppingList> lists,
   NavSession? session,
   List<Supermarket>? stores,
+  String? dismissedSessionListId,
 }) {
   final mockSvc = MockFirestoreService();
   when(() => mockSvc.deleteNavSession(any())).thenAnswer((_) async {});
@@ -103,6 +114,9 @@ Widget wrapHomeScreen({
       else
         supermarketsProvider.overrideWith(() => FakeStoresNotifier()),
       navSessionProvider.overrideWith((ref) => Stream.value(session)),
+      locallyDismissedNavSessionListIdProvider.overrideWith(
+        () => FakeDismissedNavSessionNotifier(dismissedSessionListId),
+      ),
       navViewModeProvider.overrideWith(() => FakeNavViewModeNotifier()),
       localOnlyProvider.overrideWith(() => FakeLocalOnlyNotifier()),
       firestoreSyncProvider.overrideWith((ref) {}),

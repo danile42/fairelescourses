@@ -8,9 +8,14 @@ import 'household_provider.dart';
 import 'sync_error_provider.dart';
 
 const _boxName = 'shopping_lists';
+const _deletedListsBoxName = 'deleted_list_ids';
 
 final shoppingListBoxProvider = Provider<Box<ShoppingList>>((ref) {
   return Hive.box<ShoppingList>(_boxName);
+});
+
+final deletedListIdsBoxProvider = Provider<Box<String>>((ref) {
+  return Hive.box<String>(_deletedListsBoxName);
 });
 
 final shoppingListsProvider =
@@ -20,10 +25,12 @@ final shoppingListsProvider =
 
 class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
   late Box<ShoppingList> _box;
+  late Box<String> _deletedBox;
 
   @override
   List<ShoppingList> build() {
     _box = ref.watch(shoppingListBoxProvider);
+    _deletedBox = ref.watch(deletedListIdsBoxProvider);
     return _box.values.toList();
   }
 
@@ -60,17 +67,26 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
   }
 
   Future<void> remove(String id) async {
-    await _box.delete(id);
-    _sync();
     final hid = _hid;
     if (hid != null) {
-      ref.read(firestoreServiceProvider).deleteList(hid, id).catchError((
-        Object e,
-      ) {
+      // Attempt to delete from Firestore first to ensure it's removed from the
+      // remote state before deleting locally. This prevents syncFromRemote from
+      // re-adding the list if Firestore still has it.
+      try {
+        await ref.read(firestoreServiceProvider).deleteList(hid, id);
+      } catch (e) {
         debugPrint('Firestore deleteList error: $e');
         ref.read(syncErrorProvider.notifier).report(e.toString());
-      }).ignore();
+        rethrow;
+      }
     }
+    // Track the deletion in a separate store so syncFromRemote knows not to restore it.
+    // This handles the case where deletion succeeds locally but Firestore push fails,
+    // or where another user modifies the list between deletion and sync.
+    await _deletedBox.put(id, id);
+    // Only delete locally after confirming remote deletion (or if not in household)
+    await _box.delete(id);
+    _sync();
   }
 
   Future<void> toggleItem(String listId, int index) async {
@@ -104,10 +120,19 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
   /// Local lists not present in the remote snapshot are re-uploaded rather than
   /// deleted, so a list created locally while offline (or whose initial upload
   /// failed) is not silently lost on the next sync event.
+  ///
+  /// However, lists that have been explicitly deleted by the user are NOT restored,
+  /// even if they appear in the remote state. Tracked deletions are cleared after
+  /// each sync to allow list recreation if the user explicitly adds them back.
   Future<void> syncFromRemote(List<ShoppingList> remote) async {
     final remoteIds = remote.map((l) => l.id).toSet();
+    final deletedIds = _deletedBox.values.toSet();
+
     for (final l in remote) {
-      await _box.put(l.id, l);
+      // Don't restore deleted lists
+      if (!deletedIds.contains(l.id)) {
+        await _box.put(l.id, l);
+      }
     }
     final hid = _hid;
 
@@ -131,6 +156,8 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
         }
       }
     }
+    // Clear deletion tracking after sync completes to allow recreation if needed
+    await _deletedBox.clear();
     _sync();
   }
 

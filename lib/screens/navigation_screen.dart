@@ -10,6 +10,7 @@ import '../models/navigation_plan.dart';
 import '../models/shopping_list.dart';
 import '../models/supermarket.dart';
 import '../providers/household_provider.dart';
+import '../providers/nav_session_provider.dart';
 import '../providers/nav_view_mode_provider.dart';
 import '../providers/shopping_list_provider.dart';
 import '../providers/supermarket_provider.dart';
@@ -372,11 +373,16 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen>
 
   Future<void> _finishTour() async {
     _clearNavState();
-    ref
-        .read(shoppingListsProvider.notifier)
-        .uncheckAll(widget.listId)
-        .catchError((Object e) => debugPrint('uncheckAll error: $e'))
-        .ignore();
+    if (widget.isCollaborative) {
+      ref
+          .read(locallyDismissedNavSessionListIdProvider.notifier)
+          .markFinished(widget.listId);
+    }
+    try {
+      await ref.read(shoppingListsProvider.notifier).uncheckAll(widget.listId);
+    } catch (e) {
+      debugPrint('uncheckAll error: $e');
+    }
     // Host deletes the collaborative session here (while still mounted,
     // so ref.read is legal). Doing it in dispose() would also fire on back.
     if (widget.isCollaborative && widget.isHost) {

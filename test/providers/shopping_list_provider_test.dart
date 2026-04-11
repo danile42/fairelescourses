@@ -341,5 +341,66 @@ void main() {
         () => mock.upsertList('hh-test', any()),
       ).called(greaterThanOrEqualTo(1));
     });
+
+    test('does not restore lists that have been explicitly deleted', () async {
+      final deletedBox = Hive.box<String>('deleted_list_ids');
+      final mock = MockFirestoreService();
+      when(() => mock.upsertList(any(), any())).thenAnswer((_) async {});
+      when(() => mock.deleteList(any(), any())).thenAnswer((_) async {});
+      final container = makeContainerWithHousehold(box, mock);
+      addTearDown(container.dispose);
+
+      // Mark 'deleted-list' as deleted
+      await deletedBox.put('deleted-list', 'deleted-list');
+
+      // Try to sync with a remote that includes the deleted list
+      await container.read(shoppingListsProvider.notifier).syncFromRemote([
+        makeList('deleted-list', ['Item']),
+        makeList('remote-1', ['Remote Item']),
+      ]);
+
+      final all = container.read(shoppingListsProvider);
+      expect(
+        all.any((l) => l.id == 'deleted-list'),
+        isFalse,
+        reason: 'explicitly deleted list must not be restored',
+      );
+      expect(
+        all.any((l) => l.id == 'remote-1'),
+        isTrue,
+        reason: 'non-deleted remote lists must still be added',
+      );
+    });
+
+    test('clears deletion tracking after sync completes', () async {
+      final deletedBox = Hive.box<String>('deleted_list_ids');
+      final mock = MockFirestoreService();
+      when(() => mock.upsertList(any(), any())).thenAnswer((_) async {});
+      when(() => mock.deleteList(any(), any())).thenAnswer((_) async {});
+      final container = makeContainerWithHousehold(box, mock);
+      addTearDown(container.dispose);
+
+      // Mark 'deleted-list' as deleted
+      await deletedBox.put('deleted-list', 'deleted-list');
+
+      // Sync once to clear the tracking
+      await container.read(shoppingListsProvider.notifier).syncFromRemote([
+        makeList('remote-1', ['Remote Item']),
+      ]);
+
+      // Now sync again with the deleted list in remote
+      await container.read(shoppingListsProvider.notifier).syncFromRemote([
+        makeList('deleted-list', ['Item']),
+        makeList('remote-1', ['Remote Item']),
+      ]);
+
+      final all = container.read(shoppingListsProvider);
+      expect(
+        all.any((l) => l.id == 'deleted-list'),
+        isTrue,
+        reason:
+            'deleted list should be restored if it reappears after deletion tracking clears',
+      );
+    });
   });
 }
