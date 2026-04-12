@@ -4,8 +4,6 @@
 
 Fairelescourses helps you find or import shops (OpenStreetMap + community layouts), map them as grids, assign goods to cells, and plan the shortest route through the store for your shopping list — guiding you step by step, store by store.
 
-For OSM-linked shops, saving automatically updates shared community layout data (fast-path template + per-user version entry); there is no separate publish step.
-
 [![CI](https://github.com/danile42/fairelescourses/actions/workflows/ci.yml/badge.svg)](https://github.com/danile42/fairelescourses/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/danile42/fairelescourses/branch/main/graph/badge.svg)](https://codecov.io/gh/danile42/fairelescourses)
 [![Dependabot](https://img.shields.io/badge/Dependabot-enabled-025E8C?logo=Dependabot)](https://github.com/danile42/fairelescourses/security/dependabot)
@@ -61,7 +59,7 @@ To enable Codecov on your fork:
 
 ## Written by LLMs
 
-Almost every line of code in this repository was written by LLM assistants — specifically **Claude Sonnet 4.6** (used via [Claude Code](https://claude.ai/claude-code)), **Junie** (JetBrains' LLM agent), and **GitHub Copilot**. All documentation, including architecture docs and diagrams, was written by these LLM tools as well.
+Almost every line of code in this repository was written by LLM assistants — specifically **Claude Sonnet 4.6** (used via [Claude Code](https://claude.ai/claude-code)), **[Junie](https://www.jetbrains.com/junie/)** (JetBrains' LLM agent), and **[GitHub Copilot](https://github.com/features/copilot)**. All documentation, including architecture docs and diagrams, was written by these LLM tools as well.
 
 The human author provided product direction through natural-language prompts (see [`prompts.md`](prompts.md)) and reviewed the results on a device, but did not otherwise write, edit, or modify source code or documentation. The complete prompt history is preserved in `prompts.md`, with each entry marked to indicate which LLM handled it.
 

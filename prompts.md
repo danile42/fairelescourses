@@ -443,3 +443,14 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 245. ⚙️ prompts.md should be updated only with the relevant prompts, not an additional description of what was done.
 
 246. ⚙️ Run finish-feature.
+
+247. ⚙️ Remove the second paragraph from the readme, and make Junie and Copilot link to their homepages, just like Claude.
+
+248. ⚙️ Alright. And remember to ALWAYS answer in English, as I told you three times already.
+
+249. ⚙️ You wanted to suggest stylistic changes...
+
+250. ⚙️ Just update prompts.md and commit.
+
+251. ⚙️ Include README.md - you DID make those changes.
+
