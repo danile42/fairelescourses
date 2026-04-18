@@ -465,3 +465,5 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 
 255. ⚙️ In a shopping tour, only say "all items collected" when all items are checked off - even if they are not matched to a store. I.e., if there are still unmatched items that are not checked off, the message like "all items collected" should not appear. It should still be possible to finish the tour, even if some items where not collected. (When done, finish the feature.)
 
+256. ⚙️ Translate build-ios.md to English, then commit with updated prompts.md.
+
