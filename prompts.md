@@ -471,3 +471,7 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 
 258. ⚙️ Yes, do this.
 
+
+259. ⚙️ When an item is added to a list, check if it is available in any store. If not, offer to assign it to a market. Also provide this option as part of the menu for those items. When done, finish the feature.
+
+

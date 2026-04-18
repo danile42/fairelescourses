@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fairelescourses/l10n/app_localizations.dart';
@@ -11,11 +13,13 @@ import '../providers/shopping_list_provider.dart';
 import '../providers/supermarket_provider.dart';
 import '../services/navigation_planner.dart';
 import 'navigation_screen.dart';
+import 'shop_search_screen.dart';
+import 'store_editor_screen.dart';
 import '../widgets/tour_hint_banner.dart';
 
 enum _ExitAction { save, discard }
 
-enum _ItemAction { rename, delete, move }
+enum _ItemAction { rename, delete, move, assign }
 
 class ListEditorScreen extends ConsumerStatefulWidget {
   final ShoppingList list;
@@ -109,10 +113,87 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
   void _addItem(String name) {
     if (name.isEmpty) return;
     final category = _lookupCategory(name);
+    final addedItem = ShoppingItem(name: name, category: category);
     setState(() {
       _dirty = true;
-      _items = [..._items, ShoppingItem(name: name, category: category)];
+      _items = [..._items, addedItem];
     });
+    _offerAssignIfUnmatched(addedItem);
+  }
+
+  bool _isItemAvailableInAnyStore(ShoppingItem item, List<Supermarket> stores) {
+    return stores.any(
+      (store) =>
+          store.findCell(item.name, category: item.category?.trim()) != null,
+    );
+  }
+
+  void _offerAssignIfUnmatched(ShoppingItem item) {
+    if (!mounted) return;
+    final stores = ref.read(supermarketsProvider);
+    if (_isItemAvailableInAnyStore(item, stores)) return;
+    final l = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    if (messenger == null) return;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('${l.unmatched}: ${item.name}'),
+          action: SnackBarAction(
+            label: l.assignToShop,
+            onPressed: () => unawaited(_showShopPicker(item.name)),
+          ),
+        ),
+      );
+  }
+
+  Future<void> _showShopPicker(String item) async {
+    final l = AppLocalizations.of(context)!;
+    final shops = ref.read(supermarketsProvider);
+
+    const searchSentinel = _SearchSentinel();
+    final result = await showDialog<Object>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: Text(l.whichShopForItem(item)),
+        children: [
+          ...shops.map(
+            (shop) => SimpleDialogOption(
+              onPressed: () => Navigator.pop(ctx, shop),
+              child: Text(shop.name),
+            ),
+          ),
+          if (shops.isNotEmpty) const Divider(height: 1),
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(ctx, searchSentinel),
+            child: Row(
+              children: [
+                const Icon(Icons.search, size: 18),
+                const SizedBox(width: 8),
+                Text(l.searchShops),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || result == null) return;
+
+    if (result is _SearchSentinel) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => ShopSearchScreen(focusItem: item)),
+      );
+    } else if (result is Supermarket) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) =>
+              StoreEditorScreen(existing: result, focusItems: [item]),
+        ),
+      );
+    }
   }
 
   void _removeItem(int index) {
@@ -408,6 +489,8 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
                       },
                       itemBuilder: (context, i) {
                         final item = _items[i];
+                        final isAvailableInAnyStore =
+                            _isItemAvailableInAnyStore(item, stores);
                         final otherLists = ref
                             .read(shoppingListsProvider)
                             .where((lst) => lst.id != widget.list.id)
@@ -445,8 +528,10 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
                                 _editItem(i, suggestions);
                               } else if (action == _ItemAction.delete) {
                                 _removeItem(i);
-                              } else {
+                              } else if (action == _ItemAction.move) {
                                 _moveItemToList(i);
+                              } else {
+                                _showShopPicker(item.name);
                               }
                             },
                             itemBuilder: (ctx) => [
@@ -482,6 +567,22 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
                                       const SizedBox(width: 8),
                                       Text(
                                         AppLocalizations.of(ctx)!.moveToList,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              if (!isAvailableInAnyStore)
+                                PopupMenuItem(
+                                  value: _ItemAction.assign,
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.store_outlined,
+                                        size: 16,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        AppLocalizations.of(ctx)!.assignToShop,
                                       ),
                                     ],
                                   ),
@@ -713,4 +814,8 @@ class _StoreSelector extends StatelessWidget {
       ],
     );
   }
+}
+
+class _SearchSentinel {
+  const _SearchSentinel();
 }

@@ -84,6 +84,20 @@ ShoppingList _list({
   items: items ?? [ShoppingItem(name: 'Milk'), ShoppingItem(name: 'Eggs')],
 );
 
+Supermarket _store({
+  required String id,
+  required String name,
+  List<String>? goods,
+}) => Supermarket(
+  id: id,
+  name: name,
+  rows: ['A'],
+  cols: ['1'],
+  entrance: 'A1',
+  exit: 'A1',
+  cells: {'A1': goods ?? []},
+);
+
 Widget _wrap(
   ShoppingList list, {
   bool isNew = false,
@@ -199,6 +213,28 @@ void main() {
 
       expect(find.textContaining('No items yet'), findsOneWidget);
     });
+
+    testWidgets('adding unmatched item offers assign-to-shop via SnackBar', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          _list(items: []),
+          stores: [
+            _store(id: 's1', name: 'Store', goods: ['Milk']),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField).last, 'Butter');
+      await tester.pump();
+      await tester.tap(find.byIcon(Icons.add_circle));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Not found in any shop'), findsOneWidget);
+      expect(find.text('Assign to shop'), findsOneWidget);
+    });
   });
 
   group('ListEditorScreen – item actions', () {
@@ -240,6 +276,35 @@ void main() {
 
       expect(find.text('Milk'), findsNothing);
       expect(find.text('Eggs'), findsOneWidget);
+    });
+
+    testWidgets('popup menu shows assign action for unmatched items only', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          _list(
+            items: [
+              ShoppingItem(name: 'Milk'),
+              ShoppingItem(name: 'Butter'),
+            ],
+          ),
+          stores: [
+            _store(id: 's1', name: 'Store', goods: ['Milk']),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert).at(0));
+      await tester.pumpAndSettle();
+      expect(find.text('Assign to shop'), findsNothing);
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert).at(1));
+      await tester.pumpAndSettle();
+      expect(find.text('Assign to shop'), findsOneWidget);
     });
   });
 
