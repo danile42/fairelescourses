@@ -458,3 +458,7 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 
 253. ⚙️ Finish the feature according to finish-feature.md
 
+
+254. ⚙️ During navigation, make the list view the default (instead of the grid view). Then, finish feature.
+
+

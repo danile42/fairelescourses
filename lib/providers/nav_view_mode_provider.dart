@@ -11,7 +11,9 @@ final navViewModeProvider = NotifierProvider<NavViewModeNotifier, bool>(
 
 class NavViewModeNotifier extends Notifier<bool> {
   @override
-  bool build() => Hive.box<String>('settings').get(_navViewModeKey) == 'list';
+  bool build() =>
+      Hive.box<String>('settings').get(_navViewModeKey, defaultValue: 'list') ==
+      'list';
 
   Future<void> set(bool preferList) async {
     await Hive.box<String>(

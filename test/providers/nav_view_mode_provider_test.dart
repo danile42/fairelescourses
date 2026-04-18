@@ -25,10 +25,10 @@ void main() {
   });
 
   group('NavViewModeNotifier', () {
-    test('defaults to false (grid view) when no value stored', () {
+    test('defaults to true (list view) when no value stored', () {
       final container = _makeContainer();
       addTearDown(container.dispose);
-      expect(container.read(navViewModeProvider), isFalse);
+      expect(container.read(navViewModeProvider), isTrue);
     });
 
     test('set(true) updates state to list view', () async {
