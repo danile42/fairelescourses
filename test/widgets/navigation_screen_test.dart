@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 
 import 'package:fairelescourses/l10n/app_localizations.dart';
 import 'package:fairelescourses/models/navigation_plan.dart';
@@ -183,6 +184,13 @@ void main() {
     });
 
     testWidgets('schedule icon absent for pre-checked items', (tester) async {
+      // Simulate a mid-tour resume by writing a nav state entry to Hive.
+      // Without it the screen treats this as a new tour and unchecks everything.
+      await tester.runAsync(
+        () => Hive.box<String>(
+          'settings',
+        ).put('navState_$_listId', '{"storeIndex":0}'),
+      );
       final plan = _singleStorePlan(['Milk', 'Bread']);
       await tester.pumpWidget(
         _wrap(
@@ -569,6 +577,12 @@ void main() {
     });
 
     testWidgets('tapping checked checkbox unchecks it', (tester) async {
+      // Simulate a mid-tour resume so the pre-checked state is preserved.
+      await tester.runAsync(
+        () => Hive.box<String>(
+          'settings',
+        ).put('navState_$_listId', '{"storeIndex":0}'),
+      );
       // Use two items so the screen doesn't immediately go to _DoneView.
       await tester.pumpWidget(
         _wrap(

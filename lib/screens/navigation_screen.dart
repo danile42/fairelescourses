@@ -86,6 +86,12 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen>
     _resolvedUnmatched = {};
     _navigatedUnmatched = {};
 
+    // Determine whether we are resuming a mid-tour session (nav state saved)
+    // or starting a completely new tour.
+    final isResumingTour =
+        !widget.isCollaborative &&
+        Hive.box<String>('settings').get(_navStateKey(widget.listId)) != null;
+
     // Always restore checked state from the shopping list so progress
     // survives app restarts in both single and collaborative mode.
     final list = ref
@@ -99,7 +105,22 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen>
               .expand((s) => s.items)
               .map((i) => i.toLowerCase())
               .toSet();
-    if (list != null) _syncCheckedFromList(list);
+
+    if (isResumingTour) {
+      // Resuming after an app restart mid-tour: restore previous checked state.
+      if (list != null) _syncCheckedFromList(list);
+    } else {
+      // New tour: reset all items to unchecked so the tour starts fresh.
+      // _checkedPerStore is already all-empty; also persist to the list so
+      // other devices (and the list view) see unchecked state immediately.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref
+            .read(shoppingListsProvider.notifier)
+            .uncheckAll(widget.listId)
+            .ignore();
+      });
+    }
+
     // Restore deferred/carry-over state if the app was killed mid-tour.
     // Checked progress is already restored from the shopping list above.
     if (!widget.isCollaborative) _restoreNavState();
@@ -377,11 +398,6 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen>
       ref
           .read(locallyDismissedNavSessionListIdProvider.notifier)
           .markFinished(widget.listId);
-    }
-    try {
-      await ref.read(shoppingListsProvider.notifier).uncheckAll(widget.listId);
-    } catch (e) {
-      debugPrint('uncheckAll error: $e');
     }
     // Host deletes the collaborative session here (while still mounted,
     // so ref.read is legal). Doing it in dispose() would also fire on back.

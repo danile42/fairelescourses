@@ -454,3 +454,7 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 
 251. ⚙️ Include README.md - you DID make those changes.
 
+252. ⚙️ When I check off items during a tour, I want those items to stay checked in the list when I finish the tour. The checked status should persist when displaying the list (on other devices, too) until a new tour for this list is started. At the beginning of the tour, all items should be changed to unchecked.
+
+253. ⚙️ Finish the feature according to finish-feature.md
+
