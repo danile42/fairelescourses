@@ -892,6 +892,24 @@ class AppLocalizationsDe extends AppLocalizations {
       'Kollaborative Sitzung konnte nicht beendet werden. Sie läuft in 24 Stunden ab.';
 
   @override
+  String get notificationUnknownList => 'einer Liste';
+
+  @override
+  String notificationListItemAdded(int count, String list) {
+    return 'Jemand hat $count Artikel zu \"$list\" hinzugefügt.';
+  }
+
+  @override
+  String notificationListUpdated(String list) {
+    return 'Jemand hat \"$list\" aktualisiert.';
+  }
+
+  @override
+  String notificationTourFinished(String list) {
+    return 'Jemand hat den Einkauf fuer \"$list\" abgeschlossen.';
+  }
+
+  @override
   String get offlineIndicator => 'Keine Internetverbindung';
 
   @override

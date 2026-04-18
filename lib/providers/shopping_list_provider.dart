@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import 'package:uuid/uuid.dart';
+import '../models/household_event.dart';
 import '../models/shopping_list.dart';
 import 'firestore_sync_provider.dart';
 import 'household_provider.dart';
@@ -31,7 +32,68 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
 
   void _sync() => state = _box.values.toList();
 
+  Future<void> _emitListEvent(ShoppingList? before, ShoppingList after) async {
+    final hid = _hid;
+    if (hid == null || before == null) return;
+    final svc = ref.read(firestoreServiceProvider);
+    final beforeByName = {
+      for (final item in before.items) item.name.toLowerCase().trim(): item,
+    };
+    final afterByName = {
+      for (final item in after.items) item.name.toLowerCase().trim(): item,
+    };
+
+    final addedCount = afterByName.keys
+        .where((name) => name.isNotEmpty && !beforeByName.containsKey(name))
+        .length;
+
+    if (addedCount > 0) {
+      await svc.addHouseholdEvent(
+        hid,
+        HouseholdEventType.listItemAdded,
+        listId: after.id,
+        itemCount: addedCount,
+      );
+      return;
+    }
+
+    final changed =
+        before.name != after.name ||
+        !_sameStringList(before.preferredStoreIds, after.preferredStoreIds) ||
+        !_sameItems(before.items, after.items);
+    if (!changed) return;
+
+    await svc.addHouseholdEvent(
+      hid,
+      HouseholdEventType.listUpdated,
+      listId: after.id,
+    );
+  }
+
+  bool _sameStringList(List<String> a, List<String> b) {
+    if (identical(a, b)) return true;
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
+  bool _sameItems(List<ShoppingItem> a, List<ShoppingItem> b) {
+    if (identical(a, b)) return true;
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i].name != b[i].name ||
+          a[i].checked != b[i].checked ||
+          a[i].category != b[i].category) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   Future<void> add(ShoppingList l) async {
+    final before = _box.get(l.id);
     await _box.put(l.id, l);
     _sync();
     final hid = _hid;
@@ -42,10 +104,23 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
         debugPrint('Firestore upsertList error: $e');
         ref.read(syncErrorProvider.notifier).report(e.toString());
       }).ignore();
+      _emitListEvent(
+        before ??
+            ShoppingList(
+              id: l.id,
+              name: l.name,
+              preferredStoreIds: l.preferredStoreIds,
+              items: const <ShoppingItem>[],
+            ),
+        l,
+      ).catchError((Object e) {
+        debugPrint('Firestore addHouseholdEvent error: $e');
+      }).ignore();
     }
   }
 
   Future<void> update(ShoppingList l) async {
+    final before = _box.get(l.id);
     await _box.put(l.id, l);
     _sync();
     final hid = _hid;
@@ -55,6 +130,9 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
       ) {
         debugPrint('Firestore upsertList error: $e');
         ref.read(syncErrorProvider.notifier).report(e.toString());
+      }).ignore();
+      _emitListEvent(before, l).catchError((Object e) {
+        debugPrint('Firestore addHouseholdEvent error: $e');
       }).ignore();
     }
   }
@@ -88,6 +166,9 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
     final hid = _hid;
     if (hid != null) {
       ref.read(firestoreServiceProvider).upsertList(hid, updated).ignore();
+      _emitListEvent(list, updated).catchError((Object e) {
+        debugPrint('Firestore addHouseholdEvent error: $e');
+      }).ignore();
     }
   }
 
@@ -197,6 +278,9 @@ class ShoppingListNotifier extends Notifier<List<ShoppingList>> {
     final hid = _hid;
     if (hid != null) {
       ref.read(firestoreServiceProvider).upsertList(hid, updated).ignore();
+      _emitListEvent(list, updated).catchError((Object e) {
+        debugPrint('Firestore addHouseholdEvent error: $e');
+      }).ignore();
     }
   }
 

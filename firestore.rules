@@ -51,6 +51,40 @@ service cloud.firestore {
       match /nav/{docId} {
         allow read, write: if request.auth != null;
       }
+
+      // Lightweight household activity events for notifications.
+      match /events/{eventId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null
+                      && request.resource.data.keys().hasAll([
+                           'type',
+                           'listId',
+                           'actorUid',
+                           'createdAt'
+                         ])
+                      && request.resource.data.keys().hasOnly([
+                           'type',
+                           'listId',
+                           'actorUid',
+                           'createdAt',
+                           'itemCount'
+                         ])
+                      && request.resource.data.type in [
+                           'list_item_added',
+                           'list_updated',
+                           'tour_finished'
+                         ]
+                      && request.resource.data.listId is string
+                      && request.resource.data.listId.size() > 0
+                      && request.resource.data.listId.size() <= 128
+                      && request.resource.data.actorUid == request.auth.uid
+                      && request.resource.data.createdAt == request.time
+                      && (!('itemCount' in request.resource.data)
+                          || (request.resource.data.itemCount is int
+                              && request.resource.data.itemCount >= 1
+                              && request.resource.data.itemCount <= 200));
+        allow update, delete: if false;
+      }
     }
   }
 }

@@ -7,6 +7,7 @@ import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/navigation_plan.dart';
+import '../models/household_event.dart';
 import '../models/shopping_list.dart';
 import '../models/supermarket.dart';
 import '../providers/household_provider.dart';
@@ -394,6 +395,20 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen>
 
   Future<void> _finishTour() async {
     _clearNavState();
+    final hid = ref.read(householdProvider);
+    if (hid != null) {
+      ref
+          .read(firestoreServiceProvider)
+          .addHouseholdEvent(
+            hid,
+            HouseholdEventType.tourFinished,
+            listId: widget.listId,
+          )
+          .catchError((Object e) {
+            debugPrint('Firestore addHouseholdEvent error: $e');
+          })
+          .ignore();
+    }
     if (widget.isCollaborative) {
       ref
           .read(locallyDismissedNavSessionListIdProvider.notifier)

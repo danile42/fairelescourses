@@ -344,6 +344,26 @@
   "joiningStepJoining": "Haushalt wird beigetreten…",
   "syncError": "Synchronisierung fehlgeschlagen — Änderungen lokal gespeichert, werden automatisch wiederholt.",
   "sessionEndFailed": "Kollaborative Sitzung konnte nicht beendet werden. Sie läuft in 24 Stunden ab.",
+  "notificationUnknownList": "einer Liste",
+  "notificationListItemAdded": "Jemand hat {count} Artikel zu \"{list}\" hinzugefügt.",
+  "@notificationListItemAdded": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "list": { "type": "String" }
+    }
+  },
+  "notificationListUpdated": "Jemand hat \"{list}\" aktualisiert.",
+  "@notificationListUpdated": {
+    "placeholders": {
+      "list": { "type": "String" }
+    }
+  },
+  "notificationTourFinished": "Jemand hat den Einkauf fuer \"{list}\" abgeschlossen.",
+  "@notificationTourFinished": {
+    "placeholders": {
+      "list": { "type": "String" }
+    }
+  },
   "offlineIndicator": "Keine Internetverbindung",
   "communityLayouts": "Community-Layouts",
   "communityLayoutsEmpty": "Noch keine Community-Layouts für diesen Markt vorhanden.",

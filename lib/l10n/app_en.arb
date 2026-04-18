@@ -344,6 +344,26 @@
   "joiningStepJoining": "Joining household…",
   "syncError": "Sync failed — changes saved locally and will retry automatically.",
   "sessionEndFailed": "Couldn't end collaborative session. It will expire in 24 hours.",
+  "notificationUnknownList": "a list",
+  "notificationListItemAdded": "Someone added {count} item(s) to \"{list}\".",
+  "@notificationListItemAdded": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "list": { "type": "String" }
+    }
+  },
+  "notificationListUpdated": "Someone updated \"{list}\".",
+  "@notificationListUpdated": {
+    "placeholders": {
+      "list": { "type": "String" }
+    }
+  },
+  "notificationTourFinished": "Someone finished shopping for \"{list}\".",
+  "@notificationTourFinished": {
+    "placeholders": {
+      "list": { "type": "String" }
+    }
+  },
   "offlineIndicator": "No internet connection",
   "communityLayouts": "Community layouts",
   "communityLayoutsEmpty": "No community layouts shared yet for this shop.",

@@ -882,6 +882,24 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t end collaborative session. It will expire in 24 hours.';
 
   @override
+  String get notificationUnknownList => 'a list';
+
+  @override
+  String notificationListItemAdded(int count, String list) {
+    return 'Someone added $count item(s) to \"$list\".';
+  }
+
+  @override
+  String notificationListUpdated(String list) {
+    return 'Someone updated \"$list\".';
+  }
+
+  @override
+  String notificationTourFinished(String list) {
+    return 'Someone finished shopping for \"$list\".';
+  }
+
+  @override
   String get offlineIndicator => 'No internet connection';
 
   @override

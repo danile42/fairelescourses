@@ -5,7 +5,9 @@ import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 
 import '../models/nav_session.dart';
 import '../models/shopping_list.dart';
+import '../models/household_event.dart';
 import '../providers/firestore_sync_provider.dart';
+import '../providers/household_event_provider.dart';
 import '../providers/household_provider.dart';
 import '../providers/nav_session_provider.dart';
 import '../providers/shopping_list_provider.dart';
@@ -51,6 +53,38 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  bool _eventsInitialized = false;
+  DateTime _latestSeenEventAt = DateTime.fromMillisecondsSinceEpoch(0);
+  final Set<String> _shownEventIds = <String>{};
+
+  String _listNameForEvent(
+    String listId,
+    List<ShoppingList> lists,
+    AppLocalizations l,
+  ) {
+    final match = lists.where((list) => list.id == listId).firstOrNull;
+    if (match == null || match.name.trim().isEmpty) {
+      return l.notificationUnknownList;
+    }
+    return match.name;
+  }
+
+  String _eventMessage(
+    HouseholdEvent event,
+    List<ShoppingList> lists,
+    AppLocalizations l,
+  ) {
+    final listName = _listNameForEvent(event.listId, lists, l);
+    switch (event.type) {
+      case HouseholdEventType.listItemAdded:
+        return l.notificationListItemAdded(event.itemCount ?? 1, listName);
+      case HouseholdEventType.listUpdated:
+        return l.notificationListUpdated(listName);
+      case HouseholdEventType.tourFinished:
+        return l.notificationTourFinished(listName);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -84,6 +118,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final isOffline = ref.watch(isOfflineProvider).asData?.value ?? false;
     final session = ref.watch(navSessionProvider);
+    final currentUid = ref.watch(currentUidProvider);
     final dismissedListId = ref.watch(locallyDismissedNavSessionListIdProvider);
     final visibleSession = session.whenData(
       (value) => _visibleNavSession(value, lists, dismissedListId),
@@ -103,6 +138,43 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       if (active == null || active.listId != dismissed) {
         ref.read(locallyDismissedNavSessionListIdProvider.notifier).clear();
       }
+    });
+
+    ref.listen(householdEventsProvider, (_, next) {
+      final events = next.asData?.value;
+      if (!mounted || events == null || events.isEmpty) return;
+
+      final newestAt = events
+          .map((e) => e.createdAt)
+          .fold<DateTime>(_latestSeenEventAt, (a, b) => b.isAfter(a) ? b : a);
+      if (!_eventsInitialized) {
+        _eventsInitialized = true;
+        _latestSeenEventAt = newestAt;
+        return;
+      }
+
+      final incoming =
+          events
+              .where(
+                (e) =>
+                    e.actorUid != currentUid &&
+                    e.createdAt.isAfter(_latestSeenEventAt) &&
+                    !_shownEventIds.contains(e.id),
+              )
+              .toList()
+            ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      if (incoming.isEmpty) {
+        _latestSeenEventAt = newestAt;
+        return;
+      }
+
+      final latest = incoming.last;
+      _shownEventIds.addAll(incoming.map((e) => e.id));
+      _latestSeenEventAt = newestAt;
+      final l = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_eventMessage(latest, lists, l))));
     });
 
     // Show a snackbar when a background Firestore sync write fails.

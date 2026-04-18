@@ -6,6 +6,7 @@ import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:fairelescourses/models/shopping_list.dart';
+import 'package:fairelescourses/models/household_event.dart';
 import 'package:fairelescourses/providers/shopping_list_provider.dart';
 import 'package:fairelescourses/providers/household_provider.dart';
 import 'package:fairelescourses/providers/firestore_sync_provider.dart';
@@ -24,6 +25,9 @@ ProviderContainer makeContainer(Box<ShoppingList> box) {
   // Stub out any Firestore calls so they silently succeed.
   when(() => mock.upsertList(any(), any())).thenAnswer((_) async {});
   when(() => mock.deleteList(any(), any())).thenAnswer((_) async {});
+  when(
+    () => mock.addHouseholdEvent(any(), any(), listId: any(named: 'listId')),
+  ).thenAnswer((_) async {});
 
   return ProviderContainer(
     overrides: [
@@ -73,6 +77,7 @@ void main() {
     registerFallbackValue(
       ShoppingList(id: '', name: '', preferredStoreIds: [], items: []),
     );
+    registerFallbackValue(HouseholdEventType.listUpdated);
     hiveDir = await setUpHive();
   });
 
@@ -302,6 +307,10 @@ void main() {
       final mock = MockFirestoreService();
       when(() => mock.upsertList(any(), any())).thenAnswer((_) async {});
       when(() => mock.deleteList(any(), any())).thenAnswer((_) async {});
+      when(
+        () =>
+            mock.addHouseholdEvent(any(), any(), listId: any(named: 'listId')),
+      ).thenAnswer((_) async {});
       final container = makeContainerWithHousehold(box, mock);
       addTearDown(container.dispose);
 
@@ -327,6 +336,10 @@ void main() {
       final mock = MockFirestoreService();
       when(() => mock.upsertList(any(), any())).thenAnswer((_) async {});
       when(() => mock.deleteList(any(), any())).thenAnswer((_) async {});
+      when(
+        () =>
+            mock.addHouseholdEvent(any(), any(), listId: any(named: 'listId')),
+      ).thenAnswer((_) async {});
       final container = makeContainerWithHousehold(box, mock);
       addTearDown(container.dispose);
 
@@ -348,6 +361,10 @@ void main() {
       final mock = MockFirestoreService();
       when(() => mock.upsertList(any(), any())).thenAnswer((_) async {});
       when(() => mock.deleteList(any(), any())).thenAnswer((_) async {});
+      when(
+        () =>
+            mock.addHouseholdEvent(any(), any(), listId: any(named: 'listId')),
+      ).thenAnswer((_) async {});
       final container = makeContainerWithHousehold(box, mock);
       addTearDown(container.dispose);
 
@@ -381,6 +398,10 @@ void main() {
       final mock = MockFirestoreService();
       when(() => mock.upsertList(any(), any())).thenAnswer((_) async {});
       when(() => mock.deleteList(any(), any())).thenAnswer((_) async {});
+      when(
+        () =>
+            mock.addHouseholdEvent(any(), any(), listId: any(named: 'listId')),
+      ).thenAnswer((_) async {});
       final container = makeContainerWithHousehold(box, mock);
       addTearDown(container.dispose);
 
@@ -409,6 +430,13 @@ void main() {
         final mock = MockFirestoreService();
         when(() => mock.upsertList(any(), any())).thenAnswer((_) async {});
         when(() => mock.deleteList(any(), any())).thenAnswer((_) async {});
+        when(
+          () => mock.addHouseholdEvent(
+            any(),
+            any(),
+            listId: any(named: 'listId'),
+          ),
+        ).thenAnswer((_) async {});
         final container = makeContainerWithHousehold(box, mock);
         addTearDown(container.dispose);
 

@@ -467,3 +467,7 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 
 256. ⚙️ Translate build-ios.md to English, then commit with updated prompts.md.
 
+257. ⚙️ Deploy the new Firestore rules.
+
+258. ⚙️ Yes, do this.
+

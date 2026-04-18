@@ -9,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import '../models/community_layout.dart';
+import '../models/household_event.dart';
 import '../models/nav_session.dart';
 import '../models/supermarket.dart';
 import '../models/shopping_list.dart';
@@ -263,6 +264,9 @@ class FirestoreService {
   CollectionReference<Map<String, dynamic>> _lists(String hid) =>
       _db.collection('h').doc(_pathId(hid)).collection('l');
 
+  CollectionReference<Map<String, dynamic>> _events(String hid) =>
+      _db.collection('h').doc(_pathId(hid)).collection('events');
+
   Future<void> upsertList(String hid, ShoppingList l) =>
       _lists(hid).doc(l.id).set({'d': _encrypt(hid, l.toMap())});
 
@@ -275,6 +279,56 @@ class FirestoreService {
   /// delete their local copy instead of re-uploading it.
   Future<void> deleteList(String hid, String id) =>
       _lists(hid).doc(id).set({'deleted': true});
+
+  Future<void> addHouseholdEvent(
+    String hid,
+    HouseholdEventType type, {
+    required String listId,
+    int? itemCount,
+  }) {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return Future.value();
+    final payload = <String, dynamic>{
+      'type': type.wireName,
+      'listId': listId,
+      'actorUid': uid,
+      'createdAt': FieldValue.serverTimestamp(),
+    };
+    if (itemCount != null && itemCount > 0) {
+      payload['itemCount'] = itemCount;
+    }
+    return _events(hid).add(payload);
+  }
+
+  Stream<List<HouseholdEvent>> householdEventsStream(String hid) => _events(hid)
+      .orderBy('createdAt', descending: true)
+      .limit(30)
+      .snapshots()
+      .map((snap) {
+        final events = <HouseholdEvent>[];
+        for (final d in snap.docs) {
+          final data = d.data();
+          final type = HouseholdEventType.fromWireName(data['type'] as String?);
+          final listId = data['listId'] as String?;
+          final actorUid = data['actorUid'] as String?;
+          if (type == null || listId == null || actorUid == null) continue;
+          final ts = data['createdAt'];
+          final createdAt = ts is Timestamp
+              ? ts.toDate()
+              : DateTime.fromMillisecondsSinceEpoch(0);
+          events.add(
+            HouseholdEvent(
+              id: d.id,
+              type: type,
+              listId: listId,
+              actorUid: actorUid,
+              createdAt: createdAt,
+              itemCount: (data['itemCount'] as num?)?.toInt(),
+            ),
+          );
+        }
+        return events;
+      });
 
   // ── Collaborative navigation session ─────────────────────────────────────
 

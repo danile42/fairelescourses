@@ -1706,6 +1706,30 @@ abstract class AppLocalizations {
   /// **'Couldn\'t end collaborative session. It will expire in 24 hours.'**
   String get sessionEndFailed;
 
+  /// No description provided for @notificationUnknownList.
+  ///
+  /// In en, this message translates to:
+  /// **'a list'**
+  String get notificationUnknownList;
+
+  /// No description provided for @notificationListItemAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone added {count} item(s) to \"{list}\".'**
+  String notificationListItemAdded(int count, String list);
+
+  /// No description provided for @notificationListUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone updated \"{list}\".'**
+  String notificationListUpdated(String list);
+
+  /// No description provided for @notificationTourFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone finished shopping for \"{list}\".'**
+  String notificationTourFinished(String list);
+
   /// No description provided for @offlineIndicator.
   ///
   /// In en, this message translates to:
