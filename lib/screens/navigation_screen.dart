@@ -753,11 +753,6 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen>
                 !_navigatedUnmatched.contains(i),
           )
           .toList();
-      final allUnmatchedHandled = stillUnmatched.every(
-        (item) => _checkedUnmatched.contains(item),
-      );
-      final canFinishNoStorePlan =
-          _resolvedUnmatched.isEmpty && allUnmatchedHandled;
       return Scaffold(
         appBar: AppBar(
           title: Text(l.navigationTitle),
@@ -918,7 +913,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen>
         bottomNavigationBar: SafeArea(
           minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           child: OutlinedButton.icon(
-            onPressed: canFinishNoStorePlan ? _finishTour : null,
+            onPressed: _finishTour,
             icon: const Icon(Icons.check),
             label: Text(l.finish),
           ),
@@ -930,6 +925,19 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen>
     final total = _effectiveTotal;
     final handled = _effectiveHandled;
     final allDone = total == 0 || handled >= total;
+    final allTourItems = <String>{
+      ...plan.globalUnmatched,
+      ...plan.storePlans.expand((s) => s.unmatched),
+      ..._carriedOverItems,
+      ...plan.storePlans.expand((s) => s.stops).expand((stop) => stop.items),
+    };
+    final checkedTourItems = <String>{
+      ..._checkedUnmatched,
+      ..._checkedPerStore.expand((items) => items),
+    };
+    final allItemsCheckedOff =
+        allTourItems.isNotEmpty &&
+        allTourItems.every(checkedTourItems.contains);
 
     return Scaffold(
       appBar: AppBar(
@@ -1075,6 +1083,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen>
                             _createListFromItems(items, move: move),
                         checkedUnmatched: _checkedUnmatched,
                         onToggleUnmatched: _toggleUnmatched,
+                        showAllItemsCollected: allItemsCheckedOff,
                       )
                     : _viewMode == _ViewMode.grid
                     ? _buildGridView(storePlan)
@@ -1408,6 +1417,7 @@ class _DoneView extends ConsumerWidget {
   final void Function(Iterable<String> items, bool move) onCreateList;
   final Set<String> checkedUnmatched;
   final void Function(String item) onToggleUnmatched;
+  final bool showAllItemsCollected;
 
   const _DoneView({
     required this.plan,
@@ -1425,6 +1435,7 @@ class _DoneView extends ConsumerWidget {
     required this.onCreateList,
     required this.checkedUnmatched,
     required this.onToggleUnmatched,
+    required this.showAllItemsCollected,
   });
 
   @override
@@ -1469,16 +1480,18 @@ class _DoneView extends ConsumerWidget {
                     : Colors.green,
               ),
               const SizedBox(height: 12),
-              Text(
-                l.allItemsChecked,
-                style: TextStyle(
-                  fontSize: 18,
-                  color:
-                      (hasExtra || finalDeferredItems.isNotEmpty) && isLastShop
-                      ? Colors.orange.shade800
-                      : null,
+              if (showAllItemsCollected)
+                Text(
+                  l.allItemsChecked,
+                  style: TextStyle(
+                    fontSize: 18,
+                    color:
+                        (hasExtra || finalDeferredItems.isNotEmpty) &&
+                            isLastShop
+                        ? Colors.orange.shade800
+                        : null,
+                  ),
                 ),
-              ),
               if (!isLastShop) ...[
                 // ── Intermediate store done ──────────────────────────────
                 const SizedBox(height: 16),
