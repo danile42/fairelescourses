@@ -501,14 +501,35 @@ class _ListEditorScreenState extends ConsumerState<ListEditorScreen> {
                             value: item.checked,
                             onChanged: null,
                           ),
-                          title: Text(
-                            item.name,
-                            style: item.checked
-                                ? const TextStyle(
-                                    decoration: TextDecoration.lineThrough,
-                                    color: Colors.grey,
-                                  )
-                                : null,
+                          title: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  item.name,
+                                  style: item.checked
+                                      ? const TextStyle(
+                                          decoration:
+                                              TextDecoration.lineThrough,
+                                          color: Colors.grey,
+                                        )
+                                      : null,
+                                ),
+                              ),
+                              if (!isAvailableInAnyStore)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 6),
+                                  child: Tooltip(
+                                    message: l.unmatched,
+                                    child: Icon(
+                                      Icons.help_outline,
+                                      size: 16,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
                           subtitle: item.category != null
                               ? Text(

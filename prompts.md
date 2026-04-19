@@ -475,3 +475,9 @@ The project was bootstrapped with `flutter create fairelescourses` and then hand
 259. ⚙️ When an item is added to a list, check if it is available in any store. If not, offer to assign it to a market. Also provide this option as part of the menu for those items. When done, finish the feature.
 
 
+
+260. ⚙️ Fix these 3 problems and then finish the feature:
+    - In a shopping list in edit mode, items not matched to any store should be marked with a (?) icon after the item text.
+    - Shop search should also start when the user enters a location and submits the input.
+    - The GitHub link does not work - it does not open the page in a browser.
+

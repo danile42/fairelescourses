@@ -662,6 +662,11 @@ class _ShopSearchScreenState extends ConsumerState<ShopSearchScreen> {
                                 border: const OutlineInputBorder(),
                               ),
                               onChanged: _onChanged,
+                              onSubmitted: (_) {
+                                if (_mode == _SearchMode.byLocation) {
+                                  _runSearchFromCurrentInput();
+                                }
+                              },
                               textInputAction: TextInputAction.done,
                             );
                           },

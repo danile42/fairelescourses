@@ -238,6 +238,27 @@ void main() {
   });
 
   group('ListEditorScreen – item actions', () {
+    testWidgets('shows (?) hint icon for unmatched items in edit mode', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          _list(
+            items: [
+              ShoppingItem(name: 'Milk'),
+              ShoppingItem(name: 'Butter'),
+            ],
+          ),
+          stores: [
+            _store(id: 's1', name: 'Store', goods: ['Milk']),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.help_outline), findsOneWidget);
+    });
+
     testWidgets(
       'checkboxes are display-only in edit mode (onChanged is null)',
       (tester) async {

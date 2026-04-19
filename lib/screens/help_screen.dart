@@ -82,9 +82,14 @@ class HelpScreen extends StatelessWidget {
             Center(
               child: TextButton(
                 onPressed: () async {
-                  final uri = Uri.parse(l.helpGithubUrl);
-                  if (await canLaunchUrl(uri)) {
-                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  final uri = Uri.tryParse(l.helpGithubUrl);
+                  if (uri == null) return;
+                  final launchedExternal = await launchUrl(
+                    uri,
+                    mode: LaunchMode.externalApplication,
+                  );
+                  if (!launchedExternal) {
+                    await launchUrl(uri, mode: LaunchMode.platformDefault);
                   }
                 },
                 child: Text(l.helpGithubLink),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:fairelescourses/l10n/app_localizations.dart';
@@ -16,6 +17,26 @@ Widget _app(Widget screen, {Locale locale = const Locale('en')}) => MaterialApp(
 // ── tests ─────────────────────────────────────────────────────────────────────
 
 void main() {
+  const launcherChannel = MethodChannel('plugins.flutter.io/url_launcher');
+
+  setUp(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(launcherChannel, (call) async {
+          if (call.method == 'launch' || call.method == 'launchUrl') {
+            return true;
+          }
+          if (call.method == 'canLaunch' || call.method == 'canLaunchUrl') {
+            return true;
+          }
+          return null;
+        });
+  });
+
+  tearDown(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(launcherChannel, null);
+  });
+
   group('HelpScreen', () {
     testWidgets('renders in English without error', (tester) async {
       await tester.pumpWidget(_app(const HelpScreen()));
@@ -61,6 +82,19 @@ void main() {
       await tester.tap(find.text('Get started'));
       await tester.pumpAndSettle();
       expect(find.text('Open'), findsOneWidget);
+    });
+
+    testWidgets('GitHub link button can be tapped without exception', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_app(const HelpScreen()));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Learn more on GitHub'));
+      await tester.tap(find.text('Learn more on GitHub'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
     });
   });
 

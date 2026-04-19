@@ -346,6 +346,14 @@ void main() {
   });
 
   group('ShopSearchScreen – By location', () {
+    testWidgets('location input field wires submit handler', (tester) async {
+      await tester.pumpWidget(_wrap());
+      await tester.pumpAndSettle();
+
+      final textField = tester.widget<TextField>(find.byType(TextField).first);
+      expect(textField.onSubmitted, isNotNull);
+    });
+
     testWidgets(
       'entered-location mode with home shows only one search button',
       (tester) async {
